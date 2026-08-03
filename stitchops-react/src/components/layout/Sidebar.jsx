@@ -1,42 +1,90 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
+import { useUi } from '../../store/UiContext';
+import OrderFormModal from '../orders/OrderFormModal';
+import CustomerFormModal from '../customers/CustomerFormModal';
+import {
+  DashboardIcon, BagIcon, DocIcon, PeopleIcon, PersonIcon, ChartIcon, GearIcon,
+  PlusIcon, UserPlusIcon, ShieldIcon
+} from '../icons/Icon';
 
 const ADMIN_NAV = [
-  ['/dashboard', 'Dashboard'],
-  ['/orders', 'Orders'],
-  ['/invoices', 'Invoices'],
-  ['/customers', 'Customers'],
-  ['/employees', 'Employees'],
-  ['/reports', 'Reports'],
-  ['/settings', 'Company settings']
+  ['/dashboard', 'Dashboard', DashboardIcon],
+  ['/orders', 'Orders', BagIcon],
+  ['/invoices', 'Invoices', DocIcon],
+  ['/customers', 'Customers', PeopleIcon],
+  ['/employees', 'Employees', PersonIcon]
+];
+const ADMIN_NAV_2 = [
+  ['/reports', 'Reports', ChartIcon],
+  ['/settings', 'Company settings', GearIcon]
 ];
 const SALES_NAV = [
-  ['/my-customers', 'My Customers'],
-  ['/my-payslip', 'My Payslip'],
-  ['/my-info', 'My Info']
+  ['/my-customers', 'My Customers', PeopleIcon],
+  ['/my-payslip', 'My Payslip', DocIcon],
+  ['/my-info', 'My Info', PersonIcon]
 ];
 
 export default function Sidebar({ open, onNavigate }) {
-  const { isAdmin, currentUser, logout } = useAppState();
-  const nav = isAdmin ? ADMIN_NAV : SALES_NAV;
+  const { isAdmin, orders, passwordResetRequests } = useAppState();
+  const { openModal } = useUi();
+  const navigate = useNavigate();
+
+  function renderNavItem([path, label, Icon]) {
+    return (
+      <NavLink
+        key={path}
+        to={path}
+        onClick={onNavigate}
+        className={({ isActive }) => `elg-nav-item ${isActive ? 'active' : ''}`}
+      >
+        <Icon width={17} height={17} />
+        {label}
+        {path === '/orders' && orders.length > 0 && <span className="elg-nav-badge">{orders.length}</span>}
+      </NavLink>
+    );
+  }
 
   return (
-    <div id="sidebar" className={open ? 'open' : ''}>
-      <div className="brand">Stitch<span>Ops</span></div>
-      {nav.map(([path, label]) => (
-        <NavLink
-          key={path}
-          to={path}
-          onClick={onNavigate}
-          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-        >
-          <span className="nav-dot"></span>{label}
-        </NavLink>
-      ))}
-      <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
-        <div style={{ padding: '0 10px 8px', fontSize: '11.5px', color: 'var(--ink-3)' }}>{currentUser.email}</div>
-        <div className="nav-item" onClick={logout}><span className="nav-dot"></span>Log out</div>
+    <div id="sidebar" className={`elg-sidebar ${open ? 'open' : ''}`}>
+      <div className="elg-logo">
+        <div className="elg-logo-mark"><BagIcon width={16} height={16} /></div>
+        <div className="elg-logo-text">
+          <div className="l1">The Elegants</div>
+          <div className="l2">Design Ltd.</div>
+        </div>
       </div>
+
+      {isAdmin && (
+        <div className="elg-sidebar-actions">
+          <button className="elg-btn elg-btn-primary" onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+            <PlusIcon /> Add Order
+          </button>
+          <button className="elg-btn" onClick={() => openModal(<CustomerFormModal />)}>
+            <UserPlusIcon /> Add Customer
+          </button>
+        </div>
+      )}
+
+      <div className="elg-nav">
+        {(isAdmin ? ADMIN_NAV : SALES_NAV).map(renderNavItem)}
+        {isAdmin && (
+          <>
+            <div className="elg-nav-divider"></div>
+            {ADMIN_NAV_2.map(renderNavItem)}
+          </>
+        )}
+      </div>
+
+      {isAdmin && passwordResetRequests.length > 0 && (
+        <div className="elg-attention-card">
+          <div className="elg-attention-icon"><ShieldIcon width={18} height={18} /></div>
+          <div className="elg-attention-text">
+            '{passwordResetRequests.length}' password reset request{passwordResetRequests.length > 1 ? 's' : ''} need{passwordResetRequests.length > 1 ? '' : 's'} your attention
+          </div>
+          <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
+        </div>
+      )}
     </div>
   );
 }

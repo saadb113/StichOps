@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileTopbar from './MobileTopbar';
+import TopBar from './TopBar';
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -10,12 +11,15 @@ export default function Layout() {
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
   return (
-    <div id="app">
+    <div id="app" className="elg-shell">
       <MobileTopbar onToggleMenu={() => setMobileMenuOpen((v) => !v)} />
       <div className={`mob-backdrop ${mobileMenuOpen ? 'open' : ''}`} onClick={() => setMobileMenuOpen(false)}></div>
       <Sidebar open={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
-      <div id="main">
-        <Outlet />
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        <TopBar />
+        <div id="main">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

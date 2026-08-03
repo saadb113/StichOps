@@ -44,7 +44,7 @@ export default function CustomerProfile() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {isAdmin && <button className="btn" onClick={() => openModal(<OrderFormModal customerId={c.id} />)}>+ Add order</button>}
+          {isAdmin && <button className="btn" onClick={() => openModal(<OrderFormModal customerId={c.id} />, { variant: 'elegant' })}>+ Add order</button>}
           {isAdmin && <button className="btn" onClick={() => openModal(<CustomerFormModal customer={c} />)}>Edit profile</button>}
         </div>
       </div>

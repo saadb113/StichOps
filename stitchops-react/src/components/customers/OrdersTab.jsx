@@ -65,7 +65,7 @@ export default function OrdersTab({ customer, orders }) {
                       &#128172; {count > 0 && <span style={{ fontSize: 10, color: 'var(--ink-2)' }}>{count}</span>}
                     </button>
                   </td>
-                  <td>{isAdmin && <button className="btn btn-sm btn-ghost" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />)}>&#8942;</button>}</td>
+                  <td>{isAdmin && <button className="btn btn-sm btn-ghost" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>&#8942;</button>}</td>
                 </tr>
                 {open && (
                   <tr>

@@ -14,18 +14,22 @@ export function UiProvider({ children }) {
     toastTimer.current = setTimeout(() => setToastShow(false), 2200);
   }, []);
 
-  const [modal, setModal] = useState(null); // { node, dismissible }
+  const [modal, setModal] = useState(null); // { node, dismissible, variant }
 
   const openModal = useCallback((node, opts) => {
-    setModal({ node, dismissible: !(opts && opts.dismissible === false) });
+    setModal({ node, dismissible: !(opts && opts.dismissible === false), variant: (opts && opts.variant) || 'legacy' });
   }, []);
   const closeModal = useCallback(() => setModal(null), []);
+
+  const isElegant = modal && modal.variant === 'elegant';
+  const overlayClass = isElegant ? 'elg-overlay' : 'overlay';
+  const modalClass = isElegant ? 'elg-modal' : 'modal';
 
   return (
     <UiContext.Provider value={{ toast, openModal, closeModal, isModalOpen: !!modal }}>
       {children}
-      <div className={`overlay ${modal ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget && modal && modal.dismissible) closeModal(); }}>
-        <div className="modal">{modal ? modal.node : null}</div>
+      <div className={`${overlayClass} ${modal ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget && modal && modal.dismissible) closeModal(); }}>
+        <div className={modalClass}>{modal ? modal.node : null}</div>
       </div>
       <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>
     </UiContext.Provider>

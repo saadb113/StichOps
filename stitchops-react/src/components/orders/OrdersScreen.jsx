@@ -1,23 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, statusBadgeClass } from '../../lib/helpers';
-import { SYM, TODAY } from '../../lib/constants';
+import { commissionAmt } from '../../lib/helpers';
+import { SYM, TODAY, ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
+import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon } from '../icons/Icon';
+
+function elgStatusClass(status) {
+  if (status === 'Completed') return 'elg-badge-completed';
+  if (status === 'Pending') return 'elg-badge-pending';
+  if (status === 'In progress') return 'elg-badge-inprogress';
+  if (status === 'On hold') return 'elg-badge-onhold';
+  return 'elg-badge-cancelled';
+}
 
 export default function OrdersScreen() {
-  const { orders, getCustomer } = useAppState();
-  const { openModal } = useUi();
+  const { orders, getCustomer, deleteOrder } = useAppState();
+  const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
   const [date, setDate] = useState(TODAY);
   const [search, setSearch] = useState('');
   const [currency, setCurrency] = useState('');
+  const [status, setStatus] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   let list = orders.slice();
   if (date) list = list.filter((o) => o.date === date);
   if (currency) list = list.filter((o) => o.currency === currency);
+  if (status) list = list.filter((o) => o.status === status);
   if (search) {
     const q = search.toLowerCase();
     list = list.filter((o) => {
@@ -27,50 +45,88 @@ export default function OrdersScreen() {
   }
   list = list.sort((a, b) => b.date.localeCompare(a.date));
 
+  async function handleDelete(o) {
+    setOpenMenuId(null);
+    try {
+      await deleteOrder(o.id);
+      toast('Order deleted.');
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
   return (
-    <>
-      <div className="topbar">
+    <div className="elg-page">
+      <div className="elg-crumbs">
+        <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
+        <span className="elg-crumb-sep">/</span>
+        <span className="elg-crumb-current">Orders</span>
+      </div>
+
+      <div className="elg-page-head">
         <div>
-          <div className="page-title">Orders</div>
-          <div className="page-sub">{date ? 'Showing ' + date : 'Showing all dates'} &middot; {list.length} order{list.length === 1 ? '' : 's'}</div>
-        </div>
-        <button className="btn btn-primary" onClick={() => openModal(<OrderFormModal allowCompanyPicker />)}>+ Add order</button>
-      </div>
-      <div className="panel" style={{ padding: '14px 18px' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }} />
-          <button className="btn btn-sm" onClick={() => setDate('')}>Show all dates</button>
-          <div className="search" style={{ width: 240 }}>
-            <span>&#128269;</span>
-            <input placeholder="Search order or customer..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }}>
-            <option value="">All currencies</option>
-            {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-          </select>
+          <div className="elg-page-title">Orders</div>
+          <div className="elg-page-sub">{list.length} order{list.length === 1 ? '' : 's'} listed</div>
         </div>
       </div>
-      <div className="panel">
-        <table>
-          <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Price</th><th>Status</th><th></th></tr></thead>
+
+      <div className="elg-panel elg-filterbar">
+        <div className="elg-field-search">
+          <SearchIcon />
+          <input placeholder="Search order or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="elg-date-field">
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+            <CalendarIcon />
+          </span>
+          {date && <button className="elg-date-clear" title="Clear date" onClick={() => setDate('')}>&times;</button>}
+        </div>
+        <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="">All Status</option>
+          {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+          <option value="">All Currencies</option>
+          {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+        </select>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+          <PlusIcon /> Add Order
+        </button>
+      </div>
+
+      <div className="elg-panel elg-table-wrap">
+        <table className="elg-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th>Actions</th></tr></thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={6} className="empty">No orders match these filters.</td></tr>}
+            {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
             {list.map((o) => {
               const c = getCustomer(o.customerId);
               return (
-                <tr key={o.id}>
-                  <td className="clickable" onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
-                  <td className="clickable" onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
-                  <td>{o.date}</td>
-                  <td>{fmt(o.price, o.currency)}</td>
-                  <td><span className={`badge ${statusBadgeClass(o.status)}`}>{o.status}</span></td>
-                  <td><button className="btn btn-sm btn-ghost" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />)}>&#8942;</button></td>
+                <tr key={o.id} className="clickable">
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
+                  <td><span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span></td>
+                  <td>{o.currency}</td>
+                  <td>{o.price.toFixed(2)}</td>
+                  <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
+                  <td>
+                    <div className="elg-row-actions">
+                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><PencilIcon /></button>
+                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon /></button>
+                      {openMenuId === o.id && (
+                        <div className="elg-row-menu">
+                          <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>Delete order</button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }

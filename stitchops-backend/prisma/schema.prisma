@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SALESPERSON
+}
+
+// Singleton row (id always 1) holding server-generated sequence numbers
+// that the UI needs to preview before the record actually exists
+// (e.g. "will be numbered INV-0232 on approval").
+model Counter {
+  id               Int @id @default(autoincrement())
+  nextInvoiceNo    Int @default(232)
+  nextCustomerCode Int @default(1005)
+}
+
+model Company {
+  id          Int    @id @default(autoincrement())
+  name        String
+  address     String
+  bankName    String
+  accountName String
+  accountGBP  String
+  accountUSD  String
+  accountEUR  String
+  accountAUD  String
+}
+
+model EmployeeCategory {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+}
+
+model Employee {
+  id          Int     @id @default(autoincrement())
+  name        String
+  role        String
+  designation String?
+  currency    String
+  baseSalary  Float
+  payoutDay   Int
+  email       String?
+
+  user                  User?
+  companyEmails         CompanyEmail[]
+  customers             Customer[]              @relation("CustomerSalesperson")
+  designedOrders        Order[]                 @relation("OrderDesigner")
+  payslips              Payslip[]
+  passwordResetRequests PasswordResetRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CompanyEmail {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  employeeId Int?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+}
+
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  passwordHash       String
+  role               UserRole
+  employeeId         Int?      @unique
+  employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  mustChangePassword Boolean   @default(false)
+  welcomed           Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id            Int      @id @default(autoincrement())
+  customerCode  String?  @unique
+  name          String
+  company       String
+  country       String
+  currency      String
+  email         String
+  emailClient   String
+  contact       String
+  salespersonId Int
+  salesperson   Employee @relation("CustomerSalesperson", fields: [salespersonId], references: [id])
+  receivedEmail String?
+  status        String   @default("Free Trial")
+  invoiceDay    Int?
+  notes         String   @default("")
+
+  orders   Order[]
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id             Int      @id @default(autoincrement())
+  customerId     Int
+  customer       Customer @relation(fields: [customerId], references: [id])
+  name           String
+  date           DateTime @db.Date
+  price          Float
+  currency       String
+  designerId     Int
+  designer       Employee @relation("OrderDesigner", fields: [designerId], references: [id])
+  productionCost Float    @default(0)
+  commissionRate Float    @default(10)
+  status         String   @default("Pending")
+
+  commissionPaid Boolean @default(false)
+  productionPaid Boolean @default(false)
+
+  commissionPayslipId Int?
+  commissionPayslip   Payslip? @relation("CommissionPayslip", fields: [commissionPayslipId], references: [id])
+  productionPayslipId Int?
+  productionPayslip   Payslip? @relation("ProductionPayslip", fields: [productionPayslipId], references: [id])
+
+  invoiceId Int?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  comments OrderComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderComment {
+  id      Int      @id @default(autoincrement())
+  orderId Int
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  author  String
+  date    DateTime @db.Date
+  text    String
+
+  createdAt DateTime @default(now())
+}
+
+model Invoice {
+  id            Int      @id @default(autoincrement())
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+  invoiceNo     String   @unique
+  version       Int      @default(1)
+  total         Float
+  currency      String
+  generatedDate DateTime @db.Date
+  approvedDate  DateTime @db.Date
+  paymentStatus String   @default("Pending")
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+}
+
+model Payslip {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  employee     Employee @relation(fields: [employeeId], references: [id])
+  slipNo       String   @unique
+  total        Float
+  currency     String
+  baseSalary   Float
+  commission   Float
+  approvedDate DateTime @db.Date
+
+  commissionOrders Order[] @relation("CommissionPayslip")
+  productionOrders Order[] @relation("ProductionPayslip")
+
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetRequest {
+  id          Int      @id @default(autoincrement())
+  email       String
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  requestedAt DateTime @default(now())
+}

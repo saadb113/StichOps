@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Stitch Ops — Prototype</title>
+<style>
+  :root{
+    --bg:#F6F5F1; --surface:#FFFFFF; --surface-2:#EFEDE6;
+    --ink:#1E1D1A; --ink-2:#6B6A64; --ink-3:#9C9A92;
+    --line:#E2DFD5; --line-strong:#CFCBBC;
+    --accent:#2F5D50; --accent-ink:#EAF2EE; --accent-soft:#DCE9E3;
+    --amber:#B5762B; --amber-soft:#F5E8D5; --amber-ink:#5C3B14;
+    --red:#B23A34; --red-soft:#F6E1DF; --red-ink:#6B2320;
+    --blue:#2E5B8A; --blue-soft:#E1EAF3; --blue-ink:#1B3958;
+    --radius:10px; --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);}
+  #app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  #sidebar{width:220px;background:var(--surface);border-right:1px solid var(--line);padding:20px 14px;flex-shrink:0;}
+  .brand{font-weight:700;font-size:17px;letter-spacing:-0.02em;padding:0 8px 22px;color:var(--ink);}
+  .brand span{color:var(--accent);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--ink-2);cursor:pointer;margin-bottom:2px;font-weight:500;}
+  .nav-item:hover{background:var(--surface-2);color:var(--ink);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent);}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.55;flex-shrink:0;}
+
+  /* Main */
+  #main{flex:1;padding:28px 36px;max-width:1180px;min-width:0;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+
+  /* Mobile top bar (hidden on desktop) */
+  #mobileTopbar{display:none;}
+  .mob-backdrop{display:none;}
+  .page-title{font-size:20px;font-weight:700;letter-spacing:-0.01em;}
+  .page-sub{font-size:13px;color:var(--ink-2);margin-top:2px;}
+  .btn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);}
+  .btn:hover{background:var(--surface-2);}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-primary:hover{background:#264D42;}
+  .btn-primary:disabled{background:var(--ink-3);border-color:var(--ink-3);cursor:not-allowed;}
+  .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+  .btn-ghost{border-color:transparent;background:transparent;}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-danger-text{color:var(--red);}
+
+  /* Cards / grids */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+  .profile-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;}
+  .metric{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .metric .label{font-size:12px;color:var(--ink-2);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;}
+  .metric .value{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+  .metric .sub{font-size:11.5px;color:var(--ink-3);margin-top:3px;}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto;overflow-y:hidden;margin-bottom:20px;}
+  .panel-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .panel-head h3{margin:0;font-size:14.5px;font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:10px 18px;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-3);font-weight:700;border-bottom:1px solid var(--line);background:var(--surface-2);}
+  td{padding:11px 18px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr.clickable:hover{background:var(--surface-2);cursor:pointer;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:700;}
+  .b-active{background:var(--accent-soft);color:var(--accent);}
+  .b-inactive{background:var(--surface-2);color:var(--ink-3);}
+  .b-pending{background:var(--amber-soft);color:var(--amber-ink);}
+  .b-completed{background:var(--accent-soft);color:var(--accent);}
+  .b-review{background:var(--amber-soft);color:var(--amber-ink);}
+  .b-unpaid{background:var(--red-soft);color:var(--red-ink);font-weight:800;}
+  .b-approved{background:var(--blue-soft);color:var(--blue-ink);}
+
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:7px 12px;width:280px;}
+  .search input{border:none;outline:none;font-size:13px;flex:1;background:transparent;font-family:var(--font);}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,19,15,0.4);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 20px;overflow:auto;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:14px;width:560px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{margin:0;font-size:16px;font-weight:700;}
+  .modal-body{padding:20px 22px;max-height:65vh;overflow:auto;}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:5px;}
+  .field input, .field select{width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);background:var(--surface);color:var(--ink);}
+  .field input:focus, .field select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .hint{font-size:11px;color:var(--ink-3);margin-top:4px;}
+  .autocomplete{position:relative;}
+  .ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;margin-top:3px;box-shadow:0 8px 20px rgba(0,0,0,0.08);z-index:10;max-height:160px;overflow:auto;display:none;}
+  .ac-list.open{display:block;}
+  .ac-item{padding:8px 12px;font-size:13px;cursor:pointer;}
+  .ac-item:hover{background:var(--surface-2);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+  .tab{padding:9px 14px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .profile-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .avatar{width:46px;height:46px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;}
+  .kv{display:flex;flex-direction:column;gap:9px;font-size:13px;}
+  .kv-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);}
+  .kv-row:last-child{border:none;}
+  .kv-row .k{color:var(--ink-2);}
+  .kv-row .v{font-weight:600;}
+
+  .empty{padding:44px 20px;text-align:center;color:var(--ink-3);font-size:13px;}
+  .empty i{display:block;font-size:12px;margin-bottom:6px;}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:200;display:none;}
+  .toast.show{display:block;}
+
+  .invoice-doc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px;font-size:13px;}
+  .invoice-doc .idr{display:flex;justify-content:space-between;margin-bottom:22px;}
+  .invoice-doc h2{margin:0 0 4px;font-size:18px;}
+  .invoice-doc table{margin-top:14px;}
+  .invoice-doc th, .invoice-doc td{padding:8px 10px;}
+  .invoice-total-row td{font-weight:700;font-size:14px;border-top:2px solid var(--ink);}
+  .bank-box{margin-top:20px;padding:12px 14px;background:var(--surface-2);border-radius:8px;font-size:12px;line-height:1.6;}
+
+  .flag{background:var(--amber-soft);color:var(--amber-ink);border:1px solid #E3C78E;border-radius:8px;padding:10px 14px;font-size:12.5px;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;}
+
+  select[multiple]{height:auto;}
+  .commission-note{font-size:11.5px;color:var(--ink-3);margin-top:3px;}
+
+  /* Auth screens */
+  .auth-wrap{min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+  .auth-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:34px 32px;width:380px;box-shadow:0 8px 30px rgba(0,0,0,0.06);}
+  .auth-brand{font-weight:700;font-size:19px;margin-bottom:4px;}
+  .auth-brand span{color:var(--accent);}
+  .auth-sub{font-size:13px;color:var(--ink-2);margin-bottom:22px;}
+  .auth-error{background:var(--red-soft);color:var(--red-ink);font-size:12.5px;padding:8px 12px;border-radius:7px;margin-bottom:14px;font-weight:600;}
+  .auth-hint-box{background:var(--surface-2);border-radius:8px;padding:10px 12px;font-size:11.5px;color:var(--ink-2);margin-top:14px;line-height:1.5;}
+  .role-tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-3);background:var(--surface-2);padding:2px 8px;border-radius:100px;margin-top:6px;}
+
+  /* Calendar */
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .cal-nav{display:flex;gap:6px;align-items:center;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-dow{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.03em;text-align:center;padding:4px 0;}
+  .cal-cell{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-height:74px;padding:6px 8px;cursor:default;}
+  .cal-cell.empty{background:transparent;border:none;}
+  .cal-cell.has-comm{cursor:pointer;border-color:var(--accent-soft);}
+  .cal-cell.has-comm:hover{background:var(--accent-ink);}
+  .cal-cell.today{border-color:var(--accent);border-width:2px;}
+  .cal-daynum{font-size:11.5px;font-weight:700;color:var(--ink-2);}
+  .cal-amt{font-size:11.5px;font-weight:700;color:var(--accent);margin-top:6px;line-height:1.3;}
+
+  /* ===== Mobile (phone-width) layout ===== */
+  @media (max-width: 640px){
+    body{font-size:14px;}
+    #app{display:block;}
+
+    /* Sticky mobile top bar with hamburger */
+    #mobileTopbar{
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:60; background:var(--surface);
+      border-bottom:1px solid var(--line); padding:12px 14px;
+    }
+    #mobileTopbar .brand{padding:0;font-size:16px;}
+    .hamburger{
+      width:36px;height:36px;border-radius:8px;border:1px solid var(--line-strong);
+      background:var(--surface);display:flex;align-items:center;justify-content:center;
+      cursor:pointer;flex-shrink:0;
+    }
+    .hamburger span, .hamburger span::before, .hamburger span::after{
+      content:'';display:block;width:16px;height:2px;background:var(--ink);position:relative;
+    }
+    .hamburger span::before{position:absolute;top:-5px;}
+    .hamburger span::after{position:absolute;top:5px;}
+
+    /* Sidebar becomes a slide-in drawer */
+    #sidebar{
+      position:fixed; top:0; left:0; height:100vh; width:76vw; max-width:290px;
+      transform:translateX(-100%); transition:transform 0.22s ease;
+      z-index:80; overflow-y:auto; box-shadow:8px 0 24px rgba(0,0,0,0.12);
+    }
+    #sidebar.open{transform:translateX(0);}
+    .mob-backdrop.open{
+      display:block; position:fixed; inset:0; background:rgba(20,19,15,0.45); z-index:70;
+    }
+
+    /* Main content */
+    #main{padding:16px 14px 40px; max-width:100%;}
+    .topbar{flex-wrap:wrap; gap:10px; align-items:flex-start;}
+    .topbar > div:first-child{width:100%;}
+    .topbar > div:not(:first-child){width:100%;flex-wrap:wrap;}
+    .page-title{font-size:18px;}
+
+    /* Metrics + profile grids stack */
+    .grid4{grid-template-columns:repeat(2,1fr); gap:10px;}
+    .metric{padding:12px 14px;}
+    .metric .value{font-size:18px;}
+    .profile-grid{grid-template-columns:1fr;}
+    .profile-grid, .profile-grid > *{min-width:0;}
+    #tabContent{min-width:0;}
+
+    /* Forms */
+    .field-row{grid-template-columns:1fr;}
+    .search{width:100%;}
+    .modal-body .field-row{gap:0;}
+
+    /* Tables scroll horizontally instead of squeezing */
+    table{min-width:640px;}
+    .panel table{font-size:12.5px;}
+    .invoice-doc{padding:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .invoice-doc .idr{flex-wrap:wrap;gap:10px;}
+    .invoice-doc .idr > div:last-child{text-align:left;}
+
+    /* Modal */
+    .overlay{padding:16px 10px;align-items:flex-start;}
+    .modal{width:100%;}
+    .modal-body{padding:16px;max-height:72vh;}
+    .modal-head{padding:14px 16px;}
+    .modal-foot{padding:12px 16px;flex-wrap:wrap;}
+
+    /* Cards / lists */
+    .profile-head{flex-wrap:wrap;gap:10px;}
+    .tabs{overflow-x:auto;white-space:nowrap;flex-wrap:nowrap;}
+    .tab{flex-shrink:0;}
+
+    /* Calendar: shrink cells so 7 columns still fit at 390px width */
+    .cal-grid{gap:4px;}
+    .cal-cell{min-height:52px;padding:4px 5px;}
+    .cal-daynum{font-size:10px;}
+    .cal-amt{font-size:9.5px;}
+    .cal-dow{font-size:9.5px;}
+
+    /* Auth screens */
+    .auth-card{width:100%;padding:26px 20px;}
+
+    /* Comparison / featured buttons that used to sit inline now wrap */
+    .btn{white-space:nowrap;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modalRoot"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- In-memory data store ---------- */
+const CCY = { "United Kingdom":"GBP", "United States":"USD", "Germany":"EUR", "France":"EUR", "Australia":"AUD" };
+const SYM = { GBP:"£", USD:"$", EUR:"€", AUD:"A$", PKR:"₨" };
+const TODAY = '2026-07-13';
+
+let state = {
+  page:'dashboard',
+  dashboardDate:'2026-07-13',
+  currentUser: null,
+  authError: '',
+  calendarMonth: '2026-07',
+  payslipFilterDate: null,
+  openSlipId: null,
+  invoiceEditRowId: null,
+  editingInvoiceId: null,
+  invHistEditRowId: null,
+  slipEditCtx: null,
+  slipEditRowId: null,
+  mobileMenuOpen: false,
+  ordersScreenDate: TODAY,
+  ordersScreenSearch: '',
+  ordersScreenCurrency: '',
+  invoicesScreenDate: null,
+  invoicesScreenSearch: '',
+  invoicesScreenCurrency: '',
+  invoicesScreenStatus: '',
+  modalDismissible: true,
+  passwordResetRequests: [],
+  showForgotPassword: false,
+  forgotPasswordSent: false,
+  customers:[
+    {id:1,customerCode:"CUST-1001",name:"James Whitfield",company:"Northbridge Retail Ltd",country:"United Kingdom",currency:"GBP",email:"james@northbridge.co.uk",emailClient:"Outlook",contact:"+44 7700 900123",salesperson:"Ayesha Khan",receivedEmail:"ayesha.khan@stitchops.com",status:"Paid",invoiceDay:5,notes:"Prefers PNG proofs before approval."},
+    {id:2,customerCode:"CUST-1002",name:"Carla Mendes",company:"Solaris Apparel Co",country:"United States",currency:"USD",email:"carla@solarisapparel.com",emailClient:"Gmail",contact:"+1 305 555 0142",salesperson:"Daniyal Raza",receivedEmail:"daniyal.sales@stitchops.com",status:"Paid",invoiceDay:1,notes:""},
+    {id:3,customerCode:"CUST-1003",name:"Hannah Fischer",company:"Fischer & Bloom Textiles",country:"Germany",currency:"EUR",email:"hannah@fischerbloom.de",emailClient:"Outlook",contact:"+49 176 55501234",salesperson:"Ayesha Khan",receivedEmail:"ayesha.khan@stitchops.com",status:"Paid",invoiceDay:28,notes:"Bulk orders, always check thread count."},
+    {id:4,customerCode:"CUST-1004",name:"Liam O'Rourke",company:"Southport Uniforms",country:"Australia",currency:"AUD",email:"liam@southportuniforms.au",emailClient:"Gmail",contact:"+61 4 1234 5678",salesperson:"Daniyal Raza",receivedEmail:null,status:"Free Trial",invoiceDay:15,notes:""}
+  ],
+  orders:[
+    {id:101,customerId:1,name:"Autumn Polo Batch",date:"2026-06-04",price:480,currency:"GBP",designer:"Rehan Iqbal",productionCost:90,commissionRate:10,status:"Completed",invoiced:true},
+    {id:102,customerId:1,name:"Staff Jacket Logo Set",date:"2026-06-19",price:610,currency:"GBP",designer:"Rehan Iqbal",productionCost:120,commissionRate:10,status:"Completed",invoiced:false},
+    {id:103,customerId:1,name:"Warehouse Cap Redesign",date:"2026-07-02",price:220,currency:"GBP",designer:"Sana Malik",productionCost:40,commissionRate:10,status:"Pending",invoiced:false},
+    {id:104,customerId:2,name:"Summer Tee Drop",date:"2026-06-11",price:950,currency:"USD",designer:"Sana Malik",productionCost:180,commissionRate:10,status:"Completed",invoiced:false},
+    {id:105,customerId:2,name:"Retail Tag Patches",date:"2026-06-27",price:340,currency:"USD",designer:"Rehan Iqbal",productionCost:60,commissionRate:12,status:"Completed",invoiced:false},
+    {id:106,customerId:3,name:"Q3 Corporate Set",date:"2026-06-08",price:1200,currency:"EUR",designer:"Sana Malik",productionCost:210,commissionRate:10,status:"Completed",invoiced:false},
+    {id:107,customerId:4,name:"School Uniform Crest",date:"2026-06-30",price:530,currency:"AUD",designer:"Rehan Iqbal",productionCost:95,commissionRate:10,status:"Pending",invoiced:false}
+  ].map(o=>Object.assign(o,{comments:[]})),
+  invoices:[
+    {id:1,customerId:1,invoiceNo:"INV-0231",version:1,status:"approved",orderIds:[101],total:480,currency:"GBP",generatedDate:"2026-05-01",approvedDate:"2026-05-01",paymentStatus:"Pending"}
+  ],
+  company:{name:"StitchOps Digitizing", address:"14 Riverside Yard, Manchester, UK", bankName:"Barclays Bank UK", accountName:"StitchOps Digitizing Ltd", accountGBP:"IBAN GB29 NWBK 6016 1331 9268 19", accountUSD:"ACC 004512398, Routing 026009593", accountEUR:"IBAN DE89 3704 0044 0532 0130 00", accountAUD:"BSB 062-000, ACC 1122 3344"},
+  companyEmails:["ayesha.khan@stitchops.com","ayesha.sales1@stitchops.com","ayesha.sales2@stitchops.com","daniyal.raza@stitchops.com","daniyal.sales@stitchops.com","info@stitchops.com","leads@stitchops.com"],
+  nextInvoiceNo: 232,
+  activeCustomerId: 1,
+  activeInvoiceTab:'orders',
+  openCommentOrderId: null,
+  activeEmployeeId: 1,
+  activeEmployeeTab: 'earnings',
+  employeeCategories:["Salesperson","Designer"],
+  activeEmployeeCategory:"Salesperson",
+  employees:[
+    {id:1,name:"Ayesha Khan",role:"Salesperson",designation:"Senior Account Executive",currency:"GBP",baseSalary:1200,payoutDay:28,email:"ayesha.khan@stitchops.com",emails:["ayesha.khan@stitchops.com","ayesha.sales1@stitchops.com","ayesha.sales2@stitchops.com"]},
+    {id:2,name:"Daniyal Raza",role:"Salesperson",designation:"Account Executive",currency:"PKR",baseSalary:180000,payoutDay:28,email:"daniyal.raza@stitchops.com",emails:["daniyal.raza@stitchops.com","daniyal.sales@stitchops.com"]},
+    {id:3,name:"Rehan Iqbal",role:"Designer",designation:"Senior Digitizer",currency:"GBP",baseSalary:900,payoutDay:25,email:"rehan.iqbal@stitchops.com"},
+    {id:4,name:"Sana Malik",role:"Designer",designation:"Digitizer",currency:"GBP",baseSalary:950,payoutDay:25,email:"sana.malik@stitchops.com"}
+  ],
+  payslips:[
+    {id:1,employeeId:1,slipNo:"SLIP-101",total:1394,currency:"GBP",baseSalary:1200,commission:194,approvedDate:"2026-06-28",orderIds:[]},
+    {id:2,employeeId:1,slipNo:"SLIP-108",total:1261,currency:"GBP",baseSalary:1200,commission:61,approvedDate:"2026-05-28",orderIds:[]}
+  ],
+  users:[
+    {id:1,email:"admin@stitchops.com",password:"admin123",role:"admin",employeeId:null,mustChangePassword:false,welcomed:true},
+    {id:2,email:"ayesha.khan@stitchops.com",password:"Temp-7F2A",role:"salesperson",employeeId:1,mustChangePassword:true,welcomed:false},
+    {id:3,email:"daniyal.raza@stitchops.com",password:"Temp-9K3L",role:"salesperson",employeeId:2,mustChangePassword:true,welcomed:false}
+  ]
+};
+
+let nextId = { customer: 5, order: 108, invoice: 2, comment: 1, payslip: 3, customerCode: 1005, user: 4 };
+state.orders.forEach(o=>{ o.commissionPaid=false; o.productionPaid=false; });
+state.orders.push({id:nextId.order++, customerId:2, name:"Fall Collection Tags", date:"2026-07-13", price:410, currency:"USD", designer:"Sana Malik", productionCost:70, commissionRate:10, status:"Completed", invoiced:false, comments:[], commissionPaid:false, productionPaid:false});
+
+state.orders.find(o=>o.id===102).comments.push(
+  {id:'c1', author:'Ayesha Khan', date:'2026-06-20', text:'Client asked for the logo slightly larger on the left chest placement.'},
+  {id:'c2', author:'Rehan Iqbal', date:'2026-06-21', text:'Updated the digitizing file, resent proof for approval.'}
+);
+state.orders.find(o=>o.id===106).comments.push(
+  {id:'c3', author:'Sana Malik', date:'2026-06-09', text:'Thread count confirmed with client — proceeding to production.'}
+);
+
+/* ---------- Helpers ---------- */
+function fmt(amount, ccy){ return SYM[ccy] + Number(amount).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function customer(id){ return state.customers.find(c=>c.id===id); }
+function ordersFor(id){ return state.orders.filter(o=>o.customerId===id).sort((a,b)=> b.date.localeCompare(a.date)); }
+function isActive(cust){
+  const os = ordersFor(cust.id);
+  if(!os.length) return false;
+  const last = new Date(os[0].date);
+  const diffDays = (new Date('2026-07-13') - last) / 86400000;
+  return diffDays <= 15;
+}
+function commissionAmt(o){ return o.price * (o.commissionRate/100); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('modalRoot').innerHTML=''; state.modalDismissible = true; }
+function openModal(html, opts){ document.getElementById('modalRoot').innerHTML = html; document.getElementById('overlay').classList.add('open'); state.modalDismissible = !(opts && opts.dismissible===false); }
+function copyToClipboard(text, label){
+  const done = ()=> toast((label||'Copied')+' to clipboard.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('Could not copy — please copy manually.'); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- Auth helpers ---------- */
+function isAdmin(){ return state.currentUser && state.currentUser.role==='admin'; }
+function isSalesperson(){ return state.currentUser && state.currentUser.role==='salesperson'; }
+function currentEmployee(){ return state.currentUser && state.currentUser.employeeId ? employee(state.currentUser.employeeId) : null; }
+function genTempPassword(){ return 'Temp-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+function copyIconBtn(text, label){
+  return `<button class="btn btn-sm btn-ghost" title="Copy ${label}" onclick="copyToClipboard('${text.replace(/'/g,"\\'")}', '${label}')" style="padding:3px 7px;">&#128203;</button>`;
+}
+function showCredentialsPopup(title, name, email, tempPw){
+  openModal(`
+    <div class="modal-head"><h3>${title}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;">Share these credentials with <strong>${name}</strong> — they'll be asked to set their own password on first login.</p>
+      <div class="kv">
+        <div class="kv-row"><span class="k">Email</span><span class="v" style="display:flex;align-items:center;gap:6px;">${email} ${copyIconBtn(email,'Email')}</span></div>
+        <div class="kv-row"><span class="k">Temp password</span><span class="v" style="font-family:var(--mono);display:flex;align-items:center;gap:6px;">${tempPw} ${copyIconBtn(tempPw,'Temp password')}</span></div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:12px;" onclick="copyToClipboard('Email: ${email.replace(/'/g,"\\'")}\\nTemp password: ${tempPw}', 'Email and temp password')">&#128203; Copy both</button>
+    </div>
+    <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Done</button></div>
+  `, {dismissible:false});
+}
+
+/* ---------- Render router ---------- */
+function render(){
+  const app = document.getElementById('app');
+  if(!state.currentUser){ app.innerHTML = renderLogin(); return; }
+  if(state.currentUser.mustChangePassword){ app.innerHTML = renderChangePassword(); return; }
+  if(!state.currentUser.welcomed){ app.innerHTML = renderWelcome(); return; }
+  app.innerHTML = renderShell();
+}
+
+function navItemsFor(){
+  if(isAdmin()) return [
+    ['dashboard','Dashboard'],['ordersScreen','Orders'],['invoicesScreen','Invoices'],['customers','Customers'],['employees','Employees'],
+    ['reports','Reports'],['settings','Company settings']
+  ];
+  return [
+    ['salesCustomers','My Customers'],['myPayslip','My Payslip'],['myInfo','My Info']
+  ];
+}
+function pageGroupFor(page){
+  if(['customers','profile','salesCustomers'].includes(page)) return isAdmin()?'customers':'salesCustomers';
+  if(['employees','employeeProfile'].includes(page)) return 'employees';
+  return page;
+}
+function renderShell(){
+  const nav = navItemsFor();
+  const activeGroup = pageGroupFor(state.page);
+  const drawerOpen = state.mobileMenuOpen;
+  const mobileTopbarHtml = `
+    <div id="mobileTopbar">
+      <div class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu"><span></span></div>
+      <div class="brand">Stitch<span>Ops</span></div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="mob-backdrop ${drawerOpen?'open':''}" onclick="toggleMobileMenu()"></div>`;
+  const sidebarHtml = `
+    <div id="sidebar" class="${drawerOpen?'open':''}">
+      <div class="brand">Stitch<span>Ops</span></div>
+      ${nav.map(([p,label])=>`<div class="nav-item ${pageGroupFor(p)===activeGroup?'active':''}" onclick="goPage('${p}')"><span class="nav-dot"></span>${label}</div>`).join('')}
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line);">
+        <div style="padding:0 10px 8px;font-size:11.5px;color:var(--ink-3);">${state.currentUser.email}</div>
+        <div class="nav-item" onclick="logout()"><span class="nav-dot"></span>Log out</div>
+      </div>
+    </div>`;
+  let mainHtml = '';
+  if(state.page==='dashboard') mainHtml = renderDashboard();
+  else if(state.page==='ordersScreen') mainHtml = renderOrdersScreen();
+  else if(state.page==='invoicesScreen') mainHtml = renderInvoicesScreen();
+  else if(state.page==='customers') mainHtml = renderCustomers();
+  else if(state.page==='profile') mainHtml = renderProfile();
+  else if(state.page==='employees') mainHtml = renderEmployees();
+  else if(state.page==='employeeProfile') mainHtml = renderEmployeeProfile();
+  else if(state.page==='reports') mainHtml = renderReports();
+  else if(state.page==='settings') mainHtml = renderSettings();
+  else if(state.page==='salesCustomers') mainHtml = renderSalesCustomers();
+  else if(state.page==='myPayslip') mainHtml = renderMyPayslip();
+  else if(state.page==='myInfo') mainHtml = renderMyInfo();
+  else mainHtml = renderDashboard();
+  return mobileTopbarHtml + sidebarHtml + `<div id="main">${mainHtml}</div>`;
+}
+
+/* ---------- Auth screens ---------- */
+function renderLogin(){
+  if(state.showForgotPassword) return renderForgotPassword();
+  return `<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-brand">Stitch<span>Ops</span></div>
+    <div class="auth-sub">Sign in to your account</div>
+    ${state.authError ? `<div class="auth-error">${state.authError}</div>` : ''}
+    <div class="field"><label>Email</label><input id="login_email" placeholder="you@stitchops.com" onkeydown="if(event.key==='Enter') document.getElementById('login_password').focus()"></div>
+    <div class="field"><label>Password</label><input id="login_password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') attemptLogin()"></div>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);margin:-4px 0 14px;cursor:pointer;">
+      <input type="checkbox" id="login_remember" checked style="width:auto;"> Keep me signed in on this device
+    </label>
+    <button class="btn btn-primary" style="width:100%;" onclick="attemptLogin()">Log in</button>
+    <div style="text-align:center;margin-top:12px;">
+      <a href="#" style="font-size:12.5px;color:var(--accent);font-weight:600;" onclick="event.preventDefault();openForgotPassword();">Forgot password?</a>
+    </div>
+    <div class="auth-hint-box">Demo accounts — Admin: admin@stitchops.com / admin123. Salesperson (temp password, first login only): ayesha.khan@stitchops.com / Temp-7F2A. After activation, a salesperson signs in with their own password directly — no password reset or welcome screen again.</div>
+  </div></div>`;
+}
+function openForgotPassword(){ state.showForgotPassword=true; state.authError=''; render(); }
+function backToLogin(){ state.showForgotPassword=false; state.forgotPasswordSent=false; state.authError=''; render(); }
+function renderForgotPassword(){
+  return `<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-brand">Stitch<span>Ops</span></div>
+    <div class="auth-sub">Enter your account email — your admin will approve a new temporary password.</div>
+    ${state.authError ? `<div class="auth-error">${state.authError}</div>` : ''}
+    ${state.forgotPasswordSent ? `
+      <div class="auth-hint-box" style="margin-top:0;">Request sent. Your admin will review it and issue a new temporary password — you'll use the same email to log in once it's approved.</div>
+      <button class="btn" style="width:100%;margin-top:14px;" onclick="backToLogin()">Back to login</button>
+    ` : `
+      <div class="field"><label>Email</label><input id="forgot_email" placeholder="you@stitchops.com" onkeydown="if(event.key==='Enter') submitForgotPassword()"></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="submitForgotPassword()">Send request</button>
+      <div style="text-align:center;margin-top:12px;"><a href="#" style="font-size:12.5px;color:var(--accent);font-weight:600;" onclick="event.preventDefault();backToLogin();">Back to login</a></div>
+    `}
+  </div></div>`;
+}
+function submitForgotPassword(){
+  const email = document.getElementById('forgot_email').value.trim().toLowerCase();
+  const user = state.users.find(u=>u.email.toLowerCase()===email && u.role==='salesperson');
+  if(!user){ state.authError = 'No salesperson account found with that email.'; render(); return; }
+  if(!state.passwordResetRequests.some(r=>r.email===email)){
+    state.passwordResetRequests.push({id:Date.now(), email, employeeId:user.employeeId, requestedAt:TODAY});
+  }
+  state.authError = '';
+  state.forgotPasswordSent = true;
+  render();
+}
+function attemptLogin(){
+  const email = document.getElementById('login_email').value.trim().toLowerCase();
+  const password = document.getElementById('login_password').value;
+  const remember = document.getElementById('login_remember').checked;
+  const user = state.users.find(u=>u.email.toLowerCase()===email && u.password===password);
+  if(!user){ state.authError = 'Incorrect email or password.'; render(); return; }
+  state.authError = '';
+  state.currentUser = user;
+  state.currentUser.remember = remember;
+  state.page = user.role==='admin' ? 'dashboard' : 'salesCustomers';
+  render();
+}
+function renderChangePassword(){
+  const emp = currentEmployee();
+  return `<div class="auth-wrap"><div class="auth-card">
+    <div class="auth-brand">Stitch<span>Ops</span></div>
+    <div class="auth-sub">Welcome${emp?', '+emp.name:''} — set a new password to continue<span class="role-tag">First login</span></div>
+    ${state.authError ? `<div class="auth-error">${state.authError}</div>` : ''}
+    <div class="field"><label>New password</label><input id="pw_new" type="password" placeholder="At least 6 characters"></div>
+    <div class="field"><label>Confirm password</label><input id="pw_confirm" type="password" placeholder="Re-enter password" onkeydown="if(event.key==='Enter') submitNewPassword()"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="submitNewPassword()">Set password &amp; continue</button>
+  </div></div>`;
+}
+function submitNewPassword(){
+  const pw = document.getElementById('pw_new').value;
+  const confirm = document.getElementById('pw_confirm').value;
+  if(pw.length<6){ state.authError='Password must be at least 6 characters.'; render(); return; }
+  if(pw!==confirm){ state.authError='Passwords do not match.'; render(); return; }
+  state.currentUser.password = pw;
+  state.currentUser.mustChangePassword = false;
+  state.authError = '';
+  render();
+}
+function renderWelcome(){
+  const emp = currentEmployee();
+  if(!emp){ state.currentUser.welcomed=true; return renderShell(); }
+  return `<div class="auth-wrap"><div class="auth-card" style="width:420px;">
+    <div class="auth-brand">Stitch<span>Ops</span></div>
+    <div class="auth-sub">Here's what's on file for you — check it's correct before you continue.</div>
+    <div class="kv">
+      <div class="kv-row"><span class="k">Name</span><span class="v">${emp.name}</span></div>
+      <div class="kv-row"><span class="k">Designation</span><span class="v">${emp.designation||'—'}</span></div>
+      <div class="kv-row"><span class="k">Email</span><span class="v">${emp.email}</span></div>
+      <div class="kv-row"><span class="k">Paid in</span><span class="v">${emp.currency}</span></div>
+      <div class="kv-row"><span class="k">Base salary</span><span class="v">${fmt(emp.baseSalary,emp.currency)}</span></div>
+      <div class="kv-row"><span class="k">Payout day</span><span class="v">${emp.payoutDay} of each month</span></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:18px;" onclick="markWelcomed()">Continue to my dashboard</button>
+    <div class="hint" style="margin-top:10px;">Notice something wrong? Let your admin know — this is managed by them.</div>
+  </div></div>`;
+}
+function markWelcomed(){ state.currentUser.welcomed = true; render(); }
+function logout(){ state.currentUser=null; state.authError=''; state.showForgotPassword=false; state.forgotPasswordSent=false; render(); }
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const refDate = state.dashboardDate || '2026-07-13';
+  const todaysOrders = state.orders.filter(o=>o.date===refDate);
+  const todaysTotals = {};
+  todaysOrders.forEach(o=>{ todaysTotals[o.currency] = (todaysTotals[o.currency]||0) + o.price; });
+  const activeCount = state.customers.filter(isActive).length;
+  const pendingReview = state.orders.filter(o=>!o.invoiced && o.status==='Completed').length;
+
+  const dueSoon = state.customers.filter(c=>{
+    if(!c.invoiceDay) return false;
+    const d = new Date('2026-07-'+String(c.invoiceDay).padStart(2,'0'));
+    const today = new Date(refDate);
+    const diff = (d - today)/86400000;
+    return diff>=0 && diff<=3;
+  });
+  const payoutsSoon = state.employees.filter(e=>{
+    const d = new Date('2026-07-'+String(e.payoutDay).padStart(2,'0'));
+    const today = new Date(refDate);
+    const diff = (d - today)/86400000;
+    return diff>=0 && diff<=3;
+  });
+
+  const overdueInvoices = state.invoices.filter(i=>i.status==='approved' && i.paymentStatus!=='Completed' && paymentBadge(i).cls==='b-unpaid');
+  const totalsStr = Object.keys(todaysTotals).length ? Object.entries(todaysTotals).map(([cc,v])=>fmt(v,cc)).join(' + ') : 'No orders on this day';
+
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Dashboard</div><div class="page-sub">Showing results for the selected day</div></div>
+      <div class="field" style="margin:0;"><input type="date" id="dashDate" value="${refDate}" onchange="setDashboardDate(this.value)" style="width:auto;"></div>
+    </div>
+
+    ${dueSoon.length ? `<div class="flag"><span>&#9888;</span><div>${dueSoon.map(c=>`<strong>${c.company}</strong>'s invoice is due on ${c.invoiceDay} July.`).join(' ')}</div></div>` : ''}
+    ${payoutsSoon.length ? `<div class="flag"><span>&#9888;</span><div>${payoutsSoon.map(e=>`<strong>${e.name}</strong>'s salary slip is due on ${e.payoutDay} July.`).join(' ')}</div></div>` : ''}
+    ${overdueInvoices.length ? `<div class="flag" style="background:var(--red-soft);color:var(--red-ink);border-color:#E3AFA9;"><span>&#9888;</span><div>${overdueInvoices.map(i=>`<strong>${customer(i.customerId).company}</strong>'s invoice ${i.invoiceNo} is unpaid (${paymentBadge(i).label.replace('Unpaid — ','')} overdue).`).join(' ')}</div></div>` : ''}
+    ${state.passwordResetRequests.length ? `<div class="flag" style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;gap:8px;"><span>&#9888;</span><div>${state.passwordResetRequests.length} salesperson${state.passwordResetRequests.length>1?'s have':' has'} requested a password reset.</div></div>
+      <button class="btn btn-sm" onclick="goPage('employees')">Review</button>
+    </div>` : ''}
+
+    <div class="grid4">
+      <div class="metric"><div class="label">Active customers</div><div class="value">${activeCount}</div><div class="sub">of ${state.customers.length} total</div></div>
+      <div class="metric"><div class="label">Orders on ${refDate}</div><div class="value">${todaysOrders.length}</div><div class="sub">across all currencies</div></div>
+      <div class="metric"><div class="label">Ready to invoice</div><div class="value">${pendingReview}</div><div class="sub">completed, not yet invoiced</div></div>
+      <div class="metric"><div class="label">Revenue on ${refDate}</div><div class="value" style="font-size:16px;">${totalsStr}</div><div class="sub">selected day only</div></div>
+    </div>
+
+    <div class="hint" style="margin:-10px 0 18px;">For growth over time and custom date ranges, see the <a href="#" onclick="goPage('reports');return false;" style="color:var(--accent);">Reports</a> page.</div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Recent orders</h3><button class="btn btn-sm" onclick="goPage('customers')">View all customers</button></div>
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody>
+          ${state.orders.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6).map(o=>`
+            <tr class="clickable" onclick="openCustomerProfile(${o.customerId})">
+              <td>${o.name}</td>
+              <td>${customer(o.customerId).company}</td>
+              <td>${o.date}</td>
+              <td>${fmt(o.price,o.currency)}</td>
+              <td><span class="badge ${o.status==='Completed'?'b-completed':'b-pending'}">${o.status}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ---------- Customers list ---------- */
+/* ---------- Salesperson-scoped pages ---------- */
+function renderSalesCustomers(){
+  const emp = currentEmployee();
+  const mine = state.customers.filter(c=>c.salesperson===emp.name);
+  return `
+    <div class="topbar">
+      <div><div class="page-title">My Customers</div><div class="page-sub">${mine.length} customer${mine.length===1?'':'s'} assigned to you</div></div>
+      <div style="display:flex;gap:10px;">
+        <div class="search"><span>&#128269;</span><input id="custSearch" placeholder="Search name or company..." oninput="filterSalesCustomers()"></div>
+        <button class="btn btn-primary" onclick="showAddCustomer()">+ Add customer</button>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Company</th><th>Contact</th><th>Country</th><th>Currency</th><th>Status</th></tr></thead>
+        <tbody id="custTableBody">
+          ${mine.length ? mine.map(rowCustomerSales).join('') : `<tr><td colspan="6" class="empty"><i>No customers yet</i>Add your first customer to get started.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function rowCustomerSales(c){
+  const active = isActive(c);
+  return `<tr class="clickable" onclick="openCustomerProfile(${c.id})">
+    <td style="color:var(--ink-3);font-family:var(--mono);font-size:12px;">${c.customerCode || "—"}</td>
+    <td><strong>${c.company}</strong></td>
+    <td>${c.name}</td>
+    <td>${c.country}</td>
+    <td>${c.currency}</td>
+    <td><span class="badge ${active?'b-active':'b-inactive'}">${active?'Active':'Inactive'}</span></td>
+  </tr>`;
+}
+function filterSalesCustomers(){
+  const emp = currentEmployee();
+  const q = document.getElementById('custSearch').value.toLowerCase();
+  const list = state.customers.filter(c=>c.salesperson===emp.name && (c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q)));
+  document.getElementById('custTableBody').innerHTML = list.length ? list.map(rowCustomerSales).join('') : `<tr><td colspan="6" class="empty">No customers match "${q}".</td></tr>`;
+}
+
+function renderMyInfo(){
+  const emp = currentEmployee();
+  return `
+    <div class="topbar"><div><div class="page-title">My Info</div><div class="page-sub">Managed by your admin — contact them to correct anything</div></div></div>
+    <div class="panel" style="max-width:520px;">
+      <div class="panel-head"><h3>${emp.name}</h3></div>
+      <div style="padding:16px 18px;">
+        <div class="kv">
+          <div class="kv-row"><span class="k">Designation</span><span class="v">${emp.designation||'—'}</span></div>
+          <div class="kv-row"><span class="k">Email</span><span class="v">${emp.email}</span></div>
+          <div class="kv-row"><span class="k">Paid in</span><span class="v">${emp.currency}</span></div>
+          <div class="kv-row"><span class="k">Base salary</span><span class="v">${fmt(emp.baseSalary,emp.currency)}</span></div>
+          <div class="kv-row"><span class="k">Payout day</span><span class="v">${emp.payoutDay} of each month</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMyPayslip(){
+  const emp = currentEmployee();
+  let os = ordersForEmployee(emp).filter(o=>o.status==='Completed').sort((a,b)=>b.date.localeCompare(a.date));
+  const unpaidReady = os.filter(o=>!o.commissionPaid);
+  const unpaidTotalCombined = unpaidReady.reduce((s,o)=>s+commissionAmt(o), 0);
+  const unpaidStr = fmt(unpaidTotalCombined, emp.currency);
+
+  return `
+    <div class="topbar"><div><div class="page-title">My Payslip</div><div class="page-sub">Your commission and salary history</div></div></div>
+    <div class="tabs">
+      <div class="tab ${state.activeEmployeeTab!=='history'?'active':''}" onclick="switchEmployeeTab('earnings')">Current earnings</div>
+      <div class="tab ${state.activeEmployeeTab==='history'?'active':''}" onclick="switchEmployeeTab('history')">Slip history</div>
+    </div>
+    ${state.activeEmployeeTab==='history' ? renderEmployeeSlipHistoryReadonly(emp) : `
+      ${renderEmployeeEarningsReadonly(emp, os)}
+      <div class="panel">
+        <div class="panel-head"><h3>Next slip preview</h3></div>
+        <div style="padding:16px 18px;">
+          <div class="kv">
+            <div class="kv-row"><span class="k">Base salary</span><span class="v">${fmt(emp.baseSalary,emp.currency)}</span></div>
+            <div class="kv-row"><span class="k">Total commission</span><span class="v">${unpaidStr}</span></div>
+            <div class="kv-row"><span class="k" style="font-weight:700;color:var(--ink);">Total</span><span class="v" style="font-weight:800;">${fmt(emp.baseSalary+unpaidTotalCombined,emp.currency)}</span></div>
+          </div>
+          <div class="hint" style="margin-top:10px;">Your admin approves and generates the official slip on your payout day.</div>
+        </div>
+      </div>
+    `}
+  `;
+}
+function renderEmployeeEarningsReadonly(e, os){
+  if(!os.length) return `<div class="panel"><div class="empty"><i>No completed orders in this view</i>Try clearing the date filter or switching months.</div></div>`;
+  const byCust = {};
+  os.forEach(o=>{
+    if(!byCust[o.customerId]) byCust[o.customerId] = [];
+    byCust[o.customerId].push(o);
+  });
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Customer</th><th>Orders</th><th>Invoice total</th><th>Your commission</th><th>Status</th></tr></thead>
+      <tbody>
+        ${Object.entries(byCust).map(([custId,cOrders])=>{
+          const cust = customer(Number(custId));
+          const totals = {}, commTotals = {};
+          let allPaid = true;
+          cOrders.forEach(o=>{ totals[o.currency]=(totals[o.currency]||0)+o.price; commTotals[o.currency]=(commTotals[o.currency]||0)+commissionAmt(o); if(!o.commissionPaid) allPaid=false; });
+          return `<tr>
+            <td>${cust.company}</td>
+            <td>${cOrders.length}</td>
+            <td>${Object.entries(totals).map(([cc,v])=>fmt(v,cc)).join(' + ')}</td>
+            <td>${Object.entries(commTotals).map(([cc,v])=>fmt(v,cc)).join(' + ')}</td>
+            <td><span class="badge ${allPaid?'b-approved':'b-review'}">${allPaid?'Paid':'Unpaid'}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+function renderEmployeeSlipHistoryReadonly(e){
+  const slips = state.payslips.filter(s=>s.employeeId===e.id).sort((a,b)=>b.id-a.id);
+  if(!slips.length) return `<div class="panel"><div class="empty"><i>No slips yet</i>Your approved salary slips will appear here.</div></div>`;
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Slip</th><th>Date</th><th>Total</th></tr></thead>
+      <tbody>
+        ${slips.map(s=>slipHistoryRow(s,e)).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+function slipHistoryRow(s, e){
+  const open = state.openSlipId===s.id;
+  let html = `<tr class="clickable" onclick="toggleSlipPreview(${s.id})">
+    <td><strong>${s.slipNo}</strong></td>
+    <td>${s.approvedDate}</td>
+    <td>${fmt(s.total,s.currency)}</td>
+  </tr>`;
+  if(open){
+    html += `<tr>
+      <td colspan="3" style="background:var(--surface-2);padding:16px 18px;">
+        <div class="panel" style="margin:0;">
+          <div class="panel-head"><h3>${s.slipNo}</h3></div>
+          <div style="padding:16px 18px;">
+            <div class="kv">
+              <div class="kv-row"><span class="k">Base salary</span><span class="v">${fmt(s.baseSalary||0,s.currency)}</span></div>
+              <div class="kv-row"><span class="k">Total commission</span><span class="v">${fmt(s.commission!=null?s.commission:(s.total-(s.baseSalary||0)),s.currency)}</span></div>
+              <div class="kv-row"><span class="k">Total</span><span class="v">${fmt(s.total,s.currency)}</span></div>
+            </div>
+            <div class="hint" style="margin-top:10px;">Approved on ${s.approvedDate}.</div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return html;
+}
+function toggleSlipPreview(id){
+  state.openSlipId = state.openSlipId===id ? null : id;
+  render();
+}
+
+/* ---------- Orders screen (admin) ---------- */
+function getFilteredOrders(){
+  let list = state.orders.slice();
+  if(state.ordersScreenDate) list = list.filter(o=>o.date===state.ordersScreenDate);
+  if(state.ordersScreenCurrency) list = list.filter(o=>o.currency===state.ordersScreenCurrency);
+  if(state.ordersScreenSearch){
+    const q = state.ordersScreenSearch.toLowerCase();
+    list = list.filter(o=>{
+      const c = customer(o.customerId);
+      return o.name.toLowerCase().includes(q) || (c && (c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)));
+    });
+  }
+  return list.sort((a,b)=> b.date.localeCompare(a.date));
+}
+function ordersTableRows(list){
+  if(!list.length) return `<tr><td colspan="6" class="empty">No orders match these filters.</td></tr>`;
+  return list.map(o=>{
+    const c = customer(o.customerId);
+    return `<tr>
+      <td class="clickable" onclick="openCustomerProfile(${o.customerId})">${o.name}</td>
+      <td class="clickable" onclick="openCustomerProfile(${o.customerId})">${c?c.company:'—'}</td>
+      <td>${o.date}</td>
+      <td>${fmt(o.price,o.currency)}</td>
+      <td><span class="badge ${statusBadgeClass(o.status)}">${o.status}</span></td>
+      <td><button class="btn btn-sm btn-ghost" onclick="showEditOrder(${o.id})">&#8942;</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderOrdersScreen(){
+  const list = getFilteredOrders();
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Orders</div><div class="page-sub">${state.ordersScreenDate ? 'Showing '+state.ordersScreenDate : 'Showing all dates'} &middot; ${list.length} order${list.length===1?'':'s'}</div></div>
+      <button class="btn btn-primary" onclick="showAddOrderGlobal()">+ Add order</button>
+    </div>
+    <div class="panel" style="padding:14px 18px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="date" value="${state.ordersScreenDate||''}" onchange="setOrdersScreenDate(this.value)" style="padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);">
+        <button class="btn btn-sm" onclick="setOrdersScreenDate('')">Show all dates</button>
+        <div class="search" style="width:240px;"><span>&#128269;</span><input id="ordersSearchInput" placeholder="Search order or customer..." value="${state.ordersScreenSearch}" oninput="filterOrdersScreen()"></div>
+        <select onchange="setOrdersScreenCurrency(this.value)" style="padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);">
+          <option value="">All currencies</option>
+          ${Object.keys(SYM).map(cc=>`<option value="${cc}" ${state.ordersScreenCurrency===cc?'selected':''}>${cc}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Price</th><th>Status</th><th></th></tr></thead>
+        <tbody id="ordersTableBody">${ordersTableRows(list)}</tbody>
+      </table>
+    </div>
+  `;
+}
+function setOrdersScreenDate(v){ state.ordersScreenDate=v; render(); }
+function setOrdersScreenCurrency(v){ state.ordersScreenCurrency=v; render(); }
+function filterOrdersScreen(){
+  state.ordersScreenSearch = document.getElementById('ordersSearchInput').value;
+  document.getElementById('ordersTableBody').innerHTML = ordersTableRows(getFilteredOrders());
+}
+
+/* ---------- Global "Add order" (company-first, autofill) ---------- */
+function showAddOrderGlobal(){ openModal(globalOrderFormHtml(null)); }
+function globalOrderFormHtml(customerId){
+  const cust = customerId ? customer(customerId) : null;
+  return `
+    <div class="modal-head"><h3>Add order</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Company name</label>
+        <select id="go_company" onchange="onGlobalOrderCompanyChange()">
+          <option value="">— Select a customer —</option>
+          ${state.customers.map(c=>`<option value="${c.id}" ${customerId===c.id?'selected':''}>${c.company}</option>`).join('')}
+        </select>
+        <div class="hint">Everything else pulls from that customer's profile automatically — no need to re-type it.</div>
+      </div>
+      <div id="go_body">${cust?renderGlobalOrderFields(cust):''}</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGlobalOrder()">Add order</button>
+    </div>
+  `;
+}
+function onGlobalOrderCompanyChange(){
+  const id = Number(document.getElementById('go_company').value);
+  document.getElementById('go_body').innerHTML = id ? renderGlobalOrderFields(customer(id)) : '';
+}
+function renderGlobalOrderFields(c){
+  const designers = ["Rehan Iqbal","Sana Malik","Bilal Ahmed"];
+  const overdue = customerOverdueInvoices(c.id);
+  return `
+    ${overdue.length ? `<div class="flag" style="background:var(--red-soft);color:var(--red-ink);border-color:#E3AFA9;"><span>&#9888;</span><div>${c.company} hasn't paid ${overdue.length>1?'invoices':'invoice'} ${overdue.map(i=>`<strong>${i.invoiceNo}</strong>`).join(', ')}.</div></div>` : ''}
+    <div class="panel" style="margin-bottom:14px;">
+      <div style="padding:12px 16px;">
+        <div class="kv">
+          <div class="kv-row"><span class="k">Contact</span><span class="v">${c.name}</span></div>
+          <div class="kv-row"><span class="k">Phone</span><span class="v">${c.contact}</span></div>
+          <div class="kv-row"><span class="k">Email</span><span class="v">${c.email}</span></div>
+          <div class="kv-row"><span class="k">Country</span><span class="v">${c.country}</span></div>
+          <div class="kv-row"><span class="k">Default currency</span><span class="v">${c.currency}</span></div>
+          <div class="kv-row"><span class="k">Salesperson</span><span class="v">${c.salesperson}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Order name</label><input id="go_name" placeholder="Autumn Polo Batch"></div>
+      <div class="field"><label>Date</label><input id="go_date" type="date" value="${TODAY}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Price</label><input id="go_price" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Currency</label><select id="go_currency">${Object.keys(SYM).map(cc=>`<option value="${cc}" ${c.currency===cc?'selected':''}>${cc}</option>`).join('')}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Designer</label><select id="go_designer">${designers.map(d=>`<option>${d}</option>`).join('')}</select></div>
+      <div class="field"><label>Production cost</label><input id="go_cost" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Commission rate (%)</label><input id="go_commission" type="number" value="10"></div>
+      <div class="field"><label>Status</label><select id="go_status">${ORDER_STATUSES.map(s=>`<option ${s==='Completed'?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+  `;
+}
+function saveGlobalOrder(){
+  const companyEl = document.getElementById('go_company');
+  const custId = Number(companyEl.value);
+  if(!custId){ toast('Select a company first.'); return; }
+  const name = document.getElementById('go_name').value.trim();
+  const price = Number(document.getElementById('go_price').value);
+  if(!name || !price){ toast('Order name and price are required.'); return; }
+  const data = {
+    customerId: custId, name,
+    date: document.getElementById('go_date').value || TODAY,
+    price,
+    currency: document.getElementById('go_currency').value,
+    designer: document.getElementById('go_designer').value,
+    productionCost: Number(document.getElementById('go_cost').value)||0,
+    commissionRate: Number(document.getElementById('go_commission').value)||10,
+    status: document.getElementById('go_status').value,
+    invoiced:false, commissionPaid:false, productionPaid:false, comments:[]
+  };
+  state.orders.push({id:nextId.order++, ...data});
+  const cust = customer(custId);
+  if(cust.status!=='Paid'){ cust.status='Paid'; toast('Order added. '+cust.company+' status updated to Paid.'); }
+  else toast('Order added for '+cust.company+'.');
+  closeModal();
+  render();
+}
+
+/* ---------- Invoices screen (admin) ---------- */
+function getFilteredInvoices(){
+  let list = state.invoices.filter(i=>i.status==='approved');
+  if(state.invoicesScreenDate) list = list.filter(i=>i.generatedDate===state.invoicesScreenDate);
+  if(state.invoicesScreenCurrency) list = list.filter(i=>i.currency===state.invoicesScreenCurrency);
+  if(state.invoicesScreenStatus){
+    list = list.filter(i=>{
+      const pb = paymentBadge(i);
+      if(state.invoicesScreenStatus==='Paid') return pb.label==='Paid';
+      if(state.invoicesScreenStatus==='Pending') return pb.cls==='b-pending';
+      if(state.invoicesScreenStatus==='Overdue1') return pb.label==='Unpaid — 1 month';
+      if(state.invoicesScreenStatus==='Overdue2') return pb.cls==='b-unpaid' && pb.label!=='Unpaid — 1 month';
+      return true;
+    });
+  }
+  if(state.invoicesScreenSearch){
+    const q = state.invoicesScreenSearch.toLowerCase();
+    list = list.filter(i=>{ const c=customer(i.customerId); return c && (c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)); });
+  }
+  return list.sort((a,b)=> b.id-a.id);
+}
+function invoicesTableRows(list){
+  if(!list.length) return `<tr><td colspan="6" class="empty">No invoices match these filters.</td></tr>`;
+  return list.map(i=>{
+    const c = customer(i.customerId);
+    const pb = paymentBadge(i);
+    return `<tr>
+      <td>${i.invoiceNo}${i.version>1?' (v'+i.version+')':''}</td>
+      <td class="clickable" onclick="openCustomerProfile(${i.customerId})">${c?c.company:'—'}</td>
+      <td>${i.generatedDate}</td>
+      <td>${fmt(i.total,i.currency)}</td>
+      <td><span class="badge ${pb.cls}" style="cursor:pointer;" onclick="togglePaymentStatus(${i.id})" title="Click to toggle Paid/Unpaid">${pb.label}</span></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" onclick="toast('Downloading ${i.invoiceNo}.pdf')">Download</button>
+        <button class="btn btn-sm btn-ghost" onclick="showEditInvoiceOrders(${i.id})">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function renderInvoicesScreen(){
+  const list = getFilteredInvoices();
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Invoices</div><div class="page-sub">${list.length} invoice${list.length===1?'':'s'}</div></div>
+    </div>
+    <div class="panel" style="padding:14px 18px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="date" value="${state.invoicesScreenDate||''}" onchange="setInvoicesScreenDate(this.value)" style="padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);">
+        <button class="btn btn-sm" onclick="setInvoicesScreenDate('')">Show all dates</button>
+        <div class="search" style="width:220px;"><span>&#128269;</span><input id="invoicesSearchInput" placeholder="Search customer..." value="${state.invoicesScreenSearch}" oninput="filterInvoicesScreen()"></div>
+        <select onchange="setInvoicesScreenCurrency(this.value)" style="padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);">
+          <option value="">All currencies</option>
+          ${Object.keys(SYM).map(cc=>`<option value="${cc}" ${state.invoicesScreenCurrency===cc?'selected':''}>${cc}</option>`).join('')}
+        </select>
+        <select onchange="setInvoicesScreenStatus(this.value)" style="padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);">
+          <option value="">All payment statuses</option>
+          <option value="Paid" ${state.invoicesScreenStatus==='Paid'?'selected':''}>Paid</option>
+          <option value="Pending" ${state.invoicesScreenStatus==='Pending'?'selected':''}>Pending (under 1 month)</option>
+          <option value="Overdue1" ${state.invoicesScreenStatus==='Overdue1'?'selected':''}>Unpaid — 1 month</option>
+          <option value="Overdue2" ${state.invoicesScreenStatus==='Overdue2'?'selected':''}>Unpaid — 2+ months</option>
+        </select>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment status</th><th></th></tr></thead>
+        <tbody id="invoicesTableBody">${invoicesTableRows(list)}</tbody>
+      </table>
+    </div>
+  `;
+}
+function setInvoicesScreenDate(v){ state.invoicesScreenDate=v; render(); }
+function setInvoicesScreenCurrency(v){ state.invoicesScreenCurrency=v; render(); }
+function setInvoicesScreenStatus(v){ state.invoicesScreenStatus=v; render(); }
+function filterInvoicesScreen(){
+  state.invoicesScreenSearch = document.getElementById('invoicesSearchInput').value;
+  document.getElementById('invoicesTableBody').innerHTML = invoicesTableRows(getFilteredInvoices());
+}
+function showEditInvoiceOrders(invoiceId){
+  state.editingInvoiceId = invoiceId;
+  const inv = state.invoices.find(x=>x.id===invoiceId);
+  const c = customer(inv.customerId);
+  openModal(`
+    <div class="modal-head"><h3>Edit ${inv.invoiceNo} — ${c?c.company:''}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:12px;">Edit the name or price directly below. Changes save immediately and also show on the Orders screen.</p>
+      <table>
+        <thead><tr><th>Order</th><th style="text-align:right;">Price</th><th></th></tr></thead>
+        <tbody id="editInvOrdersBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button></div>
+  `);
+  refreshInvoiceHistoryRows();
+}
+function invoiceHistoryRowHtml(o){
+  const editing = state.invHistEditRowId===o.id;
+  if(editing){
+    return `<tr>
+      <td><input id="ihe_name_${o.id}" value="${o.name}" style="width:100%;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);"></td>
+      <td style="text-align:right;"><input id="ihe_price_${o.id}" type="number" step="0.01" value="${o.price}" style="width:90px;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);text-align:right;"></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-primary" onclick="saveInvoiceHistoryRowEdit(${o.id})">Save</button>
+        <button class="btn btn-sm btn-ghost" onclick="cancelInvoiceHistoryRowEdit()">Cancel</button>
+      </td>
+    </tr>`;
+  }
+  return `<tr>
+    <td>${o.name}</td><td style="text-align:right;">${fmt(o.price,o.currency)}</td>
+    <td><button class="btn btn-sm btn-ghost" onclick="toggleInvoiceHistoryRowEdit(${o.id})" title="Edit">&#9998;</button></td>
+  </tr>`;
+}
+function toggleInvoiceHistoryRowEdit(orderId){ state.invHistEditRowId = orderId; refreshInvoiceHistoryRows(); }
+function cancelInvoiceHistoryRowEdit(){ state.invHistEditRowId = null; refreshInvoiceHistoryRows(); }
+function saveInvoiceHistoryRowEdit(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  const name = document.getElementById('ihe_name_'+orderId).value.trim();
+  const price = Number(document.getElementById('ihe_price_'+orderId).value);
+  if(!name || !price){ toast('Order name and price are required.'); return; }
+  o.name = name; o.price = price;
+  state.invHistEditRowId = null;
+  toast('Order updated — reflected on the Orders screen too.');
+  refreshInvoiceHistoryRows();
+}
+function refreshInvoiceHistoryRows(){
+  const body = document.getElementById('editInvOrdersBody');
+  if(!body) return;
+  const inv = state.invoices.find(x=>x.id===state.editingInvoiceId);
+  const orders = state.orders.filter(o=>inv.orderIds.includes(o.id));
+  body.innerHTML = orders.map(o=>invoiceHistoryRowHtml(o)).join('');
+}
+
+function renderCustomers(){
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Customers</div><div class="page-sub">${state.customers.length} profiles</div></div>
+      <div style="display:flex;gap:10px;">
+        <div class="search"><span>&#128269;</span><input id="custSearch" placeholder="Search name or company..." oninput="filterCustomers()"></div>
+        <button class="btn btn-primary" onclick="showAddCustomer()">+ Add customer</button>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Company</th><th>Contact</th><th>Country</th><th>Currency</th><th>Salesperson</th><th>Status</th></tr></thead>
+        <tbody id="custTableBody">
+          ${state.customers.map(rowCustomer).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function rowCustomer(c){
+  const active = isActive(c);
+  return `<tr class="clickable" onclick="openCustomerProfile(${c.id})">
+    <td style="color:var(--ink-3);font-family:var(--mono);font-size:12px;">${c.customerCode || "—"}</td>
+    <td><strong>${c.company}</strong></td>
+    <td>${c.name}</td>
+    <td>${c.country}</td>
+    <td>${c.currency}</td>
+    <td>${c.salesperson}</td>
+    <td><span class="badge ${active?'b-active':'b-inactive'}">${active?'Active':'Inactive'}</span></td>
+  </tr>`;
+}
+function filterCustomers(){
+  const q = document.getElementById('custSearch').value.toLowerCase();
+  const list = state.customers.filter(c=>c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q));
+  document.getElementById('custTableBody').innerHTML = list.length ? list.map(rowCustomer).join('') : `<tr><td colspan="7" class="empty">No customers match "${q}".</td></tr>`;
+}
+function openCustomerProfile(id){ state.activeCustomerId = id; state.activeInvoiceTab='orders'; state.page='profile'; render(); }
+function goPage(p){ state.page=p; state.mobileMenuOpen=false; render(); }
+function toggleMobileMenu(){ state.mobileMenuOpen = !state.mobileMenuOpen; render(); }
+function setDashboardDate(d){ state.dashboardDate = d; render(); }
+
+/* ---------- Customer profile ---------- */
+function renderProfile(){
+  const c = customer(state.activeCustomerId);
+  if(!c) return `<div class="empty">Customer not found.</div>`;
+  const os = ordersFor(c.id);
+  const initials = c.company.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const active = isActive(c);
+  const uninvoiced = os.filter(o=>!o.invoiced && o.status==='Completed');
+  const overdue = customerOverdueInvoices(c.id);
+
+  return `
+    <div class="topbar">
+      <div>
+        <div class="page-sub" style="cursor:pointer;color:var(--accent);font-weight:600;" onclick="goPage('${isAdmin()?'customers':'salesCustomers'}')">&larr; ${isAdmin()?'All customers':'My customers'}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        ${isAdmin() ? `<button class="btn" onclick="showAddOrder(${c.id})">+ Add order</button>` : ''}
+        ${isAdmin() ? `<button class="btn" onclick="showEditCustomer(${c.id})">Edit profile</button>` : ''}
+      </div>
+    </div>
+
+    ${(isAdmin() && overdue.length) ? `<div class="flag" style="background:var(--red-soft);color:var(--red-ink);border-color:#E3AFA9;">
+      <span>&#9888;</span>
+      <div>${c.company} hasn't paid ${overdue.length>1?'invoices':'invoice'} ${overdue.map(i=>`<strong>${i.invoiceNo}</strong> (${paymentBadge(i).label.replace('Unpaid — ','')} overdue)`).join(', ')}.</div>
+    </div>` : ''}
+
+    <div class="profile-head">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div class="avatar">${initials}</div>
+        <div>
+          <div style="font-size:19px;font-weight:700;">${c.company}</div>
+          <div style="font-size:13px;color:var(--ink-2);">${c.customerCode || "—"} &middot; ${c.name} &middot; ${c.email}</div>
+        </div>
+      </div>
+      <span class="badge ${active?'b-active':'b-inactive'}" style="font-size:12px;padding:5px 12px;">${active?'Active':'Inactive'}</span>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <div class="tabs">
+          ${isAdmin() ? `<div class="tab ${state.activeInvoiceTab==='orders'?'active':''}" onclick="switchTab('orders')">Orders (${os.length})</div>` : ''}
+          <div class="tab ${isAdmin()?(state.activeInvoiceTab==='invoice'?'active':''):'active'}" onclick="switchTab('invoice')">Invoice ${uninvoiced.length?'&middot; '+uninvoiced.length+' ready':''}</div>
+          ${isAdmin() ? `<div class="tab ${state.activeInvoiceTab==='history'?'active':''}" onclick="switchTab('history')">Invoice history</div>` : ''}
+        </div>
+        <div id="tabContent">${renderTabContent(c, os)}</div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h3>Profile details</h3></div>
+          <div style="padding:16px 18px;">
+            <div class="kv">
+              <div class="kv-row"><span class="k">Customer ID</span><span class="v" style="font-family:var(--mono);">${c.customerCode || '—'}</span></div>
+              <div class="kv-row"><span class="k">Country</span><span class="v">${c.country}</span></div>
+              <div class="kv-row"><span class="k">Default currency</span><span class="v">${c.currency}</span></div>
+              <div class="kv-row"><span class="k">Contact</span><span class="v">${c.contact}</span></div>
+              <div class="kv-row"><span class="k">Email client</span><span class="v">${c.emailClient}</span></div>
+              <div class="kv-row"><span class="k">Salesperson</span><span class="v">${c.salesperson}</span></div>
+              ${c.receivedEmail ? `<div class="kv-row"><span class="k">Received via</span><span class="v" style="font-size:12px;">${c.receivedEmail}</span></div>` : ''}
+              <div class="kv-row"><span class="k">Status</span><span class="v">
+                <select onchange="setCustomerStatus(${c.id}, this.value)" style="width:auto;padding:4px 8px;font-size:11.5px;font-weight:700;border-radius:100px;border:none;background:${c.status==='Paid'?'var(--accent-soft)':'var(--amber-soft)'};color:${c.status==='Paid'?'var(--accent)':'var(--amber-ink)'};">
+                  <option value="Free Trial" ${c.status!=='Paid'?'selected':''}>Free Trial</option>
+                  <option value="Paid" ${c.status==='Paid'?'selected':''}>Paid</option>
+                </select>
+              </span></div>
+              ${isAdmin() ? `<div class="kv-row"><span class="k">Invoice day</span><span class="v">${c.invoiceDay ? c.invoiceDay+' of each month' : '—'}</span></div>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Notes</h3></div>
+          <div style="padding:16px 18px;">
+            <div style="font-size:12.5px;color:${c.notes?'var(--ink)':'var(--ink-3)'};">${c.notes || '—'}</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Commission summary</h3></div>
+          <div style="padding:16px 18px;">
+            <div class="kv">
+              <div class="kv-row"><span class="k">Total earned</span><span class="v">${fmt(os.reduce((s,o)=>s+commissionAmt(o),0), c.currency)}</span></div>
+              <div class="kv-row"><span class="k">Salesperson</span><span class="v">${c.salesperson}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function switchTab(t){ state.activeInvoiceTab=t; render(); }
+function setCustomerStatus(customerId, status){
+  customer(customerId).status = status;
+  toast('Status set to '+status+'.');
+  render();
+}
+
+function renderTabContent(c, os){
+  if(!isAdmin()) return renderInvoiceTabSales(c, os);
+  if(state.activeInvoiceTab==='orders') return renderOrdersTab(c, os);
+  if(state.activeInvoiceTab==='invoice') return renderInvoiceTab(c, os);
+  if(state.activeInvoiceTab==='history') return renderHistoryTab(c);
+}
+
+const ORDER_STATUSES = ["Pending","In progress","Completed","On hold","Cancelled"];
+function statusBadgeClass(s){
+  if(s==='Completed') return 'b-completed';
+  if(s==='On hold') return 'b-review';
+  if(s==='Cancelled') return 'b-inactive';
+  if(s==='In progress') return 'b-review';
+  return 'b-pending';
+}
+function renderInvoiceTabSales(c, os){
+  const completed = os.filter(o=>o.status==='Completed');
+  if(!completed.length) return `<div class="panel"><div class="empty"><i>No invoiced activity yet</i>Monthly totals for ${c.company} will appear here once orders are completed.</div></div>`;
+
+  const byMonth = {};
+  completed.forEach(o=>{
+    const month = o.date.slice(0,7);
+    if(!byMonth[month]) byMonth[month] = [];
+    byMonth[month].push(o);
+  });
+  const months = Object.keys(byMonth).sort().reverse();
+
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Month</th><th>Orders</th><th>Invoice total</th><th>Commission %</th><th>Your commission</th></tr></thead>
+      <tbody>
+        ${months.map(month=>{
+          const mOrders = byMonth[month];
+          const totals = {};
+          const commTotals = {};
+          mOrders.forEach(o=>{ totals[o.currency]=(totals[o.currency]||0)+o.price; commTotals[o.currency]=(commTotals[o.currency]||0)+commissionAmt(o); });
+          const rates = [...new Set(mOrders.map(o=>o.commissionRate))];
+          const rateStr = rates.length===1 ? rates[0]+'%' : rates.map(r=>r+'%').join(' / ');
+          const monthLabel = new Date(month+'-01').toLocaleDateString('en-US',{month:'long', year:'numeric'});
+          return `<tr>
+            <td>${monthLabel}</td>
+            <td>${mOrders.length}</td>
+            <td>${Object.entries(totals).map(([cc,v])=>fmt(v,cc)).join(' + ')}</td>
+            <td>${rateStr}</td>
+            <td>${Object.entries(commTotals).map(([cc,v])=>fmt(v,cc)).join(' + ')}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="padding:10px 18px;font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--line);">Totals only — order-level detail and invoice downloads are only available to admin.</div>
+  </div>`;
+}
+
+function renderOrdersTab(c, os){
+  if(!os.length) return `<div class="panel"><div class="empty"><i>No orders yet</i>Add the first order for ${c.company}.</div></div>`;
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. cost</th><th>Commission</th><th>Status</th><th></th><th></th></tr></thead>
+      <tbody>
+        ${os.map(o=>orderRowHtml(o,c)).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+function orderRowHtml(o,c){
+  const open = state.openCommentOrderId===o.id;
+  const count = o.comments.length;
+  let html = `
+    <tr>
+      <td>${o.name}</td>
+      <td>${o.date}</td>
+      <td>${fmt(o.price,o.currency)} <span style="color:var(--ink-3);font-size:11px;">${o.currency!==c.currency?'&middot; overridden':''}</span></td>
+      <td>${o.designer}</td>
+      <td>${fmt(o.productionCost,o.currency)}</td>
+      <td>${fmt(commissionAmt(o),o.currency)} <span style="color:var(--ink-3);">(${o.commissionRate}%)</span></td>
+      <td>
+        ${isAdmin() ? `<select onchange="setOrderStatus(${o.id}, this.value)" style="width:auto;padding:4px 8px;font-size:11.5px;font-weight:700;border-radius:100px;border:none;background:${statusSelectBg(o.status)};color:${statusSelectFg(o.status)};">
+          ${ORDER_STATUSES.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>` : `<span class="badge" style="background:${statusSelectBg(o.status)};color:${statusSelectFg(o.status)};">${o.status}</span>`}
+      </td>
+      <td>
+        <button class="btn btn-sm btn-ghost" onclick="toggleComments(${o.id})" title="Comments" style="position:relative;">
+          &#128172; ${count?`<span style="font-size:10px;color:var(--ink-2);">${count}</span>`:''}
+        </button>
+      </td>
+      <td>${isAdmin() ? `<button class="btn btn-sm btn-ghost" onclick="showEditOrder(${o.id})">&#8942;</button>` : ''}</td>
+    </tr>`;
+  if(open){
+    html += `
+    <tr>
+      <td colspan="9" style="background:var(--surface-2);padding:14px 18px;">
+        <div style="max-width:520px;">
+          ${o.comments.length ? o.comments.map(cm=>`
+            <div style="margin-bottom:10px;">
+              <div style="font-size:12px;font-weight:700;">${cm.author} <span style="font-weight:400;color:var(--ink-3);">&middot; ${cm.date}</span></div>
+              <div style="font-size:12.5px;color:var(--ink);margin-top:2px;">${cm.text}</div>
+            </div>`).join('') : `<div style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">No comments yet on this order.</div>`}
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="newComment_${o.id}" placeholder="Add a comment..." style="flex:1;padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:12.5px;font-family:var(--font);" onkeydown="if(event.key==='Enter') addComment(${o.id})">
+            <button class="btn btn-sm btn-primary" onclick="addComment(${o.id})">Post</button>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }
+  return html;
+}
+function statusSelectBg(s){
+  if(s==='Completed') return 'var(--accent-soft)';
+  if(s==='On hold'||s==='In progress') return 'var(--amber-soft)';
+  if(s==='Cancelled') return 'var(--surface)';
+  return 'var(--amber-soft)';
+}
+function statusSelectFg(s){
+  if(s==='Completed') return 'var(--accent)';
+  if(s==='On hold'||s==='In progress') return 'var(--amber-ink)';
+  if(s==='Cancelled') return 'var(--ink-3)';
+  return 'var(--amber-ink)';
+}
+function setOrderStatus(orderId, status){
+  const o = state.orders.find(x=>x.id===orderId);
+  o.status = status;
+  toast('Status set to '+status+'.');
+  render();
+}
+function toggleComments(orderId){
+  state.openCommentOrderId = state.openCommentOrderId===orderId ? null : orderId;
+  render();
+}
+function addComment(orderId){
+  const input = document.getElementById('newComment_'+orderId);
+  const text = input.value.trim();
+  if(!text) return;
+  const o = state.orders.find(x=>x.id===orderId);
+  o.comments.push({id:'c'+(nextId.comment++), author:'You', date:'2026-07-13', text});
+  render();
+}
+
+function renderInvoiceTab(c, os){
+  const draft = os.filter(o=>!o.invoiced && o.status==='Completed');
+  if(!draft.length) return `<div class="panel"><div class="empty"><i>Nothing to invoice</i>All completed orders for ${c.company} have already been invoiced. Complete a pending order or add a new one.</div></div>`;
+  const total = draft.reduce((s,o)=>s+o.price,0);
+  const commTotal = draft.reduce((s,o)=>s+commissionAmt(o),0);
+  return `
+    <div class="badge b-review" style="margin-bottom:12px;font-size:12px;padding:5px 12px;">Pending review &middot; draft, not yet finalized</div>
+    <div class="invoice-doc">
+      <div class="idr">
+        <div>
+          <h2>${state.company.name}</h2>
+          <div style="color:var(--ink-2);">${state.company.address}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;">Draft invoice</div>
+          <div style="color:var(--ink-2);">Will be numbered ${'INV-0'+state.nextInvoiceNo} on approval</div>
+          <div style="color:var(--ink-2);">Bill to: ${c.company}</div>
+          <div style="color:var(--ink-2);">Customer ID: ${c.customerCode || "—"}</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Order</th><th>Date</th><th style="text-align:right;">Price</th><th></th></tr></thead>
+        <tbody>
+          ${draft.map(o=>invoiceRowHtml(o)).join('')}
+          <tr class="invoice-total-row"><td colspan="2">Total</td><td style="text-align:right;">${fmt(total,c.currency)}</td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="bank-box">
+        <strong>Payment details</strong><br>
+        ${state.company.bankName} &middot; ${state.company.accountName}<br>
+        ${bankLineFor(c.currency)}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+      <div style="font-size:12px;color:var(--ink-2);">Commission for ${c.salesperson} on this invoice: <strong>${fmt(commTotal,c.currency)}</strong></div>
+      ${isAdmin() ? `<div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="approveInvoice(${c.id})">Approve invoice</button>
+      </div>` : ''}
+    </div>
+  `;
+}
+function bankLineFor(ccy){
+  if(ccy==='GBP') return state.company.accountGBP;
+  if(ccy==='USD') return state.company.accountUSD;
+  if(ccy==='EUR') return state.company.accountEUR;
+  return state.company.accountAUD;
+}
+
+function renderHistoryTab(c){
+  const invs = state.invoices.filter(i=>i.customerId===c.id).sort((a,b)=>b.id-a.id);
+  if(!invs.length) return `<div class="panel"><div class="empty"><i>No invoices yet</i>Approved invoices for ${c.company} will appear here.</div></div>`;
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Invoice</th><th>Generated</th><th>Approved</th><th>Total</th><th>Status</th><th>Payment</th><th></th></tr></thead>
+      <tbody>
+        ${invs.map(i=>{
+          const pb = paymentBadge(i);
+          return `
+          <tr>
+            <td>${i.invoiceNo}${i.version>1?' (v'+i.version+')':''}</td>
+            <td>${i.generatedDate}</td>
+            <td>${i.approvedDate||'—'}</td>
+            <td>${fmt(i.total,i.currency)}</td>
+            <td><span class="badge ${i.status==='approved'?'b-approved':'b-review'}">${i.status==='approved'?'Approved':'Pending review'}</span></td>
+            <td>${i.status==='approved' ? `<span class="badge ${pb.cls}" style="cursor:pointer;" onclick="togglePaymentStatus(${i.id})" title="Click to toggle">${pb.label}</span>` : '—'}</td>
+            <td style="white-space:nowrap;">${i.status==='approved' ? `<button class="btn btn-sm" onclick="toast('Downloading '+'${i.invoiceNo}.pdf')">Download</button> <button class="btn btn-sm btn-ghost" onclick="showEditInvoiceOrders(${i.id})">Edit</button>` : ''}</td>
+          </tr>`;}).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function invoiceRowHtml(o){
+  const editing = state.invoiceEditRowId===o.id;
+  if(editing){
+    return `<tr>
+      <td><input id="ie_name_${o.id}" value="${o.name}" style="width:100%;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);"></td>
+      <td>${o.date}</td>
+      <td style="text-align:right;"><input id="ie_price_${o.id}" type="number" step="0.01" value="${o.price}" style="width:90px;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);text-align:right;"></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-primary" onclick="saveInlineOrderEdit(${o.id})">Save</button>
+        <button class="btn btn-sm btn-ghost" onclick="cancelInlineOrderEdit()">Cancel</button>
+      </td>
+    </tr>`;
+  }
+  return `<tr>
+    <td>${o.name}</td><td>${o.date}</td><td style="text-align:right;">${fmt(o.price,o.currency)}</td>
+    <td><button class="btn btn-sm btn-ghost" onclick="toggleInvoiceRowEdit(${o.id})" title="Edit">&#9998;</button></td>
+  </tr>`;
+}
+function toggleInvoiceRowEdit(orderId){ state.invoiceEditRowId = orderId; render(); }
+function cancelInlineOrderEdit(){ state.invoiceEditRowId = null; render(); }
+function saveInlineOrderEdit(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  const name = document.getElementById('ie_name_'+orderId).value.trim();
+  const price = Number(document.getElementById('ie_price_'+orderId).value);
+  if(!name || !price){ toast('Order name and price are required.'); return; }
+  o.name = name; o.price = price;
+  state.invoiceEditRowId = null;
+  toast('Order updated — reflected on the Orders screen too.');
+  render();
+}
+
+function approveInvoice(customerId){
+  const c = customer(customerId);
+  const draft = ordersFor(customerId).filter(o=>!o.invoiced && o.status==='Completed');
+  if(!draft.length) return;
+  const total = draft.reduce((s,o)=>s+o.price,0);
+  const invoiceNo = 'INV-0'+state.nextInvoiceNo;
+  state.invoices.push({id:nextId.invoice++, customerId, invoiceNo, version:1, status:'approved', orderIds:draft.map(o=>o.id), total, currency:c.currency, generatedDate:'2026-07-13', approvedDate:'2026-07-13', paymentStatus:'Pending'});
+  draft.forEach(o=>o.invoiced=true);
+  state.nextInvoiceNo++;
+  toast(invoiceNo+' approved. Download is now available.');
+  state.activeInvoiceTab='history';
+  render();
+}
+
+/* ---------- Add / Edit customer modal ---------- */
+function showAddCustomer(){
+  openModal(customerFormHtml());
+  bindCustomerForm(null);
+}
+function showEditCustomer(id){
+  openModal(customerFormHtml(customer(id)));
+  bindCustomerForm(id);
+}
+function customerFormHtml(c){
+  const countries = Object.keys(CCY);
+  return `
+    <div class="modal-head"><h3>${c?'Edit customer':'Add customer'}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      ${isAdmin() ? `<div class="field">
+        <label>Customer ID</label>
+        <input id="f_customerCode" value="${c?(c.customerCode||''):'CUST-'+nextId.customerCode}" placeholder="CUST-1001">
+        <div class="hint">Auto-generated, but you can set your own — it must be unique and will appear on this customer's invoices.</div>
+        <div id="codeError" style="display:none;color:var(--red);font-size:11.5px;margin-top:4px;font-weight:600;">This ID is already in use by another customer.</div>
+      </div>` : ''}
+      <div class="field-row">
+        <div class="field"><label>Contact name</label><input id="f_name" value="${c?c.name:''}" placeholder="James Whitfield"></div>
+        <div class="field"><label>Company name</label><input id="f_company" value="${c?c.company:''}" placeholder="Northbridge Retail Ltd"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Country</label>
+          <select id="f_country" onchange="onCountryChange()">
+            ${countries.map(co=>`<option value="${co}" ${c&&c.country===co?'selected':''}>${co}</option>`).join('')}
+          </select>
+          <div class="hint">Sets the default currency automatically — you can still change it below.</div>
+        </div>
+        <div class="field"><label>Default currency</label><select id="f_currency">${Object.values(SYM).length?Object.keys(SYM).map(cc=>`<option value="${cc}" ${c&&c.currency===cc?'selected':(!c&&cc===CCY[countries[0]]?'selected':'')}>${cc}</option>`).join(''):''}</select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Email</label><input id="f_email" value="${c?c.email:''}" placeholder="name@company.com"></div>
+        <div class="field"><label>Email client</label><select id="f_emailClient"><option ${c&&c.emailClient==='Gmail'?'selected':''}>Gmail</option><option ${c&&c.emailClient==='Outlook'?'selected':''}>Outlook</option><option ${c&&c.emailClient==='Other'?'selected':''}>Other</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Contact number</label><input id="f_contact" value="${c?c.contact:''}" placeholder="+44 7700 900123"></div>
+        <div class="field"><label>Salesperson</label>
+          <select id="f_salesperson" ${isSalesperson()?'disabled':''}>
+            ${state.employees.filter(e=>e.role==='Salesperson').map(e=>`<option ${(c?c.salesperson===e.name:(isSalesperson()&&currentEmployee().name===e.name))?'selected':''}>${e.name}</option>`).join('')}
+          </select>
+          ${isSalesperson() ? `<div class="hint">Assigned to you automatically.</div>` : ''}
+        </div>
+      </div>
+      ${isSalesperson() && currentEmployee().emails && currentEmployee().emails.length ? `
+      <div class="field"><label>Received on email</label>
+        <select id="f_receivedEmail">
+          <option value="">— Select which of your emails this client came in on —</option>
+          ${currentEmployee().emails.map(em=>`<option value="${em}" ${c&&c.receivedEmail===em?'selected':''}>${em}</option>`).join('')}
+        </select>
+        <div class="hint">Lets admin see which of your assigned emails brought in this client.</div>
+      </div>` : ''}
+      ${isAdmin() ? `<div class="field"><label>Invoice generation day</label><input id="f_invoiceDay" type="number" min="1" max="28" value="${c ? (c.invoiceDay||'') : 5}" placeholder="e.g. 5"><div class="hint">You'll get a reminder the day before, and the draft invoice appears in the Invoice tab on this date.</div></div>` : ''}
+      <div class="field"><label>Notes</label><input id="f_notes" value="${c?c.notes:''}" placeholder="Optional — pricing notes, requirements..."></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer(${c?c.id:'null'})">${c?'Save changes':'Add customer'}</button>
+    </div>
+  `;
+}
+function onCountryChange(){
+  const country = document.getElementById('f_country').value;
+  document.getElementById('f_currency').value = CCY[country];
+}
+function bindCustomerForm(id){ if(!id) setTimeout(onCountryChange,0); }
+function saveCustomer(id){
+  const name = document.getElementById('f_name').value.trim();
+  const company = document.getElementById('f_company').value.trim();
+  if(!name || !company){ toast('Contact name and company are required.'); return; }
+
+  let customerCode = null;
+  const codeInput = document.getElementById('f_customerCode');
+  if(codeInput){
+    customerCode = codeInput.value.trim();
+    const errEl = document.getElementById('codeError');
+    errEl.style.display = 'none';
+    if(!customerCode){ toast('Customer ID is required.'); return; }
+    const clash = state.customers.find(c => c.customerCode && c.customerCode.toLowerCase()===customerCode.toLowerCase() && c.id!==id);
+    if(clash){
+      errEl.style.display = 'block';
+      toast('That Customer ID is already in use — pick a different one.');
+      return;
+    }
+  } else if(id) {
+    customerCode = customer(id).customerCode || null;
+  }
+
+  const invoiceDayInput = document.getElementById('f_invoiceDay');
+  let invoiceDay = invoiceDayInput ? (Number(invoiceDayInput.value)||null) : null;
+  if(!invoiceDayInput && id) invoiceDay = customer(id).invoiceDay || null;
+
+  const receivedEmailInput = document.getElementById('f_receivedEmail');
+  const receivedEmail = receivedEmailInput ? receivedEmailInput.value : (id ? customer(id).receivedEmail : null);
+
+  const data = {
+    customerCode,
+    name, company,
+    country: document.getElementById('f_country').value,
+    currency: document.getElementById('f_currency').value,
+    email: document.getElementById('f_email').value.trim(),
+    emailClient: document.getElementById('f_emailClient').value,
+    contact: document.getElementById('f_contact').value.trim(),
+    salesperson: document.getElementById('f_salesperson').value,
+    receivedEmail,
+    invoiceDay,
+    notes: document.getElementById('f_notes').value.trim()
+  };
+  if(id){
+    Object.assign(customer(id), data);
+    toast('Profile updated.');
+  } else {
+    const newC = {id:nextId.customer++, status:'Free Trial', ...data};
+    state.customers.push(newC);
+    if(customerCode) nextId.customerCode++;
+    toast('Customer added.');
+    state.activeCustomerId = newC.id;
+  }
+  closeModal();
+  render();
+}
+
+/* ---------- Add / Edit order modal ---------- */
+function showAddOrder(customerId){
+  openModal(orderFormHtml(customerId, null));
+}
+function showEditOrder(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  openModal(orderFormHtml(o.customerId, o));
+}
+function customerOverdueInvoices(customerId){
+  return state.invoices.filter(i=>i.customerId===customerId && i.status==='approved' && i.paymentStatus!=='Completed' && paymentBadge(i).cls==='b-unpaid');
+}
+function orderFormHtml(customerId, o){
+  const c = customer(customerId);
+  const designers = ["Rehan Iqbal","Sana Malik","Bilal Ahmed"];
+  const overdue = customerOverdueInvoices(customerId);
+  return `
+    <div class="modal-head"><h3>${o?'Edit order':'Add order'} — ${c.company}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      ${overdue.length ? `<div class="flag" style="background:var(--red-soft);color:var(--red-ink);border-color:#E3AFA9;">
+        <span>&#9888;</span>
+        <div>${c.company} hasn't paid ${overdue.length>1?'invoices':'invoice'} ${overdue.map(i=>`<strong>${i.invoiceNo}</strong> (${paymentBadge(i).label.replace('Unpaid — ','')} overdue)`).join(', ')}. Consider resolving payment before adding new work.</div>
+      </div>` : ''}
+      <div class="field-row">
+        <div class="field"><label>Order name</label><input id="o_name" value="${o?o.name:''}" placeholder="Autumn Polo Batch"></div>
+        <div class="field"><label>Date</label><input id="o_date" type="date" value="${o?o.date:'2026-07-13'}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Price</label><input id="o_price" type="number" step="0.01" value="${o?o.price:''}" placeholder="0.00"></div>
+        <div class="field"><label>Currency <span class="hint" style="display:inline;">(defaults to ${c.currency})</span></label>
+          <select id="o_currency">${Object.keys(SYM).map(cc=>`<option value="${cc}" ${(o?o.currency:c.currency)===cc?'selected':''}>${cc}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Designer</label><select id="o_designer">${designers.map(d=>`<option ${o&&o.designer===d?'selected':''}>${d}</option>`).join('')}</select></div>
+        <div class="field"><label>Production cost</label><input id="o_cost" type="number" step="0.01" value="${o?o.productionCost:''}" placeholder="0.00"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Commission rate (%)</label><input id="o_commission" type="number" value="${o?o.commissionRate:10}"><div class="commission-note">Default is 10% — adjust per order if needed.</div></div>
+        <div class="field"><label>Status</label><select id="o_status"><option ${o&&o.status==='Pending'?'selected':''}>Pending</option><option ${o&&o.status==='Completed'?'selected':''}>Completed</option></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      ${o?`<button class="btn btn-danger-text" style="margin-right:auto;" onclick="deleteOrder(${o.id})">Delete order</button>`:''}
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder(${customerId}, ${o?o.id:'null'})">${o?'Save changes':'Add order'}</button>
+    </div>
+  `;
+}
+function saveOrder(customerId, orderId){
+  const name = document.getElementById('o_name').value.trim();
+  const price = Number(document.getElementById('o_price').value);
+  if(!name || !price){ toast('Order name and price are required.'); return; }
+  const data = {
+    customerId, name,
+    date: document.getElementById('o_date').value || '2026-07-13',
+    price,
+    currency: document.getElementById('o_currency').value,
+    designer: document.getElementById('o_designer').value,
+    productionCost: Number(document.getElementById('o_cost').value)||0,
+    commissionRate: Number(document.getElementById('o_commission').value)||10,
+    status: document.getElementById('o_status').value
+  };
+  if(orderId){
+    const existing = state.orders.find(o=>o.id===orderId);
+    const wasInvoiced = existing.invoiced;
+    Object.assign(existing, data);
+    if(wasInvoiced) toast('Order updated. Approved invoices are unaffected — use Regenerate if this order needs to be re-billed.');
+    else toast('Order updated.');
+  } else {
+    state.orders.push({id:nextId.order++, invoiced:false, ...data});
+    const cust = customer(customerId);
+    if(cust && cust.status!=='Paid'){ cust.status='Paid'; toast('Order added. Customer status updated to Paid.'); }
+    else toast('Order added.');
+  }
+  closeModal();
+  render();
+}
+function deleteOrder(id){
+  state.orders = state.orders.filter(o=>o.id!==id);
+  closeModal();
+  toast('Order deleted.');
+  render();
+}
+
+/* ---------- Reports ---------- */
+function ordersInRange(from, to){
+  return state.orders.filter(o=> o.date>=from && o.date<=to);
+}
+function rangeLengthDays(from,to){ return Math.round((new Date(to)-new Date(from))/86400000)+1; }
+function shiftRange(from,to,days){
+  const f=new Date(from); f.setDate(f.getDate()-days);
+  const t=new Date(to); t.setDate(t.getDate()-days);
+  return [f.toISOString().slice(0,10), t.toISOString().slice(0,10)];
+}
+function growthPct(curr, prev){
+  if(prev===0) return curr>0 ? 100 : 0;
+  return Math.round(((curr-prev)/prev)*1000)/10;
+}
+function setReportRange(from,to){ state.reportFrom=from; state.reportTo=to; render(); }
+function setReportPeriod(p){
+  const ref = new Date(state.dashboardDate || '2026-07-13');
+  let from,to;
+  if(p==='day'){ from=to=ref.toISOString().slice(0,10); }
+  else if(p==='month'){
+    from = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().slice(0,10);
+    to = ref.toISOString().slice(0,10);
+  } else {
+    from = new Date(ref.getFullYear(), 0, 1).toISOString().slice(0,10);
+    to = ref.toISOString().slice(0,10);
+  }
+  state.reportFrom = from; state.reportTo = to; render();
+}
+
+function renderReports(){
+  const from = state.reportFrom || '2026-06-01';
+  const to = state.reportTo || '2026-07-13';
+  const curr = ordersInRange(from, to);
+  const days = rangeLengthDays(from, to);
+  const [pFrom, pTo] = shiftRange(from, to, days);
+  const prev = ordersInRange(pFrom, pTo);
+
+  const totalsByCcy = {}; curr.forEach(o=>{ totalsByCcy[o.currency]=(totalsByCcy[o.currency]||0)+o.price; });
+  const prevTotalsByCcy = {}; prev.forEach(o=>{ prevTotalsByCcy[o.currency]=(prevTotalsByCcy[o.currency]||0)+o.price; });
+  const orderGrowth = growthPct(curr.length, prev.length);
+
+  const byDesigner = {};
+  curr.forEach(o=>{ byDesigner[o.designer] = (byDesigner[o.designer]||0) + o.productionCost; });
+  const bySales = {};
+  curr.forEach(o=>{
+    const c = customer(o.customerId);
+    if(!bySales[c.salesperson]) bySales[c.salesperson] = {count:0, commission:{}};
+    bySales[c.salesperson].count++;
+    bySales[c.salesperson].commission[o.currency] = (bySales[c.salesperson].commission[o.currency]||0) + commissionAmt(o);
+  });
+
+  return `
+    <div class="topbar"><div><div class="page-title">Reports</div><div class="page-sub">${from} to ${to} &middot; compared with the ${days}-day period before</div></div></div>
+
+    <div class="panel" style="padding:14px 18px;margin-bottom:18px;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="setReportPeriod('day')">Today</button>
+        <button class="btn btn-sm" onclick="setReportPeriod('month')">This month</button>
+        <button class="btn btn-sm" onclick="setReportPeriod('year')">This year</button>
+        <span style="width:1px;height:20px;background:var(--line);"></span>
+        <label style="font-size:12px;color:var(--ink-2);">From</label>
+        <input type="date" value="${from}" onchange="setReportRange(this.value, '${to}')" style="width:auto;">
+        <label style="font-size:12px;color:var(--ink-2);">To</label>
+        <input type="date" value="${to}" onchange="setReportRange('${from}', this.value)" style="width:auto;">
+      </div>
+    </div>
+
+    <div class="grid4">
+      <div class="metric"><div class="label">Orders in range</div><div class="value">${curr.length}</div><div class="sub" style="color:${orderGrowth>=0?'var(--accent)':'var(--red)'};">${orderGrowth>=0?'+':''}${orderGrowth}% vs previous period</div></div>
+      ${Object.keys(totalsByCcy).slice(0,3).map(cc=>{
+        const g = growthPct(totalsByCcy[cc], prevTotalsByCcy[cc]||0);
+        return `<div class="metric"><div class="label">Total ${cc}</div><div class="value">${fmt(totalsByCcy[cc],cc)}</div><div class="sub" style="color:${g>=0?'var(--accent)':'var(--red)'};">${g>=0?'+':''}${g}% vs previous</div></div>`;
+      }).join('')}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Production cost by designer</h3></div>
+      ${Object.keys(byDesigner).length ? `<table><thead><tr><th>Designer</th><th>Total production cost</th></tr></thead>
+      <tbody>${Object.keys(byDesigner).map(d=>`<tr><td>${d}</td><td>${byDesigner[d].toFixed(2)} (mixed currencies — totals shown per original order currency in the full build)</td></tr>`).join('')}</tbody></table>` : `<div class="empty">No orders in this range.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Salesperson invoice / commission summary</h3></div>
+      ${Object.keys(bySales).length ? `<table><thead><tr><th>Salesperson</th><th>Orders</th><th>Commission earned</th></tr></thead>
+      <tbody>${Object.entries(bySales).map(([name,d])=>`<tr><td>${name}</td><td>${d.count}</td><td>${Object.entries(d.commission).map(([cc,v])=>fmt(v,cc)).join(' + ')}</td></tr>`).join('')}</tbody></table>` : `<div class="empty">No orders in this range.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Client payment status</h3></div>
+      <table>
+        <thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Payment status</th><th></th></tr></thead>
+        <tbody>
+          ${state.invoices.length ? state.invoices.map(i=>{
+            const c = customer(i.customerId);
+            const pb = paymentBadge(i);
+            return `<tr>
+              <td>${i.invoiceNo}</td>
+              <td>${c.company}</td>
+              <td>${fmt(i.total,i.currency)}</td>
+              <td><span class="badge ${pb.cls}">${pb.label}</span></td>
+              <td><button class="btn btn-sm" onclick="togglePaymentStatus(${i.id})">Mark as ${(i.paymentStatus==='Completed')?'pending':'completed'}</button></td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="5" class="empty">No approved invoices yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function paymentBadge(inv){
+  if(inv.paymentStatus==='Completed') return {label:'Paid', cls:'b-completed'};
+  const days = Math.floor((new Date(TODAY) - new Date(inv.approvedDate||inv.generatedDate)) / 86400000);
+  const months = Math.floor(days/30);
+  if(months>=2) return {label:`Unpaid — ${months} months`, cls:'b-unpaid'};
+  if(months>=1) return {label:'Unpaid — 1 month', cls:'b-unpaid'};
+  return {label:'Pending', cls:'b-pending'};
+}
+function togglePaymentStatus(invoiceId){
+  const inv = state.invoices.find(i=>i.id===invoiceId);
+  inv.paymentStatus = inv.paymentStatus==='Completed' ? 'Pending' : 'Completed';
+  toast('Payment marked as '+inv.paymentStatus+'.');
+  render();
+}
+
+/* ---------- Employees ---------- */
+function employee(id){ return state.employees.find(e=>e.id===id); }
+function ordersForEmployee(emp){
+  if(emp.role==='Salesperson'){
+    const custIds = state.customers.filter(c=>c.salesperson===emp.name).map(c=>c.id);
+    return state.orders.filter(o=>custIds.includes(o.customerId));
+  }
+  if(emp.role==='Designer'){
+    return state.orders.filter(o=>o.designer===emp.name);
+  }
+  return [];
+}
+function unpaidAmountFor(emp){
+  const os = ordersForEmployee(emp);
+  const byCcy = {};
+  os.forEach(o=>{
+    const paid = emp.role==='Salesperson' ? o.commissionPaid : o.productionPaid;
+    if(paid || o.status!=='Completed') return;
+    const amt = emp.role==='Salesperson' ? commissionAmt(o) : o.productionCost;
+    byCcy[o.currency] = (byCcy[o.currency]||0) + amt;
+  });
+  return byCcy;
+}
+
+function renderEmployees(){
+  if(!state.employeeCategories.includes(state.activeEmployeeCategory)) state.activeEmployeeCategory = state.employeeCategories[0];
+  const list = state.employees.filter(e=>e.role===state.activeEmployeeCategory);
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Employees</div><div class="page-sub">Grouped by role, with salary and payout schedule</div></div>
+      <button class="btn btn-primary" onclick="showAddEmployee()">+ Add employee</button>
+    </div>
+    ${state.passwordResetRequests.length ? `
+    <div class="panel">
+      <div class="panel-head"><h3>Password reset requests</h3></div>
+      <table>
+        <thead><tr><th>Employee</th><th>Email</th><th>Requested</th><th></th></tr></thead>
+        <tbody>
+          ${state.passwordResetRequests.map(r=>{
+            const emp = employee(r.employeeId);
+            return `<tr>
+              <td>${emp?emp.name:'—'}</td>
+              <td>${r.email}</td>
+              <td>${r.requestedAt}</td>
+              <td><button class="btn btn-sm btn-primary" onclick="approvePasswordReset(${r.id})">Approve</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+    <div class="tabs" style="align-items:center;">
+      ${state.employeeCategories.map(cat=>`<div class="tab ${state.activeEmployeeCategory===cat?'active':''}" onclick="switchEmployeeCategory('${cat.replace(/'/g,"\\'")}')">${cat} (${state.employees.filter(e=>e.role===cat).length})</div>`).join('')}
+      <div class="tab" style="color:var(--accent);" onclick="showAddCategory()">+ Add tab</div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Name</th><th>Designation</th><th>Currency</th><th>Base salary</th><th>Payout day</th><th>Unpaid earnings</th><th></th></tr></thead>
+        <tbody>
+          ${list.length ? list.map(e=>{
+            const unpaid = unpaidAmountFor(e);
+            const unpaidStr = fmt(Object.values(unpaid).reduce((s,v)=>s+v,0), e.currency);
+            return `<tr>
+              <td class="clickable" onclick="openEmployeeProfile(${e.id})"><strong>${e.name}</strong></td>
+              <td>${e.designation||'—'}</td>
+              <td>${e.currency}</td>
+              <td>${fmt(e.baseSalary,e.currency)}</td>
+              <td>${e.payoutDay} of each month</td>
+              <td>${unpaidStr}</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();showEmployeeSettingsMenu(${e.id})" title="Options">&#8942;</button></td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="7" class="empty"><i>No one in ${state.activeEmployeeCategory} yet</i>Add an employee and assign this tab.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function approvePasswordReset(requestId){
+  const req = state.passwordResetRequests.find(r=>r.id===requestId);
+  if(!req) return;
+  const user = state.users.find(u=>u.email.toLowerCase()===req.email.toLowerCase());
+  const emp = employee(req.employeeId);
+  if(!user || !emp){ toast('Could not find that account.'); return; }
+  const tempPw = genTempPassword();
+  user.password = tempPw;
+  user.mustChangePassword = true;
+  state.passwordResetRequests = state.passwordResetRequests.filter(r=>r.id!==requestId);
+  render();
+  showCredentialsPopup('Password reset approved', emp.name, user.email, tempPw);
+}
+
+function switchEmployeeCategory(cat){ state.activeEmployeeCategory = cat; render(); }
+function showAddCategory(){
+  openModal(`
+    <div class="modal-head"><h3>Add employee tab</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Tab name</label><input id="cat_name" placeholder="e.g. Production supervisor"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addCategory()">Add tab</button>
+    </div>
+  `);
+}
+function addCategory(){
+  const name = document.getElementById('cat_name').value.trim();
+  if(!name){ toast('Tab name is required.'); return; }
+  if(state.employeeCategories.some(c=>c.toLowerCase()===name.toLowerCase())){ toast('A tab with that name already exists.'); return; }
+  state.employeeCategories.push(name);
+  state.activeEmployeeCategory = name;
+  closeModal();
+  toast('Tab added.');
+  render();
+}
+function openEmployeeProfile(id){ state.activeEmployeeId=id; state.activeEmployeeTab='earnings'; state.page='employeeProfile'; render(); }
+function switchEmployeeTab(t){ state.activeEmployeeTab=t; render(); }
+
+function renderEmployeeProfile(){
+  const e = employee(state.activeEmployeeId);
+  if(!e) return `<div class="empty">Employee not found.</div>`;
+  const os = ordersForEmployee(e).filter(o=>o.status==='Completed').sort((a,b)=>b.date.localeCompare(a.date));
+  const initials = e.name.split(' ').map(w=>w[0]).join('').toUpperCase();
+  const unpaidReady = os.filter(o=> e.role==='Salesperson' ? !o.commissionPaid : !o.productionPaid);
+
+  return `
+    <div class="topbar">
+      <div class="page-sub" style="cursor:pointer;color:var(--accent);font-weight:600;" onclick="goPage('employees')">&larr; All employees</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="showEditEmployee(${e.id})">Edit employee</button>
+        <button class="btn btn-ghost" onclick="showEmployeeSettingsMenu(${e.id})" title="Settings" aria-label="Settings">&#9881;</button>
+      </div>
+    </div>
+    <div class="profile-head">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div class="avatar">${initials}</div>
+        <div>
+          <div style="font-size:19px;font-weight:700;">${e.name}</div>
+          <div style="font-size:13px;color:var(--ink-2);">${e.role} &middot; paid in ${e.currency} &middot; payout on the ${e.payoutDay}${nth(e.payoutDay)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-grid">
+      <div>
+        <div class="tabs">
+          <div class="tab ${state.activeEmployeeTab==='earnings'?'active':''}" onclick="switchEmployeeTab('earnings')">Earnings</div>
+          <div class="tab ${state.activeEmployeeTab==='slip'?'active':''}" onclick="switchEmployeeTab('slip')">Salary slip ${unpaidReady.length?'&middot; ready':''}</div>
+          <div class="tab ${state.activeEmployeeTab==='history'?'active':''}" onclick="switchEmployeeTab('history')">Slip history</div>
+        </div>
+        ${state.activeEmployeeTab==='earnings'?renderEmployeeEarnings(e,os):''}
+        ${state.activeEmployeeTab==='slip'?renderEmployeeSlipDraft(e,unpaidReady):''}
+        ${state.activeEmployeeTab==='history'?renderEmployeeSlipHistory(e):''}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Pay details</h3></div>
+        <div style="padding:16px 18px;">
+          <div class="kv">
+            <div class="kv-row"><span class="k">Base salary</span><span class="v">${fmt(e.baseSalary,e.currency)}</span></div>
+            <div class="kv-row"><span class="k">Currency</span><span class="v">${e.currency}</span></div>
+            <div class="kv-row"><span class="k">Payout day</span><span class="v">${e.payoutDay} of each month</span></div>
+            <div class="kv-row"><span class="k">${e.role==='Salesperson'?'Commission rate':'Basis'}</span><span class="v">${e.role==='Salesperson'?'Per order, set on order':'Per order production cost'}</span></div>
+          </div>
+        </div>
+      </div>
+      ${e.role==='Salesperson' ? `<div class="panel">
+        <div class="panel-head"><h3>Assigned emails</h3></div>
+        <div style="padding:16px 18px;">
+          ${e.emails && e.emails.length ? e.emails.map(em=>`<div style="font-size:12.5px;font-family:var(--mono);padding:5px 0;border-top:1px solid var(--line);">${em}</div>`).join('') : `<div class="hint" style="margin:0;">No emails assigned yet — add some from Company Settings via Edit employee.</div>`}
+        </div>
+      </div>` : ''}
+    </div>
+  </div>
+  `;
+}
+function nth(n){ if(n%10===1&&n!==11)return 'st'; if(n%10===2&&n!==12)return 'nd'; if(n%10===3&&n!==13)return 'rd'; return 'th'; }
+
+function renderEmployeeEarnings(e, os){
+  if(!os.length) return `<div class="panel"><div class="empty"><i>No completed orders yet</i>Earnings will list here once linked orders are completed.</div></div>`;
+  const byCust = {};
+  os.forEach(o=>{
+    if(!byCust[o.customerId]) byCust[o.customerId] = [];
+    byCust[o.customerId].push(o);
+  });
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Customer</th><th>Orders</th><th>${e.role==='Salesperson'?'Total commission':'Total production cost'}</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${Object.entries(byCust).map(([custId,cOrders])=>{
+          const cust = customer(Number(custId));
+          const totals = {};
+          let allPaid = true;
+          cOrders.forEach(o=>{
+            const amt = e.role==='Salesperson' ? commissionAmt(o) : o.productionCost;
+            totals[o.currency] = (totals[o.currency]||0) + amt;
+            const paid = e.role==='Salesperson' ? o.commissionPaid : o.productionPaid;
+            if(!paid) allPaid = false;
+          });
+          const totalStr = Object.entries(totals).map(([cc,v])=>fmt(v,cc)).join(' + ');
+          return `<tr>
+            <td>${cust.company}</td>
+            <td>${cOrders.length}</td>
+            <td>${totalStr}</td>
+            <td><span class="badge ${allPaid?'b-approved':'b-review'}">${allPaid?'Paid':'Unpaid'}</span></td>
+            <td style="white-space:nowrap;">
+              <button class="btn btn-sm" onclick="toggleCustomerEarningsPaid(${e.id}, ${custId})">Mark as ${allPaid?'unpaid':'paid'}</button>
+              <button class="btn btn-sm btn-ghost" onclick="showEditEarningsOrders(${e.id}, ${custId})">Edit</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="padding:10px 18px;font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--line);">Grouped by customer — click Edit to adjust individual orders. Changes here also update the Reports commission summary.</div>
+  </div>`;
+}
+function toggleCustomerEarningsPaid(employeeId, customerId){
+  const e = employee(employeeId);
+  const os = ordersForEmployee(e).filter(o=>o.status==='Completed' && o.customerId===Number(customerId));
+  const allPaid = os.every(o=> e.role==='Salesperson' ? o.commissionPaid : o.productionPaid);
+  os.forEach(o=>{ if(e.role==='Salesperson') o.commissionPaid=!allPaid; else o.productionPaid=!allPaid; });
+  toast('Status updated for '+(customer(Number(customerId))?.company||'customer')+'.');
+  render();
+}
+function showEditEarningsOrders(employeeId, customerId){
+  state.slipEditCtx = {type:'earnings', employeeId, customerId:Number(customerId)};
+  const cust = customer(Number(customerId));
+  openModal(`
+    <div class="modal-head"><h3>${cust.company} — orders</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:12px;">Edit price or rate directly below. Changes save immediately and also update this payslip and the Reports commission summary.</p>
+      <table>
+        <thead><tr id="slipEditHead"></tr></thead>
+        <tbody id="slipEditBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button></div>
+  `);
+  refreshSlipEditRows();
+}
+function slipEditRowsFor(ctx){
+  if(ctx.type==='earnings'){
+    const e = employee(ctx.employeeId);
+    return { e, orders: ordersForEmployee(e).filter(o=>o.status==='Completed' && o.customerId===ctx.customerId), showCustomer:false };
+  }
+  const s = state.payslips.find(x=>x.id===ctx.slipId);
+  const e = employee(s.employeeId);
+  return { e, orders: state.orders.filter(o=>s.orderIds.includes(o.id)), showCustomer:true };
+}
+function slipRowHtml(o, e, showCustomer){
+  const isSales = e.role==='Salesperson';
+  const editing = state.slipEditRowId===o.id;
+  const custCell = showCustomer ? `<td>${customer(o.customerId).company}</td>` : '';
+  if(editing){
+    const rateOrCost = isSales
+      ? `<input id="se_rate_${o.id}" type="number" value="${o.commissionRate}" style="width:70px;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);"> %`
+      : `<input id="se_cost_${o.id}" type="number" step="0.01" value="${o.productionCost}" style="width:90px;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);">`;
+    return `<tr>
+      <td>${o.name}</td>${custCell}
+      <td><input id="se_price_${o.id}" type="number" step="0.01" value="${o.price}" style="width:80px;padding:5px 7px;border:1px solid var(--accent);border-radius:5px;font-size:12.5px;font-family:var(--font);"> ${rateOrCost}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-primary" onclick="saveSlipRowEdit(${o.id})">Save</button>
+        <button class="btn btn-sm btn-ghost" onclick="cancelSlipRowEdit()">Cancel</button>
+      </td>
+    </tr>`;
+  }
+  return `<tr>
+    <td>${o.name}</td>${custCell}
+    <td>${fmt(isSales?commissionAmt(o):o.productionCost,o.currency)}</td>
+    <td><button class="btn btn-sm btn-ghost" onclick="toggleSlipRowEdit(${o.id})" title="Edit">&#9998;</button></td>
+  </tr>`;
+}
+function toggleSlipRowEdit(orderId){ state.slipEditRowId = orderId; refreshSlipEditRows(); }
+function cancelSlipRowEdit(){ state.slipEditRowId = null; refreshSlipEditRows(); }
+function saveSlipRowEdit(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  const { e } = slipEditRowsFor(state.slipEditCtx);
+  const price = Number(document.getElementById('se_price_'+orderId).value);
+  if(!price){ toast('Price is required.'); return; }
+  o.price = price;
+  if(e.role==='Salesperson'){
+    const rate = Number(document.getElementById('se_rate_'+orderId).value);
+    o.commissionRate = rate||0;
+  } else {
+    const cost = Number(document.getElementById('se_cost_'+orderId).value);
+    o.productionCost = cost||0;
+  }
+  state.slipEditRowId = null;
+  toast('Order updated — reflected in Reports and the Earnings tab.');
+  refreshSlipEditRows();
+}
+function refreshSlipEditRows(){
+  const head = document.getElementById('slipEditHead');
+  const body = document.getElementById('slipEditBody');
+  if(!body || !state.slipEditCtx) return;
+  const { e, orders, showCustomer } = slipEditRowsFor(state.slipEditCtx);
+  const isSales = e.role==='Salesperson';
+  head.innerHTML = `<th>Order</th>${showCustomer?'<th>Customer</th>':''}<th>${isSales?'Commission':'Production'}</th><th></th>`;
+  body.innerHTML = orders.length ? orders.map(o=>slipRowHtml(o,e,showCustomer)).join('') : `<tr><td colspan="4" class="empty">No linked orders.</td></tr>`;
+}
+function toggleEarningPaid(employeeId, orderId){
+  const e = employee(employeeId);
+  const o = state.orders.find(x=>x.id===orderId);
+  if(e.role==='Salesperson') o.commissionPaid = !o.commissionPaid;
+  else o.productionPaid = !o.productionPaid;
+  toast('Status updated for '+o.name+'.');
+  render();
+}
+
+function renderEmployeeSlipDraft(e, unpaidReady){
+  const variableTotal = unpaidReady.reduce((s,o)=> s + (e.role==='Salesperson'?commissionAmt(o):o.productionCost), 0);
+  const grandTotal = e.baseSalary + variableTotal;
+  const byCust = {};
+  unpaidReady.forEach(o=>{
+    if(!byCust[o.customerId]) byCust[o.customerId] = [];
+    byCust[o.customerId].push(o);
+  });
+  return `
+    <div class="badge b-review" style="margin-bottom:12px;font-size:12px;padding:5px 12px;">Pending review &middot; draft, not yet finalized</div>
+    <div class="invoice-doc">
+      <div class="idr">
+        <div>
+          <h2>${state.company.name}</h2>
+          <div style="color:var(--ink-2);">${state.company.address}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;">Draft salary slip</div>
+          <div style="color:var(--ink-2);">Pay to: ${e.name}</div>
+          <div style="color:var(--ink-2);">Payout day: ${e.payoutDay}${nth(e.payoutDay)}</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Item</th><th style="text-align:right;">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Base salary</td><td style="text-align:right;">${fmt(e.baseSalary,e.currency)}</td></tr>
+          ${Object.entries(byCust).map(([custId,cOrders])=>{
+            const cust = customer(Number(custId));
+            const sum = cOrders.reduce((s,o)=> s + (e.role==='Salesperson'?commissionAmt(o):o.productionCost), 0);
+            const ccy = cOrders[0].currency;
+            return `<tr><td>${e.role==='Salesperson'?'Commission':'Production'} — ${cust?cust.company:'Unknown'} (${cOrders.length} order${cOrders.length===1?'':'s'}) <a href="#" onclick="event.preventDefault();showEditEarningsOrders(${e.id},${custId})" style="font-size:11px;color:var(--accent);font-weight:600;">Edit</a></td><td style="text-align:right;">${fmt(sum,ccy)}</td></tr>`;
+          }).join('')}
+          <tr class="invoice-total-row"><td>Total</td><td style="text-align:right;">${fmt(grandTotal,e.currency)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-primary" onclick="approveSlip(${e.id})">Approve slip</button>
+    </div>
+  `;
+}
+
+function renderEmployeeSlipHistory(e){
+  const slips = state.payslips.filter(s=>s.employeeId===e.id).sort((a,b)=>b.id-a.id);
+  if(!slips.length) return `<div class="panel"><div class="empty"><i>No slips yet</i>Approved salary slips for ${e.name} will appear here.</div></div>`;
+  return `<div class="panel">
+    <table>
+      <thead><tr><th>Slip</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${slips.map(s=>`<tr>
+          <td>${s.slipNo}</td>
+          <td>${s.approvedDate}</td>
+          <td>${fmt(s.total,s.currency)}</td>
+          <td><span class="badge b-approved">Approved</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-sm" onclick="toast('Downloading ${s.slipNo}.pdf')">Download</button>
+            <button class="btn btn-sm btn-ghost" onclick="showEditSlipOrders(${s.id})">Edit</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="padding:10px 18px;font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--line);">Editing an order here also updates the Reports commission summary and this employee's Earnings tab immediately.</div>
+  </div>`;
+}
+function showEditSlipOrders(slipId){
+  state.slipEditCtx = {type:'slip', slipId};
+  const s = state.payslips.find(x=>x.id===slipId);
+  const e = employee(s.employeeId);
+  openModal(`
+    <div class="modal-head"><h3>Edit ${s.slipNo} — ${e.name}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:12px;">Edit price or rate directly below. Changes save immediately and also show on the Reports commission summary and this employee's Earnings tab. The slip total shown in history reflects the original approved amount.</p>
+      <table>
+        <thead><tr id="slipEditHead"></tr></thead>
+        <tbody id="slipEditBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Close</button></div>
+  `);
+  refreshSlipEditRows();
+}
+
+function approveSlip(employeeId){
+  const e = employee(employeeId);
+  const os = ordersForEmployee(e).filter(o=>o.status==='Completed' && (e.role==='Salesperson' ? !o.commissionPaid : !o.productionPaid));
+  const variableTotal = os.reduce((s,o)=> s + (e.role==='Salesperson'?commissionAmt(o):o.productionCost), 0);
+  const total = e.baseSalary + variableTotal;
+  const slipNo = 'SLIP-'+String(100+state.payslips.length+1);
+  state.payslips.push({id:nextId.payslip++, employeeId, slipNo, total, currency:e.currency, baseSalary:e.baseSalary, commission:variableTotal, approvedDate:'2026-07-13', orderIds:os.map(o=>o.id)});
+  os.forEach(o=>{ if(e.role==='Salesperson') o.commissionPaid=true; else o.productionPaid=true; });
+  toast(slipNo+' approved for '+e.name+'. Download is now available.');
+  state.activeEmployeeTab='history';
+  render();
+}
+
+/* ---------- Add / Edit employee modal ---------- */
+function showAddEmployee(){ openModal(employeeFormHtml(null)); }
+function showEditEmployee(id){ openModal(employeeFormHtml(employee(id))); }
+function employeeFormHtml(e){
+  return `
+    <div class="modal-head"><h3>${e?'Edit employee':'Add employee'}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label>Name</label><input id="emp_name" value="${e?e.name:''}" placeholder="Full name"></div>
+        <div class="field"><label>Tab / role</label><select id="emp_role">${state.employeeCategories.map(cat=>`<option ${e&&e.role===cat?'selected':(!e&&cat===state.activeEmployeeCategory?'selected':'')}>${cat}</option>`).join('')}</select><div class="hint">Determines which tab they appear under and whether commission or production earnings apply.</div></div>
+      </div>
+      <div class="field"><label>Designation</label><input id="emp_designation" value="${e?e.designation||'':''}" placeholder="e.g. Senior Digitizer, Account Executive"></div>
+      <div class="field"><label>Email</label><input id="emp_email" value="${e?e.email||'':''}" placeholder="name@stitchops.com"><div class="hint">${e&&e.role==='Salesperson'?'Used for their login — changing it updates their sign-in email.':'Required if this role should be able to log in.'}</div></div>
+      <div class="field-row">
+        <div class="field"><label>Currency</label><select id="emp_currency">${Object.keys(SYM).map(cc=>`<option value="${cc}" ${e&&e.currency===cc?'selected':''}>${cc}</option>`).join('')}</select></div>
+        <div class="field"><label>Base salary</label><input id="emp_salary" type="number" step="0.01" value="${e?e.baseSalary:''}" placeholder="0.00"></div>
+      </div>
+      <div class="field"><label>Payout day</label><input id="emp_payoutDay" type="number" min="1" max="28" value="${e?e.payoutDay:28}"><div class="hint">Salary slip auto-generates each month on this day, covering base salary plus unpaid commission or production earnings.</div></div>
+      ${(!e || e.role==='Salesperson') ? `
+      <div class="field">
+        <label>Assigned client-facing emails</label>
+        <div class="hint" style="margin-top:0;margin-bottom:8px;">Companies often route leads through several inboxes to one salesperson. Select every email this person receives clients on from the pool managed in Company Settings — they'll pick the right one when adding a new customer.</div>
+        <div id="assignedEmailsList" style="border:1px solid var(--line-strong);border-radius:8px;padding:10px 12px;max-height:160px;overflow:auto;">
+          ${state.companyEmails.length ? state.companyEmails.map(em=>{
+            const takenBy = state.employees.find(x=> x.id!==(e?e.id:-1) && x.emails && x.emails.includes(em));
+            const checked = e && e.emails && e.emails.includes(em);
+            return `<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;${takenBy?'opacity:0.5;':''}">
+              <input type="checkbox" value="${em}" ${checked?'checked':''} ${takenBy?'disabled':''} style="width:auto;">
+              ${em} ${takenBy?`<span style="color:var(--ink-3);font-size:11.5px;">(assigned to ${takenBy.name})</span>`:''}
+            </label>`;
+          }).join('') : `<div class="hint" style="margin:0;">No emails in the pool yet — add some in Company Settings first.</div>`}
+        </div>
+      </div>` : ''}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee(${e?e.id:'null'})">${e?'Save changes':'Add employee'}</button>
+    </div>
+  `;
+}
+function saveEmployee(id){
+  const name = document.getElementById('emp_name').value.trim();
+  if(!name){ toast('Name is required.'); return; }
+  const email = document.getElementById('emp_email').value.trim().toLowerCase();
+  const emailsListEl = document.getElementById('assignedEmailsList');
+  const emails = emailsListEl ? Array.from(emailsListEl.querySelectorAll('input[type="checkbox"]:checked')).map(i=>i.value) : (id ? employee(id).emails||[] : []);
+  const data = {
+    name,
+    role: document.getElementById('emp_role').value,
+    designation: document.getElementById('emp_designation').value.trim(),
+    email,
+    emails,
+    currency: document.getElementById('emp_currency').value,
+    baseSalary: Number(document.getElementById('emp_salary').value)||0,
+    payoutDay: Number(document.getElementById('emp_payoutDay').value)||28
+  };
+  if(id){
+    const old = employee(id).name;
+    Object.assign(employee(id), data);
+    if(old!==data.name){
+      state.customers.forEach(c=>{ if(c.salesperson===old) c.salesperson=data.name; });
+      state.orders.forEach(o=>{ if(o.designer===old) o.designer=data.name; });
+    }
+    const existingUser = state.users.find(u=>u.employeeId===id);
+    if(existingUser && email) existingUser.email = email;
+    toast('Employee updated.');
+    closeModal();
+    render();
+  } else {
+    const newEmp = {id:nextId.customer+1000+state.employees.length, ...data};
+    state.employees.push(newEmp);
+    if(newEmp.role==='Salesperson'){
+      if(!email){ toast('Email is required to create a salesperson login.'); }
+      else {
+        const tempPw = genTempPassword();
+        state.users.push({id:nextId.user++, email, password:tempPw, role:'salesperson', employeeId:newEmp.id, mustChangePassword:true, welcomed:false});
+        render();
+        showCredentialsPopup('Login created', name, email, tempPw);
+        return;
+      }
+    }
+    toast('Employee added.');
+    closeModal();
+    render();
+  }
+}
+
+
+/* ---------- Employee settings / delete ---------- */
+function showEmployeeSettingsMenu(id){
+  const e = employee(id);
+  const hasLogin = state.users.some(u=>u.employeeId===id);
+  openModal(`
+    <div class="modal-head"><h3>Settings</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body" style="padding:10px 12px;">
+      ${hasLogin ? `<div class="btn" style="width:100%;text-align:left;border:none;padding:10px 12px;" onclick="regenerateCredentials(${e.id})">Regenerate login credentials</div>` : ''}
+      <div class="btn btn-danger-text" style="width:100%;text-align:left;border:none;padding:10px 12px;" onclick="confirmDeleteEmployee(${e.id})">Delete employee</div>
+    </div>
+  `);
+}
+function regenerateCredentials(employeeId){
+  const e = employee(employeeId);
+  const user = state.users.find(u=>u.employeeId===employeeId);
+  if(!user){ toast('This employee has no login yet.'); closeModal(); return; }
+  const tempPw = genTempPassword();
+  user.password = tempPw;
+  user.mustChangePassword = true;
+  render();
+  showCredentialsPopup('Login credentials regenerated', e.name, user.email, tempPw);
+}
+function confirmDeleteEmployee(id){
+  const e = employee(id);
+  openModal(`
+    <div class="modal-head"><h3>Are you sure?</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;margin:0;">You're deleting this <strong>"${e.name}"</strong> employee. This can't be undone — their salary slip history will remain on record, but they'll no longer appear in Employees.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn" style="background:var(--red);border-color:var(--red);color:#fff;" onclick="deleteEmployee(${id})">Delete</button>
+    </div>
+  `);
+}
+function deleteEmployee(id){
+  state.employees = state.employees.filter(e=>e.id!==id);
+  state.users = state.users.filter(u=>u.employeeId!==id);
+  closeModal();
+  toast('Employee deleted.');
+  state.page = 'employees';
+  render();
+}
+
+function renderSettings(){
+  const c = state.company;
+  return `
+    <div class="topbar"><div><div class="page-title">Company settings</div><div class="page-sub">Used on the invoice header and payment footer</div></div></div>
+    <div class="panel">
+      <div class="panel-head"><h3>Company details</h3></div>
+      <div style="padding:18px;">
+        <div class="field-row">
+          <div class="field"><label>Company name</label><input value="${c.name}" disabled></div>
+          <div class="field"><label>Address</label><input value="${c.address}" disabled></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Bank accounts by currency</h3></div>
+      <div style="padding:18px;">
+        <div class="field"><label>GBP account</label><input value="${c.accountGBP}" disabled></div>
+        <div class="field"><label>USD account</label><input value="${c.accountUSD}" disabled></div>
+        <div class="field"><label>EUR account</label><input value="${c.accountEUR}" disabled></div>
+        <div class="field" style="margin-bottom:0;"><label>AUD account</label><input value="${c.accountAUD}" disabled></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Employee emails</h3></div>
+      <div style="padding:16px 18px;">
+        <div class="hint" style="margin-top:0;margin-bottom:12px;">Add every inbox your team receives client leads on. An email shows <strong>Active</strong> once it's assigned to an employee, and <strong>Inactive</strong> if it's sitting unused in the pool.</div>
+        <table>
+          <thead><tr><th>Email</th><th>Status</th><th>Assigned to</th><th></th></tr></thead>
+          <tbody>
+            ${state.companyEmails.map(em=>{
+              const owner = state.employees.find(e=>e.emails && e.emails.includes(em));
+              return `<tr>
+                <td style="font-family:var(--mono);font-size:12.5px;">${em}</td>
+                <td><span class="badge ${owner?'b-active':'b-inactive'}">${owner?'Active':'Inactive'}</span></td>
+                <td>${owner?owner.name:'—'}</td>
+                <td><button class="btn btn-sm btn-ghost btn-danger-text" onclick="removeCompanyEmail('${em}')">Remove</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <input id="newCompanyEmail" placeholder="name@stitchops.com" style="flex:1;padding:8px 10px;border:1px solid var(--line-strong);border-radius:7px;font-size:13px;font-family:var(--font);" onkeydown="if(event.key==='Enter') addCompanyEmail()">
+          <button class="btn btn-sm btn-primary" onclick="addCompanyEmail()">+ Add email</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">In the full build, these fields will be editable and pulled from your actual invoice template.</div>
+  `;
+}
+function addCompanyEmail(){
+  const input = document.getElementById('newCompanyEmail');
+  const em = input.value.trim().toLowerCase();
+  if(!em){ toast('Enter an email first.'); return; }
+  if(state.companyEmails.some(x=>x.toLowerCase()===em)){ toast('That email is already in the pool.'); return; }
+  state.companyEmails.push(em);
+  toast('Email added to pool.');
+  render();
+}
+function removeCompanyEmail(em){
+  const owner = state.employees.find(e=>e.emails && e.emails.includes(em));
+  if(owner){ toast(`Unassign this from ${owner.name} before removing it.`); return; }
+  state.companyEmails = state.companyEmails.filter(x=>x!==em);
+  toast('Email removed from pool.');
+  render();
+}
+
+/* ---------- Event binding ---------- */
+document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay' && state.modalDismissible) closeModal(); });
+
+render();
+</script>
+</body>
+</html>

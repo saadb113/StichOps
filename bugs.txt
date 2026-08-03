@@ -1,0 +1,6 @@
+in admin->employees: 
+deleting employee gives something went wrong error
+adding employe gives Invalid request. error
+admin->dashboard:
+incorrect flag warning "Northbridge Retail Ltd's invoice is due on 5 August. Test Co Ltd's invoice is due on 5 August.
+" because there is no due invice or 5 august. (i deleted the invoice but the warning still showing)

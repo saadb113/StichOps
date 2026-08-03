@@ -21,7 +21,15 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     if (res.status === 401 && unauthorizedHandler && path !== '/auth/login') unauthorizedHandler();
-    const message = (data && data.error) || `Request failed (${res.status})`;
+    let message = (data && data.error) || `Request failed (${res.status})`;
+    if (data && Array.isArray(data.issues) && data.issues.length) {
+      message = data.issues.map((i) => {
+        const key = i.path && i.path[0];
+        if (!key) return i.message;
+        const label = String(key).replace(/([A-Z])/g, ' $1').toLowerCase();
+        return `${label.charAt(0).toUpperCase()}${label.slice(1)}: ${i.message}`;
+      }).join(' ');
+    }
     const err = new Error(message);
     err.status = res.status;
     err.issues = data && data.issues;

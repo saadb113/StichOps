@@ -9,6 +9,7 @@ const { createEmployeeSchema, updateEmployeeSchema } = require('../schemas/emplo
 const { hashPassword, genTempPassword } = require('../lib/password');
 const { commissionAmt } = require('../lib/business');
 const { parseDateOnly, today } = require('../lib/date');
+const { isForeignKeyViolation } = require('../lib/prismaErrors');
 
 const router = express.Router();
 
@@ -121,8 +122,8 @@ router.delete('/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) =
       await tx.employee.delete({ where: { id } });
     });
   } catch (e) {
-    if (e.code === 'P2003') {
-      return res.status(409).json({ error: `Can't delete ${existing.name} — they still have assigned customers or orders. Reassign those first.` });
+    if (isForeignKeyViolation(e)) {
+      return res.status(409).json({ error: `Can't delete ${existing.name} — they still have assigned customers, orders, payslips, or password reset requests. Reassign or remove those first.` });
     }
     throw e;
   }

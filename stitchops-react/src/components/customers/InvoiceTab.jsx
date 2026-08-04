@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt } from '../../lib/helpers';
+import { PencilIcon } from '../icons/Icon';
 
 function bankLineFor(company, ccy) {
   if (ccy === 'GBP') return company.accountGBP;
@@ -13,7 +14,7 @@ function bankLineFor(company, ccy) {
 function InvoiceTabSales({ customer, orders }) {
   const completed = orders.filter((o) => o.status === 'Completed');
   if (!completed.length) {
-    return <div className="panel"><div className="empty"><i>No invoiced activity yet</i>Monthly totals for {customer.company} will appear here once orders are completed.</div></div>;
+    return <div className="elg-panel"><div className="elg-empty">No invoiced activity yet — monthly totals for {customer.company} will appear here once orders are completed.</div></div>;
   }
   const byMonth = {};
   completed.forEach((o) => {
@@ -24,9 +25,9 @@ function InvoiceTabSales({ customer, orders }) {
   const months = Object.keys(byMonth).sort().reverse();
 
   return (
-    <div className="panel">
-      <table>
-        <thead><tr><th>Month</th><th>Orders</th><th>Invoice total</th><th>Commission %</th><th>Your commission</th></tr></thead>
+    <div className="elg-panel elg-table-wrap">
+      <table className="elg-table">
+        <thead><tr><th>Month</th><th>Orders</th><th>Invoice Total</th><th>Commission %</th><th>Your Commission</th></tr></thead>
         <tbody>
           {months.map((month) => {
             const mOrders = byMonth[month];
@@ -47,7 +48,9 @@ function InvoiceTabSales({ customer, orders }) {
           })}
         </tbody>
       </table>
-      <div style={{ padding: '10px 18px', fontSize: '11.5px', color: 'var(--ink-3)', borderTop: '1px solid var(--line)' }}>Totals only — order-level detail and invoice downloads are only available to admin.</div>
+      <div style={{ padding: '12px 20px', fontSize: 11.5, color: 'var(--elg-ink-3)', borderTop: '1px solid var(--elg-line)' }}>
+        Totals only — order-level detail and invoice downloads are only available to admin.
+      </div>
     </div>
   );
 }
@@ -63,7 +66,7 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
 
   const draft = orders.filter((o) => !o.invoiced && o.status === 'Completed');
   if (!draft.length) {
-    return <div className="panel"><div className="empty"><i>Nothing to invoice</i>All completed orders for {customer.company} have already been invoiced. Complete a pending order or add a new one.</div></div>;
+    return <div className="elg-panel"><div className="elg-empty">Nothing to invoice — all completed orders for {customer.company} have already been invoiced. Complete a pending order or add a new one.</div></div>;
   }
   const total = draft.reduce((s, o) => s + o.price, 0);
   const commTotal = draft.reduce((s, o) => s + commissionAmt(o), 0);
@@ -96,50 +99,48 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
 
   return (
     <>
-      <div className="badge b-review" style={{ marginBottom: 12, fontSize: 12, padding: '5px 12px' }}>Pending review &middot; draft, not yet finalized</div>
-      <div className="invoice-doc">
+      <div className="elg-badge elg-badge-pending-pay" style={{ marginBottom: 14 }}>Pending review &middot; draft, not yet finalized</div>
+      <div className="elg-invoice-doc">
         <div className="idr">
-          <div><h2>{company.name}</h2><div style={{ color: 'var(--ink-2)' }}>{company.address}</div></div>
+          <div><h2>{company.name}</h2><div className="meta">{company.address}</div></div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontWeight: 700 }}>Draft invoice</div>
-            <div style={{ color: 'var(--ink-2)' }}>Will be numbered {'INV-0' + nextInvoiceNo} on approval</div>
-            <div style={{ color: 'var(--ink-2)' }}>Bill to: {customer.company}</div>
-            <div style={{ color: 'var(--ink-2)' }}>Customer ID: {customer.customerCode || '—'}</div>
+            <div style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>Draft invoice</div>
+            <div className="meta">Will be numbered {'INV-0' + nextInvoiceNo} on approval</div>
+            <div className="meta">Bill to: {customer.company}</div>
+            <div className="meta">Customer ID: {customer.customerCode || '—'}</div>
           </div>
         </div>
-        <table>
+        <table className="elg-table">
           <thead><tr><th>Order</th><th>Date</th><th style={{ textAlign: 'right' }}>Price</th><th></th></tr></thead>
           <tbody>
             {draft.map((o) => (editingId === o.id ? (
               <tr key={o.id}>
-                <td><input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ width: '100%', padding: '5px 7px', border: '1px solid var(--accent)', borderRadius: 5, fontSize: '12.5px', fontFamily: 'var(--font)' }} /></td>
+                <td><input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--elg-primary)', borderRadius: 8, fontSize: 12.5, fontFamily: 'var(--elg-font-sans)' }} /></td>
                 <td>{o.date}</td>
-                <td style={{ textAlign: 'right' }}><input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: 90, padding: '5px 7px', border: '1px solid var(--accent)', borderRadius: 5, fontSize: '12.5px', fontFamily: 'var(--font)', textAlign: 'right' }} /></td>
+                <td style={{ textAlign: 'right' }}><input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: 90, padding: '6px 8px', border: '1px solid var(--elg-primary)', borderRadius: 8, fontSize: 12.5, fontFamily: 'var(--elg-font-sans)', textAlign: 'right' }} /></td>
                 <td style={{ whiteSpace: 'nowrap' }}>
-                  <button className="btn btn-sm btn-primary" onClick={() => saveEdit(o)}>Save</button>
-                  <button className="btn btn-sm btn-ghost" onClick={cancelEdit}>Cancel</button>
+                  <button className="elg-btn elg-btn-primary elg-btn-sm" style={{ width: 'auto' }} onClick={() => saveEdit(o)}>Save</button>
+                  <button className="elg-btn elg-btn-ghost elg-btn-sm" style={{ width: 'auto' }} onClick={cancelEdit}>Cancel</button>
                 </td>
               </tr>
             ) : (
               <tr key={o.id}>
                 <td>{o.name}</td><td>{o.date}</td><td style={{ textAlign: 'right' }}>{fmt(o.price, o.currency)}</td>
-                <td><button className="btn btn-sm btn-ghost" onClick={() => startEdit(o)} title="Edit">&#9998;</button></td>
+                <td><button className="elg-icon-sq" onClick={() => startEdit(o)} title="Edit"><PencilIcon width={13} height={13} /></button></td>
               </tr>
             )))}
-            <tr className="invoice-total-row"><td colSpan={2}>Total</td><td style={{ textAlign: 'right' }}>{fmt(total, customer.currency)}</td><td></td></tr>
+            <tr className="elg-invoice-total-row"><td colSpan={2}>Total</td><td style={{ textAlign: 'right' }}>{fmt(total, customer.currency)}</td><td></td></tr>
           </tbody>
         </table>
-        <div className="bank-box">
-          <strong>Payment details</strong><br />
+        <div className="elg-bank-box">
+          <strong>Payment Details</strong><br />
           {company.bankName} &middot; {company.accountName}<br />
           {bankLineFor(company, customer.currency)}
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-        <div style={{ fontSize: 12, color: 'var(--ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong>{fmt(commTotal, customer.currency)}</strong></div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-primary" onClick={handleApprove}>Approve invoice</button>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 12.5, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)' }}>{fmt(commTotal, customer.currency)}</strong></div>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
       </div>
     </>
   );

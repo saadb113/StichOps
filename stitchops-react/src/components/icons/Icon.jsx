@@ -62,3 +62,56 @@ export function TrendUpIcon(props) {
 export function DownloadIcon(props) {
   return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M12 3v12" /><path d="M7 10l5 5 5-5" /><path d="M4 20h16" /></svg>;
 }
+export function ArrowLeftIcon(props) {
+  return <svg {...base} {...props} width={props.width || 15} height={props.height || 15}><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></svg>;
+}
+export function ClockIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>;
+}
+export function MessageIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M4 5h16v11H8l-4 4V5Z" /></svg>;
+}
+export function BagOutlineSmallIcon(props) {
+  return <svg {...base} {...props} width={props.width || 15} height={props.height || 15}><path d="M6 8h12l1 12H5L6 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>;
+}
+
+// ---- Filled "active" counterparts for sidebar nav icons ----
+const filledBase = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'currentColor', stroke: 'none' };
+
+export function DashboardIconActive(props) {
+  return <svg {...filledBase} {...props}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>;
+}
+export function BagIconActive(props) {
+  return (
+    <svg {...filledBase} {...props}>
+      <path d="M6 8h12l1 12H5L6 8Z" />
+      <path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+export function DocIconActive(props) {
+  return (
+    <svg {...filledBase} {...props}>
+      <path d="M7 3h7l4 4v14H7Z" />
+      <path d="M14 3v4h4" fill="none" stroke="var(--elg-surface)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.5 12.5h5M9.5 15.5h5M9.5 9.5h2" stroke="var(--elg-surface)" strokeWidth={1.4} strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+export function PeopleIconActive(props) {
+  return <svg {...filledBase} {...props}><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="17.5" cy="9" r="2.4" /><path d="M15.5 14.2c2.6.4 4.5 2.6 4.5 5.8" /></svg>;
+}
+export function PersonIconActive(props) {
+  return <svg {...filledBase} {...props}><circle cx="12" cy="8" r="3.4" /><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" /></svg>;
+}
+export function ChartIconActive(props) {
+  return <svg {...filledBase} {...props}><rect x="2.8" y="10" width="3.4" height="10" rx="1" /><rect x="10.3" y="4" width="3.4" height="16" rx="1" /><rect x="17.8" y="7.5" width="3.4" height="12.5" rx="1" /></svg>;
+}
+export function GearIconActive(props) {
+  return (
+    <svg {...filledBase} {...props}>
+      <path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.3.9a7.7 7.7 0 0 0-1.8-1L15 3h-4l-.3 2.9a7.7 7.7 0 0 0-1.8 1l-2.3-.9-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9c.5.4 1.1.8 1.8 1L9 21h4l.3-2.9c.7-.2 1.3-.6 1.8-1l2.3.9 2-3.4-2-1.5Z" />
+      <circle cx="12" cy="12" r="3" fill="var(--elg-surface)" />
+    </svg>
+  );
+}

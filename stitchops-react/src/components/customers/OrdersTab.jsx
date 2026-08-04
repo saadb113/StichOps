@@ -1,18 +1,38 @@
 import { Fragment, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt, statusSelectBg, statusSelectFg } from '../../lib/helpers';
+import { fmt, commissionAmt } from '../../lib/helpers';
 import { ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
+import { PencilIcon, KebabIcon, MessageIcon } from '../icons/Icon';
+
+function statusPillStyle(status) {
+  const map = {
+    Completed: { bg: 'var(--elg-green)', fg: '#fff' },
+    Pending: { bg: 'var(--elg-red)', fg: '#fff' },
+    'In progress': { bg: 'var(--elg-orange)', fg: '#fff' },
+    'On hold': { bg: 'var(--elg-navy)', fg: '#fff' },
+    Cancelled: { bg: 'var(--elg-gray)', fg: '#5B5F6B' }
+  };
+  return map[status] || map.Pending;
+}
+function elgStatusClass(status) {
+  if (status === 'Completed') return 'elg-badge-completed';
+  if (status === 'Pending') return 'elg-badge-pending';
+  if (status === 'In progress') return 'elg-badge-inprogress';
+  if (status === 'On hold') return 'elg-badge-onhold';
+  return 'elg-badge-cancelled';
+}
 
 export default function OrdersTab({ customer, orders }) {
-  const { isAdmin, setOrderStatus, addComment } = useAppState();
+  const { isAdmin, setOrderStatus, addComment, deleteOrder } = useAppState();
   const { openModal, toast } = useUi();
   const [openCommentId, setOpenCommentId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [commentDrafts, setCommentDrafts] = useState({});
 
   if (!orders.length) {
-    return <div className="panel"><div className="empty"><i>No orders yet</i>Add the first order for {customer.company}.</div></div>;
+    return <div className="elg-panel"><div className="elg-empty">No orders yet — add the first order for {customer.company}.</div></div>;
   }
 
   async function handleStatusChange(o, status) {
@@ -33,59 +53,89 @@ export default function OrdersTab({ customer, orders }) {
       toast(e.message);
     }
   }
+  async function handleDelete(o) {
+    setOpenMenuId(null);
+    try {
+      await deleteOrder(o.id);
+      toast('Order deleted.');
+    } catch (e) {
+      toast(e.message);
+    }
+  }
 
   return (
-    <div className="panel">
-      <table>
-        <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. cost</th><th>Commission</th><th>Status</th><th></th><th></th></tr></thead>
+    <div className="elg-panel elg-table-wrap">
+      <table className="elg-table">
+        <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. Cost</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
           {orders.map((o) => {
-            const open = openCommentId === o.id;
+            const commentOpen = openCommentId === o.id;
             const count = o.comments.length;
             return (
               <Fragment key={o.id}>
                 <tr>
                   <td>{o.name}</td>
                   <td>{o.date}</td>
-                  <td>{fmt(o.price, o.currency)} <span style={{ color: 'var(--ink-3)', fontSize: 11 }}>{o.currency !== customer.currency ? '· overridden' : ''}</span></td>
+                  <td>{fmt(o.price, o.currency)} {o.currency !== customer.currency && <span style={{ color: 'var(--elg-ink-3)', fontSize: 11 }}>· overridden</span>}</td>
                   <td>{o.designer}</td>
                   <td>{fmt(o.productionCost, o.currency)}</td>
-                  <td>{fmt(commissionAmt(o), o.currency)} <span style={{ color: 'var(--ink-3)' }}>({o.commissionRate}%)</span></td>
+                  <td>{fmt(commissionAmt(o), o.currency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     {isAdmin ? (
-                      <select value={o.status} onChange={(e) => handleStatusChange(o, e.target.value)} style={{ width: 'auto', padding: '4px 8px', fontSize: '11.5px', fontWeight: 700, borderRadius: 100, border: 'none', background: statusSelectBg(o.status), color: statusSelectFg(o.status) }}>
+                      <select
+                        className="elg-status-pill-select"
+                        value={o.status}
+                        onChange={(e) => handleStatusChange(o, e.target.value)}
+                        style={{ background: statusPillStyle(o.status).bg, color: statusPillStyle(o.status).fg }}
+                      >
                         {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     ) : (
-                      <span className="badge" style={{ background: statusSelectBg(o.status), color: statusSelectFg(o.status) }}>{o.status}</span>
+                      <span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span>
                     )}
                   </td>
                   <td>
-                    <button className="btn btn-sm btn-ghost" onClick={() => setOpenCommentId(open ? null : o.id)} title="Comments" style={{ position: 'relative' }}>
-                      &#128172; {count > 0 && <span style={{ fontSize: 10, color: 'var(--ink-2)' }}>{count}</span>}
-                    </button>
+                    <div className="elg-row-actions">
+                      <button className="elg-icon-sq" title="Comments" onClick={() => setOpenCommentId(commentOpen ? null : o.id)} style={{ position: 'relative' }}>
+                        <MessageIcon width={15} height={15} />
+                        {count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, background: 'var(--elg-primary)', color: '#fff', fontSize: 9.5, fontWeight: 700, borderRadius: 100, minWidth: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{count}</span>}
+                      </button>
+                      {isAdmin && (
+                        <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                          <PencilIcon width={14} height={14} />
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon width={14} height={14} /></button>
+                      )}
+                      {openMenuId === o.id && (
+                        <div className="elg-row-menu">
+                          <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>Delete order</button>
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td>{isAdmin && <button className="btn btn-sm btn-ghost" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>&#8942;</button>}</td>
                 </tr>
-                {open && (
+                {commentOpen && (
                   <tr>
-                    <td colSpan={9} style={{ background: 'var(--surface-2)', padding: '14px 18px' }}>
-                      <div style={{ maxWidth: 520 }}>
-                        {o.comments.length ? o.comments.map((cm) => (
-                          <div key={cm.id} style={{ marginBottom: 10 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700 }}>{cm.author} <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>&middot; {cm.date}</span></div>
-                            <div style={{ fontSize: '12.5px', color: 'var(--ink)', marginTop: 2 }}>{cm.text}</div>
+                    <td colSpan={8} style={{ padding: 0 }}>
+                      <div className="elg-comment-panel">
+                        <div style={{ maxWidth: 520 }}>
+                          {o.comments.length ? o.comments.map((cm) => (
+                            <div key={cm.id} className="elg-comment-item">
+                              <div className="elg-comment-author">{cm.author} <span>&middot; {cm.date}</span></div>
+                              <div className="elg-comment-text">{cm.text}</div>
+                            </div>
+                          )) : <div style={{ fontSize: 12, color: 'var(--elg-ink-3)' }}>No comments yet on this order.</div>}
+                          <div className="elg-comment-input-row">
+                            <input
+                              placeholder="Add a comment..."
+                              value={commentDrafts[o.id] || ''}
+                              onChange={(e) => setCommentDrafts((d) => ({ ...d, [o.id]: e.target.value }))}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handlePostComment(o.id); }}
+                            />
+                            <button className="elg-btn elg-btn-primary elg-btn-sm" style={{ width: 'auto' }} onClick={() => handlePostComment(o.id)}>Post</button>
                           </div>
-                        )) : <div style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 10 }}>No comments yet on this order.</div>}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                          <input
-                            placeholder="Add a comment..."
-                            value={commentDrafts[o.id] || ''}
-                            onChange={(e) => setCommentDrafts((d) => ({ ...d, [o.id]: e.target.value }))}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handlePostComment(o.id); }}
-                            style={{ flex: 1, padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: '12.5px', fontFamily: 'var(--font)' }}
-                          />
-                          <button className="btn btn-sm btn-primary" onClick={() => handlePostComment(o.id)}>Post</button>
                         </div>
                       </div>
                     </td>

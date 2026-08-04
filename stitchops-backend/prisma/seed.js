@@ -9,6 +9,11 @@ async function hash(pw) {
 }
 
 async function main() {
+  const alreadySeeded = await prisma.user.count();
+  if (alreadySeeded > 0) {
+    console.log('Database already seeded, skipping.');
+    return;
+  }
   console.log('Seeding...');
 
   await prisma.counter.upsert({

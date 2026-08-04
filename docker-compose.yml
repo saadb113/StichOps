@@ -44,5 +44,13 @@ services:
     ports:
       - "8080:80"
 
+  adminer:
+    image: adminer
+    container_name: stitchops-adminer
+    depends_on:
+      - db
+    ports:
+      - "8081:8080"
+
 volumes:
   postgres_data:

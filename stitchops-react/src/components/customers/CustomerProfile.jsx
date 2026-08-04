@@ -8,6 +8,7 @@ import CustomerFormModal from './CustomerFormModal';
 import OrdersTab from './OrdersTab';
 import InvoiceTab from './InvoiceTab';
 import InvoiceHistoryTab from './InvoiceHistoryTab';
+import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon } from '../icons/Icon';
 
 export default function CustomerProfile() {
   const { customerId } = useParams();
@@ -18,7 +19,7 @@ export default function CustomerProfile() {
   const [tab, setTab] = useState('orders');
 
   const c = getCustomer(id);
-  if (!c) return <div className="empty">Customer not found.</div>;
+  if (!c) return <div className="elg-page"><div className="elg-empty">Customer not found.</div></div>;
 
   const os = ordersFor(orders, c.id);
   const initials = c.company.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
@@ -36,50 +37,62 @@ export default function CustomerProfile() {
   }
 
   return (
-    <>
-      <div className="topbar">
-        <div>
-          <div className="page-sub" style={{ cursor: 'pointer', color: 'var(--accent)', fontWeight: 600 }} onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}>
-            &larr; {isAdmin ? 'All customers' : 'My customers'}
+    <div className="elg-page">
+      <div className="elg-back-link" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}>
+        <ArrowLeftIcon /> Back
+      </div>
+
+      <div className="elg-profile-head">
+        <div className="elg-profile-id">
+          <div className="elg-avatar-lg">{initials}</div>
+          <div>
+            <div className="elg-profile-name-row">
+              <div className="elg-profile-name">{c.company}</div>
+              <span className={`elg-badge ${active ? 'elg-badge-active' : 'elg-badge-inactive'}`}>{active ? 'Active' : 'Inactive'}</span>
+            </div>
+            <div className="elg-profile-sub">{c.customerCode || '—'} &middot; {c.name} &middot; {c.email}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {isAdmin && <button className="btn" onClick={() => openModal(<OrderFormModal customerId={c.id} />, { variant: 'elegant' })}>+ Add order</button>}
-          {isAdmin && <button className="btn" onClick={() => openModal(<CustomerFormModal customer={c} />)}>Edit profile</button>}
-        </div>
+        {isAdmin && (
+          <div className="elg-profile-actions">
+            <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={() => openModal(<OrderFormModal customerId={c.id} />, { variant: 'elegant' })}>
+              <PlusIcon /> Add Order
+            </button>
+            <button className="elg-btn" style={{ width: 'auto' }} onClick={() => openModal(<CustomerFormModal customer={c} />, { variant: 'elegant' })}>
+              <PencilIcon width={14} height={14} /> Edit Profile
+            </button>
+          </div>
+        )}
       </div>
 
       {isAdmin && overdue.length > 0 && (
-        <div className="flag" style={{ background: 'var(--red-soft)', color: 'var(--red-ink)', borderColor: '#E3AFA9' }}>
-          <span>&#9888;</span>
+        <div className="elg-alert">
+          <WarningIcon />
           <div>
             {c.company} hasn't paid {overdue.length > 1 ? 'invoices' : 'invoice'}{' '}
             {overdue.map((i, idx) => (
               <span key={i.id}><strong>{i.invoiceNo}</strong> ({paymentBadge(i).label.replace('Unpaid — ', '')} overdue){idx < overdue.length - 1 ? ', ' : ''}</span>
-            ))}.
+            ))}. Consider resolving payment before adding new work.
           </div>
         </div>
       )}
 
-      <div className="profile-head">
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <div className="avatar">{initials}</div>
-          <div>
-            <div style={{ fontSize: 19, fontWeight: 700 }}>{c.company}</div>
-            <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>{c.customerCode || '—'} &middot; {c.name} &middot; {c.email}</div>
-          </div>
-        </div>
-        <span className={`badge ${active ? 'b-active' : 'b-inactive'}`} style={{ fontSize: 12, padding: '5px 12px' }}>{active ? 'Active' : 'Inactive'}</span>
-      </div>
-
-      <div className="profile-grid">
+      <div className="elg-profile-grid">
         <div>
-          <div className="tabs">
-            {isAdmin && <div className={`tab ${tab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>Orders ({os.length})</div>}
-            <div className={`tab ${isAdmin ? (tab === 'invoice' ? 'active' : '') : 'active'}`} onClick={() => setTab('invoice')}>
-              Invoice {uninvoiced.length ? `· ${uninvoiced.length} ready` : ''}
+          <div className="elg-tabs">
+            {isAdmin && (
+              <div className={`elg-tab ${tab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>
+                <BagOutlineSmallIcon width={14} height={14} /> Orders ({os.length})
+              </div>
+            )}
+            <div className={`elg-tab ${isAdmin ? (tab === 'invoice' ? 'active' : '') : 'active'}`} onClick={() => setTab('invoice')}>
+              <DocIcon width={14} height={14} /> Invoice{uninvoiced.length ? ` · ${uninvoiced.length} ready` : ''}
             </div>
-            {isAdmin && <div className={`tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>Invoice history</div>}
+            {isAdmin && (
+              <div className={`elg-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>
+                <ClockIcon width={14} height={14} /> Invoice History
+              </div>
+            )}
           </div>
           <div id="tabContent">
             {!isAdmin && <InvoiceTab customer={c} orders={os} />}
@@ -90,51 +103,53 @@ export default function CustomerProfile() {
         </div>
 
         <div>
-          <div className="panel">
-            <div className="panel-head"><h3>Profile details</h3></div>
-            <div style={{ padding: '16px 18px' }}>
-              <div className="kv">
-                <div className="kv-row"><span className="k">Customer ID</span><span className="v" style={{ fontFamily: 'var(--mono)' }}>{c.customerCode || '—'}</span></div>
-                <div className="kv-row"><span className="k">Country</span><span className="v">{c.country}</span></div>
-                <div className="kv-row"><span className="k">Default currency</span><span className="v">{c.currency}</span></div>
-                <div className="kv-row"><span className="k">Contact</span><span className="v">{c.contact}</span></div>
-                <div className="kv-row"><span className="k">Email client</span><span className="v">{c.emailClient}</span></div>
-                <div className="kv-row"><span className="k">Salesperson</span><span className="v">{c.salesperson}</span></div>
-                {c.receivedEmail && <div className="kv-row"><span className="k">Received via</span><span className="v" style={{ fontSize: 12 }}>{c.receivedEmail}</span></div>}
-                <div className="kv-row">
+          <div className="elg-panel" style={{ marginBottom: 16 }}>
+            <div className="elg-panel-head"><h3>Profile Details</h3></div>
+            <div className="elg-panel-body">
+              <div className="elg-kv">
+                <div className="elg-kv-row"><span className="k">Customer ID</span><span className="v">{c.customerCode || '—'}</span></div>
+                <div className="elg-kv-row"><span className="k">Country</span><span className="v">{c.country}</span></div>
+                <div className="elg-kv-row"><span className="k">Default Currency</span><span className="v">{c.currency}</span></div>
+                <div className="elg-kv-row"><span className="k">Contact</span><span className="v">{c.contact || '—'}</span></div>
+                <div className="elg-kv-row"><span className="k">Client's Email</span><span className="v" style={{ fontWeight: 600 }}>{c.email || '—'}</span></div>
+                {c.receivedEmail && <div className="elg-kv-row"><span className="k">Received Via</span><span className="v" style={{ fontSize: 12 }}>{c.receivedEmail}</span></div>}
+                <div className="elg-kv-row">
                   <span className="k">Status</span>
                   <span className="v">
                     <select
+                      className="elg-status-pill-select"
                       value={c.status === 'Paid' ? 'Paid' : 'Free Trial'}
                       onChange={(e) => handleStatusChange(e.target.value)}
-                      style={{ width: 'auto', padding: '4px 8px', fontSize: '11.5px', fontWeight: 700, borderRadius: 100, border: 'none', background: c.status === 'Paid' ? 'var(--accent-soft)' : 'var(--amber-soft)', color: c.status === 'Paid' ? 'var(--accent)' : 'var(--amber-ink)' }}
+                      style={{ background: c.status === 'Paid' ? 'var(--elg-green)' : 'var(--elg-orange)' }}
                     >
                       <option value="Free Trial">Free Trial</option>
                       <option value="Paid">Paid</option>
                     </select>
                   </span>
                 </div>
-                {isAdmin && <div className="kv-row"><span className="k">Invoice day</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
+                {isAdmin && <div className="elg-kv-row"><span className="k">Invoice Day</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
               </div>
             </div>
           </div>
-          <div className="panel">
-            <div className="panel-head"><h3>Notes</h3></div>
-            <div style={{ padding: '16px 18px' }}>
-              <div style={{ fontSize: '12.5px', color: c.notes ? 'var(--ink)' : 'var(--ink-3)' }}>{c.notes || '—'}</div>
+
+          <div className="elg-panel" style={{ marginBottom: 16 }}>
+            <div className="elg-panel-head"><h3>Notes</h3></div>
+            <div className="elg-panel-body">
+              <div style={{ fontSize: 12.5, color: c.notes ? 'var(--elg-ink)' : 'var(--elg-ink-3)', lineHeight: 1.5 }}>{c.notes || '—'}</div>
             </div>
           </div>
-          <div className="panel">
-            <div className="panel-head"><h3>Commission summary</h3></div>
-            <div style={{ padding: '16px 18px' }}>
-              <div className="kv">
-                <div className="kv-row"><span className="k">Total earned</span><span className="v">{fmt(os.reduce((s, o) => s + commissionAmt(o), 0), c.currency)}</span></div>
-                <div className="kv-row"><span className="k">Salesperson</span><span className="v">{c.salesperson}</span></div>
+
+          <div className="elg-panel">
+            <div className="elg-panel-head"><h3>Salesperson</h3></div>
+            <div className="elg-panel-body">
+              <div className="elg-kv">
+                <div className="elg-kv-row"><span className="k">Name</span><span className="v">{c.salesperson}</span></div>
+                <div className="elg-kv-row"><span className="k">Commission</span><span className="v">{fmt(os.reduce((s, o) => s + commissionAmt(o), 0), c.currency)}</span></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

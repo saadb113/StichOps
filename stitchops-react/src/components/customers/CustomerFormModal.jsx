@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { CCY, SYM } from '../../lib/constants';
+import { CloseIcon, UserPlusIcon } from '../icons/Icon';
 
 export default function CustomerFormModal({ customer = null }) {
   const { customers, employees, isAdmin, isSalesperson, currentEmployee, nextCustomerCode, addCustomer, updateCustomer } = useAppState();
@@ -81,76 +82,83 @@ export default function CustomerFormModal({ customer = null }) {
 
   return (
     <>
-      <div className="modal-head"><h3>{c ? 'Edit customer' : 'Add customer'}</h3><button className="btn btn-ghost btn-sm" onClick={closeModal}>Close</button></div>
-      <div className="modal-body">
+      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+
+      {c ? (
+        <div className="elg-modal-head-plain"><h3>Edit Profile</h3></div>
+      ) : (
+        <div className="elg-modal-hero">
+          <div className="elg-modal-hero-icon"><UserPlusIcon width={22} height={22} /></div>
+          <div className="elg-modal-title">Add Customer</div>
+          <div className="elg-modal-sub">Add your customer details to add customer profile.</div>
+        </div>
+      )}
+
+      <div className="elg-modal-body">
         {isAdmin && (
-          <div className="field">
+          <div className="elg-field">
             <label>Customer ID</label>
-            <input value={customerCode} onChange={(e) => setCustomerCode(e.target.value)} placeholder="CUST-1001" />
-            <div className="hint">Auto-generated, but you can set your own — it must be unique and will appear on this customer's invoices.</div>
-            {codeError && <div style={{ color: 'var(--red)', fontSize: '11.5px', marginTop: 4, fontWeight: 600 }}>This ID is already in use by another customer.</div>}
+            <input className={codeError ? 'elg-input-danger' : ''} value={customerCode} onChange={(e) => setCustomerCode(e.target.value)} placeholder="CUST-1001" />
+            {codeError && <div style={{ color: 'var(--elg-red-ink)', fontSize: 11.5, marginTop: 5, fontWeight: 600 }}>This ID is already in use by another customer.</div>}
           </div>
         )}
-        <div className="field-row">
-          <div className="field"><label>Contact name</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="James Whitfield" /></div>
-          <div className="field"><label>Company name</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Northbridge Retail Ltd" /></div>
+        <div className="elg-field-row">
+          <div className="elg-field"><label>Contact Name</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Carla Montero" /></div>
+          <div className="elg-field"><label>Company Name</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Abc digitizing" /></div>
         </div>
-        <div className="field-row">
-          <div className="field">
+        <div className="elg-field-row">
+          <div className="elg-field">
             <label>Country</label>
             <select value={country} onChange={(e) => handleCountryChange(e.target.value)}>
               {countries.map((co) => <option key={co} value={co}>{co}</option>)}
             </select>
-            <div className="hint">Sets the default currency automatically — you can still change it below.</div>
           </div>
-          <div className="field">
-            <label>Default currency</label>
+          <div className="elg-field">
+            <label>Currency</label>
             <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
               {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
             </select>
           </div>
         </div>
-        <div className="field-row">
-          <div className="field"><label>Email</label><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" /></div>
-          <div className="field">
-            <label>Email client</label>
+        <div className="elg-field-row">
+          <div className="elg-field"><label>Customer Email</label><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. carla@abcdigitizing.com" /></div>
+          <div className="elg-field">
+            <label>Email Client</label>
             <select value={emailClient} onChange={(e) => setEmailClient(e.target.value)}>
               <option>Gmail</option><option>Outlook</option><option>Other</option>
             </select>
           </div>
         </div>
-        <div className="field-row">
-          <div className="field"><label>Contact number</label><input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="+44 7700 900123" /></div>
-          <div className="field">
+        <div className="elg-field-row">
+          <div className="elg-field"><label>Contact Number</label><input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="e.g. +44 7700 900123" /></div>
+          <div className="elg-field">
             <label>Salesperson</label>
             <select value={salesperson} onChange={(e) => setSalesperson(e.target.value)} disabled={isSalesperson}>
               {salespeople.map((e) => <option key={e.id}>{e.name}</option>)}
             </select>
-            {isSalesperson && <div className="hint">Assigned to you automatically.</div>}
           </div>
         </div>
         {showReceivedEmail && (
-          <div className="field">
-            <label>Received on email</label>
+          <div className="elg-field">
+            <label>Client on Email</label>
             <select value={receivedEmail} onChange={(e) => setReceivedEmail(e.target.value)}>
-              <option value="">— Select which of your emails this client came in on —</option>
+              <option value="">Select which of your emails this client came in on</option>
               {currentEmployee.emails.map((em) => <option key={em} value={em}>{em}</option>)}
             </select>
-            <div className="hint">Lets admin see which of your assigned emails brought in this client.</div>
           </div>
         )}
         {isAdmin && (
-          <div className="field">
-            <label>Invoice generation day</label>
-            <input type="number" min="1" max="28" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" />
-            <div className="hint">You'll get a reminder the day before, and the draft invoice appears in the Invoice tab on this date.</div>
+          <div className="elg-field-row">
+            <div className="elg-field"><label>Invoice Generation Day</label><input type="number" min="1" max="28" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" /></div>
+            <div />
           </div>
         )}
-        <div className="field"><label>Notes</label><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional — pricing notes, requirements..." /></div>
+        <div className="elg-field"><label>Notes (Optional)</label><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Pricing notes, requirements..." /></div>
       </div>
-      <div className="modal-foot">
-        <button className="btn" onClick={closeModal}>Cancel</button>
-        <button className="btn btn-primary" onClick={handleSave}>{c ? 'Save changes' : 'Add customer'}</button>
+      <div className={`elg-modal-foot ${c ? 'plain' : ''}`}>
+        <span className="spacer" />
+        <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleSave}>{c ? 'Save Changes' : 'Add Customer'}</button>
       </div>
     </>
   );

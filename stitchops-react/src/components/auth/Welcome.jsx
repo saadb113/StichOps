@@ -23,19 +23,21 @@ export default function Welcome() {
   }
 
   return (
-    <div className="auth-wrap"><div className="auth-card" style={{ width: 420 }}>
-      <div className="auth-brand">Stitch<span>Ops</span></div>
-      <div className="auth-sub">Here's what's on file for you — check it's correct before you continue.</div>
-      <div className="kv">
-        <div className="kv-row"><span className="k">Name</span><span className="v">{e.name}</span></div>
-        <div className="kv-row"><span className="k">Designation</span><span className="v">{e.designation || '—'}</span></div>
-        <div className="kv-row"><span className="k">Email</span><span className="v">{e.email}</span></div>
-        <div className="kv-row"><span className="k">Paid in</span><span className="v">{e.currency}</span></div>
-        <div className="kv-row"><span className="k">Base salary</span><span className="v">{fmt(e.baseSalary, e.currency)}</span></div>
-        <div className="kv-row"><span className="k">Payout day</span><span className="v">{e.payoutDay} of each month</span></div>
+    <div className="elg-auth-wrap">
+      <div className="elg-auth-card" style={{ width: 460 }}>
+        <div className="elg-auth-title">Your Details</div>
+        <div className="elg-auth-sub">Here's what's on file for you — check it's correct before you continue.</div>
+        <div className="elg-kv">
+          <div className="elg-kv-row"><span className="k">Name</span><span className="v">{e.name}</span></div>
+          <div className="elg-kv-row"><span className="k">Designation</span><span className="v">{e.designation || '—'}</span></div>
+          <div className="elg-kv-row"><span className="k">Email</span><span className="v">{e.email}</span></div>
+          <div className="elg-kv-row"><span className="k">Paid in</span><span className="v">{e.currency}</span></div>
+          <div className="elg-kv-row"><span className="k">Base salary</span><span className="v">{fmt(e.baseSalary, e.currency)}</span></div>
+          <div className="elg-kv-row"><span className="k">Payout day</span><span className="v">{e.payoutDay} of each month</span></div>
+        </div>
+        <button className="elg-btn elg-btn-primary" style={{ marginTop: 40 }} onClick={handleContinue}>Continue to My Dashboard</button>
+        <div className="elg-auth-hint">Notice something wrong? Let your admin know — this is managed by them.</div>
       </div>
-      <button className="btn btn-primary" style={{ width: '100%', marginTop: 18 }} onClick={handleContinue}>Continue to my dashboard</button>
-      <div className="hint" style={{ marginTop: 10 }}>Notice something wrong? Let your admin know — this is managed by them.</div>
-    </div></div>
+    </div>
   );
 }

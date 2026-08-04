@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
+import { EyeIcon, EyeOffIcon } from '../icons/Icon';
 
 export default function ChangePassword() {
   const { currentEmployee, submitNewPassword } = useAppState();
   const navigate = useNavigate();
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit() {
@@ -23,16 +26,37 @@ export default function ChangePassword() {
   }
 
   return (
-    <div className="auth-wrap"><div className="auth-card">
-      <div className="auth-brand">Stitch<span>Ops</span></div>
-      <div className="auth-sub">Welcome{currentEmployee ? ', ' + currentEmployee.name : ''} — set a new password to continue<span className="role-tag">First login</span></div>
-      {error && <div className="auth-error">{error}</div>}
-      <div className="field"><label>New password</label><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="At least 6 characters" /></div>
-      <div className="field">
-        <label>Confirm password</label>
-        <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter password" onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }} />
+    <div className="elg-auth-wrap">
+      <div className="elg-auth-card">
+        <div className="elg-auth-title">Add New Password</div>
+        <div className="elg-auth-sub">Welcome{currentEmployee ? ', ' + currentEmployee.name : ''} — set a new password to continue</div>
+        {error && <div className="elg-auth-error">{error}</div>}
+        <div className="elg-field">
+          <label>New Password</label>
+          <div className="elg-password-field">
+            <input type={showPw ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="At least 6 characters" />
+            <button type="button" className="elg-password-toggle" onClick={() => setShowPw((v) => !v)} tabIndex={-1}>
+              {showPw ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+        </div>
+        <div className="elg-field">
+          <label>Confirm Password</label>
+          <div className="elg-password-field">
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Re-enter password"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+            />
+            <button type="button" className="elg-password-toggle" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1}>
+              {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+        </div>
+        <button className="elg-btn elg-btn-primary" onClick={handleSubmit}>Set Password &amp; Continue</button>
       </div>
-      <button className="btn btn-primary" style={{ width: '100%', marginTop: 6 }} onClick={handleSubmit}>Set password &amp; continue</button>
-    </div></div>
+    </div>
   );
 }

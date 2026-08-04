@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
+import { EyeIcon, EyeOffIcon } from '../icons/Icon';
+
+const elegantsLogo = '/images/elegant-design-icon.png';
 
 export default function Login() {
   const { attemptLogin } = useAppState();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -22,38 +26,46 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-wrap"><div className="auth-card">
-      <div className="auth-brand">Stitch<span>Ops</span></div>
-      <div className="auth-sub">Sign in to your account</div>
-      {error && <div className="auth-error">{error}</div>}
-      <div className="field">
-        <label>Email</label>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@stitchops.com"
-          onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('login_password').focus(); }}
-        />
+    <div className="elg-auth-wrap">
+      <div className="elg-auth-card">
+        <div className="elg-auth-logo"><img src={elegantsLogo} alt="The Elegants Design" /></div>
+        <div className="elg-auth-title">Welcome back! <span>👋</span></div>
+        <div className="elg-auth-sub">Login to your account</div>
+        {error && <div className="elg-auth-error">{error}</div>}
+        <div className="elg-field">
+          <label>Email</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="e.g. you@company.com"
+            onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('login_password').focus(); }}
+          />
+        </div>
+        <div className="elg-field">
+          <label>Password</label>
+          <div className="elg-password-field">
+            <input
+              id="login_password"
+              type={showPw ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+            />
+            <button type="button" className="elg-password-toggle" onClick={() => setShowPw((v) => !v)} tabIndex={-1}>
+              {showPw ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+        </div>
+        <div className="elg-auth-row">
+          <label className="elg-auth-check">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Keep me signed-in
+          </label>
+          <Link to="/forgot-password" className="elg-auth-link">Forgot password?</Link>
+        </div>
+        <button className="elg-btn elg-btn-primary" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Logging in…' : 'Login'}</button>
+        <div className="elg-auth-hint">Demo accounts — Admin: admin@stitchops.com / admin123. </div>
       </div>
-      <div className="field">
-        <label>Password</label>
-        <input
-          id="login_password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
-        />
-      </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '12.5px', color: 'var(--ink-2)', margin: '-4px 0 14px', cursor: 'pointer' }}>
-        <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width: 'auto' }} /> Keep me signed in on this device
-      </label>
-      <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleSubmit} disabled={submitting}>{submitting ? 'Logging in…' : 'Log in'}</button>
-      <div style={{ textAlign: 'center', marginTop: 12 }}>
-        <Link to="/forgot-password" style={{ fontSize: '12.5px', color: 'var(--accent)', fontWeight: 600 }}>Forgot password?</Link>
-      </div>
-      <div className="auth-hint-box">Demo accounts — Admin: admin@stitchops.com / admin123. Salesperson (temp password, first login only): ayesha.khan@stitchops.com / Temp-7F2A. After activation, a salesperson signs in with their own password directly — no password reset or welcome screen again.</div>
-    </div></div>
+    </div>
   );
 }

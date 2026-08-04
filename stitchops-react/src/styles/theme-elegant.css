@@ -6,10 +6,8 @@
    auth) still rely on for their current look.
    ============================================================ */
 
-/* Brand typefaces — locally hosted (not on a free CDN). Drop the licensed
-   .woff2 files into public/fonts/... using the filenames below; each weight
-   degrades gracefully (browser synthesizes bold/regular) until its file is
-   added. See public/fonts/README.md for the exact list. */
+/* Brand typefaces — locally hosted (not on a free CDN). See
+   public/fonts/README.md for provenance/licensing notes on each family. */
 @font-face {
   font-family: "Inter Display";
   font-weight: 400;
@@ -47,7 +45,15 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Regular.woff2") format("woff2");
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Regular-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "STK Bureau Serif";
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Italic-Trial.otf") format("opentype");
 }
 
 @font-face {
@@ -55,7 +61,15 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Medium.woff2") format("woff2");
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Medium-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "STK Bureau Serif";
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Medium-Italic-Trial.otf") format("opentype");
 }
 
 @font-face {
@@ -63,7 +77,15 @@
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-  src: url("/fonts/stk-bureau-serif/STKBureauSerif-SemiBold.woff2") format("woff2");
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-SemiBold-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "STK Bureau Serif";
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-SemiBold-Italic-Trial.otf") format("opentype");
 }
 
 @font-face {
@@ -71,7 +93,15 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Bold.woff2") format("woff2");
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Bold-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "STK Bureau Serif";
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  src: url("/fonts/stk-bureau-serif/STKBureauSerif-Bold-Italic-Trial.otf") format("opentype");
 }
 
 :root {
@@ -87,19 +117,21 @@
   --elg-surface: #FFFFFF;
   --elg-line: #ECECF0;
   --elg-line-strong: #DEDEE4;
+  --elg-border-grey: #EBEBEB;
 
   --elg-ink: #1A1A1E;
   --elg-ink-2: #191919;
   --elg-ink-3: #9CA3AF;
   --elg-ink-hover: #334EAC;
+  --elg-ink-grey: #737373;
 
-  --elg-green: #22A366;
-  --elg-red: #EF5A5A;
+  --elg-green: #74C374;
+  --elg-red: #E9898A;
   --elg-red-soft: #FDECEC;
   --elg-red-ink: #C23B3B;
-  --elg-orange: #F0924A;
-  --elg-navy: #3B4B6B;
-  --elg-gray: #C7CAD1;
+  --elg-orange: #E39B69;
+  --elg-navy: #7C8FA8;
+  --elg-gray: #EBEBEB;
 
   --elg-radius: 12px;
   --elg-radius-lg: 20px;
@@ -117,7 +149,7 @@
   flex: 1;
   max-width: none;
   min-width: 0;
-  padding: 28px 40px 40px;
+  padding: 25px;
 }
 
 #sidebar.elg-sidebar {
@@ -172,7 +204,7 @@
 }
 
 
-.elg-customer-btn{
+.elg-customer-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,7 +223,7 @@
 }
 
 
-.elg-customer-btn:hover{
+.elg-customer-btn:hover {
   background: var(--page-bg);
   border: 1px solid var(--page-bg);
 }
@@ -250,7 +282,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 40px;
   padding-top: 22px;
   padding-right: 12px;
   padding-bottom: 14px;
@@ -265,6 +296,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 0px 12px;
+  margin-top: 40px;
 }
 
 .elg-nav-item {
@@ -511,16 +543,23 @@
   background: var(--elg-primary-soft);
   color: var(--elg-primary);
   padding: 3px 10px;
-  border-radius: 100px;
+  line-height: 21px;
+  font-size: 14px;
+  border-radius: 8px;
   font-weight: 600;
+  border: 1px solid #C0C8E5
 }
 
 .elg-crumb-sep {
-  color: var(--elg-ink-3);
+
+  font-size: 14px;
+  color: var(--elg-ink-grey);
 }
 
 .elg-crumb-current {
-  color: var(--elg-ink-2);
+
+  font-size: 14px;
+  color: var(--elg-ink-grey);
 }
 
 .elg-page-head {
@@ -533,14 +572,14 @@
 .elg-page-title {
   font-family: var(--elg-font-serif);
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 300;
   color: var(--elg-ink);
   letter-spacing: -0.01em;
 }
 
 .elg-page-sub {
-  font-size: 13px;
-  color: var(--elg-ink-2);
+  font-size: 14px;
+  color: var(--elg-ink-grey);
   margin-top: 4px;
 }
 
@@ -555,7 +594,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 14px 18px;
+  background: transparent;
   margin-bottom: 18px;
 }
 
@@ -632,8 +671,8 @@
   padding: 12px 20px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--elg-ink-2);
-  background: var(--elg-page-bg);
+  color: var(--elg-ink-grey);
+  background: var(--elg-border-grey);
   border-bottom: 1px solid var(--elg-line);
   white-space: nowrap;
 }
@@ -663,9 +702,10 @@
 .elg-badge {
   display: inline-flex;
   align-items: center;
-  padding: 5px 13px;
-  border-radius: 100px;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  height: 26px;
   font-weight: 600;
   color: #fff;
 }
@@ -712,7 +752,7 @@
 .elg-greeting {
   font-family: var(--elg-font-serif);
   font-size: 34px;
-  font-weight: 600;
+  font-weight: 300;
   color: var(--elg-ink);
   display: flex;
   align-items: center;
@@ -731,6 +771,8 @@
   border: 1px solid var(--elg-line);
   border-radius: var(--elg-radius-lg);
   padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .elg-metric-head {
@@ -741,8 +783,9 @@
 }
 
 .elg-metric-label {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--elg-ink-2);
+  font-weight: 400;
 }
 
 .elg-metric-icon {
@@ -750,20 +793,22 @@
 }
 
 .elg-metric-value {
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 400;
   color: var(--elg-ink);
   letter-spacing: -0.01em;
+  font-family: var(--elg-font-serif);
+  margin-bottom: 4px;
 }
 
 .elg-metric-sub {
-  font-size: 12.5px;
-  color: var(--elg-ink-3);
-  margin-top: 4px;
+  font-size: 12px;
+  color: var(--elg-ink-grey);
+  margin-top: auto;
 }
 
 .elg-hint-line {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--elg-ink-2);
   margin: -8px 0 20px;
 }
@@ -1232,9 +1277,9 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: var(--elg-page-bg);
+  background: #fff;
   border: 1px solid var(--elg-line);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 4px;
   margin-bottom: 18px;
 }
@@ -1300,9 +1345,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 9px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--elg-line);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .elg-kv-row:last-child {
@@ -1468,5 +1513,150 @@
   .elg-tabs {
     overflow-x: auto;
     max-width: 100%;
+  }
+}
+
+/* ---------- Auth screens (login / forgot password / change password / welcome) ---------- */
+.elg-auth-wrap {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: var(--elg-font-sans);
+  background-image: url("/images/login-bg.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.elg-auth-card {
+  background: var(--elg-surface);
+  border-radius: var(--elg-radius-lg);
+  box-shadow: var(--elg-shadow);
+  width: 420px;
+  max-width: 100%;
+  padding: 40px 34px;
+  text-align: center;
+}
+
+.elg-auth-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.elg-auth-logo img {
+  height: 55px;
+  width: auto;
+}
+
+.elg-auth-title {
+  font-family: var(--elg-font-serif);
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--elg-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.elg-auth-sub {
+  font-size: 14px;
+  color: var(--elg-ink-grey);
+  line-height: 1.5;
+  margin: 6px 0 26px;
+}
+
+.elg-auth-card .elg-field {
+  text-align: left;
+}
+
+.elg-auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -6px 0 20px;
+  font-size: 12.5px;
+}
+
+.elg-auth-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--elg-ink-2);
+  cursor: pointer;
+}
+
+.elg-auth-check input {
+  width: auto;
+}
+
+.elg-auth-link {
+  color: var(--elg-primary);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--elg-font-sans);
+  font-size: 12.5px;
+  padding: 0;
+}
+
+.elg-auth-link:hover {
+  text-decoration: underline;
+}
+
+.elg-auth-error {
+  background: var(--elg-red-soft);
+  color: var(--elg-red-ink);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.elg-auth-hint {
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--elg-ink-grey);
+  line-height: 1.6;
+  margin-top: 18px;
+}
+
+.elg-password-field {
+  position: relative;
+}
+
+.elg-password-field input {
+  padding-right: 42px;
+}
+
+.elg-password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--elg-ink-3);
+  padding: 4px;
+  display: flex;
+}
+
+.elg-password-toggle:hover {
+  color: var(--elg-ink);
+}
+
+@media (max-width: 480px) {
+  .elg-auth-card {
+    padding: 32px 24px 28px;
   }
 }

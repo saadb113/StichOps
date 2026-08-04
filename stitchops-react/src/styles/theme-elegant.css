@@ -187,6 +187,36 @@
 .elg-badge-onhold{background:var(--elg-navy);}
 .elg-badge-cancelled{background:var(--elg-gray);color:#5B5F6B;}
 
+/* Payment-status badges (Invoices/Dashboard) — distinct palette from order-status badges above */
+.elg-badge-paid{background:var(--elg-green);}
+.elg-badge-unpaid{background:var(--elg-red);}
+.elg-badge-pending-pay{background:var(--elg-orange);}
+.elg-badge.clickable{cursor:pointer;}
+
+/* ---------- Dashboard ---------- */
+.elg-greeting{font-family:var(--elg-font-serif);font-size:34px;font-weight:600;color:var(--elg-ink);display:flex;align-items:center;gap:10px;}
+.elg-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.elg-metric-card{background:var(--elg-surface);border:1px solid var(--elg-line);border-radius:var(--elg-radius-lg);padding:18px 20px;}
+.elg-metric-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.elg-metric-label{font-size:14px;color:var(--elg-ink-2);}
+.elg-metric-icon{color:var(--elg-ink-3);}
+.elg-metric-value{font-size:26px;font-weight:700;color:var(--elg-ink);letter-spacing:-0.01em;}
+.elg-metric-sub{font-size:12.5px;color:var(--elg-ink-3);margin-top:4px;}
+.elg-hint-line{font-size:13px;color:var(--elg-ink-2);margin:-8px 0 20px;}
+.elg-hint-line a{color:var(--elg-primary);font-weight:600;text-decoration:none;}
+.elg-section-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--elg-line);}
+.elg-section-title{font-family:var(--elg-font-serif);font-size:19px;font-weight:600;color:var(--elg-ink);}
+.elg-flag{
+  display:flex;gap:10px;align-items:flex-start;background:#FFF6E9;border:1px solid #F3DFB8;
+  border-radius:11px;padding:12px 14px;margin-bottom:12px;color:#8A5A17;font-size:13px;line-height:1.5;
+}
+.elg-flag.danger{background:var(--elg-red-soft);border-color:#F6C9C9;color:var(--elg-red-ink);}
+.elg-flag svg{flex-shrink:0;margin-top:1px;}
+.elg-flag .review-btn{margin-left:auto;background:#111114;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--elg-font-sans);white-space:nowrap;}
+
+@media (max-width:900px){ .elg-metric-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:640px){ .elg-metric-grid{grid-template-columns:1fr;} .elg-greeting{font-size:26px;} }
+
 .elg-row-actions{display:flex;gap:6px;position:relative;}
 .elg-icon-sq{
   width:32px;height:32px;border-radius:8px;background:var(--elg-page-bg);border:none;
@@ -197,7 +227,7 @@
   position:absolute;top:calc(100% + 4px);right:0;background:var(--elg-surface);border:1px solid var(--elg-line);
   border-radius:10px;box-shadow:var(--elg-shadow);min-width:130px;overflow:hidden;z-index:15;
 }
-.elg-row-menu button{width:100%;text-align:left;padding:9px 14px;border:none;background:transparent;font-size:13px;font-family:var(--elg-font-sans);cursor:pointer;}
+.elg-row-menu button{width:100%;display:flex;align-items:center;gap:7px;text-align:left;padding:9px 14px;border:none;background:transparent;font-size:13px;font-family:var(--elg-font-sans);color:var(--elg-ink);cursor:pointer;}
 .elg-row-menu button:hover{background:var(--elg-page-bg);}
 
 .elg-empty{padding:48px 20px;text-align:center;color:var(--elg-ink-3);font-size:13px;}

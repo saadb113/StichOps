@@ -56,3 +56,9 @@ export function UserPlusIcon(props) {
 export function ShieldIcon(props) {
   return <svg {...base} {...props}><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3Z" /><path d="M9 12l2 2 4-4" /></svg>;
 }
+export function TrendUpIcon(props) {
+  return <svg {...base} {...props}><path d="M4 17L10 11L14 15L20 7" /><path d="M14 7h6v6" /></svg>;
+}
+export function DownloadIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M12 3v12" /><path d="M7 10l5 5 5-5" /><path d="M4 20h16" /></svg>;
+}

@@ -1,10 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, paymentBadge } from '../../lib/helpers';
+import { paymentBadge } from '../../lib/helpers';
 import { SYM } from '../../lib/constants';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
+import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon } from '../icons/Icon';
+
+function invoiceBadgeInfo(inv) {
+  const pb = paymentBadge(inv);
+  if (pb.cls === 'b-completed') return { label: 'Paid', cls: 'elg-badge-paid' };
+  const m = pb.label.match(/Unpaid — (\d+) months?/);
+  if (m) {
+    const n = Number(m[1]);
+    return { label: `Unpaid (${n} Month${n > 1 ? 's' : ''})`, cls: 'elg-badge-unpaid' };
+  }
+  return { label: 'Unpaid', cls: 'elg-badge-unpaid' };
+}
 
 export default function InvoicesScreen() {
   const { invoices, getCustomer, togglePaymentStatus } = useAppState();
@@ -15,6 +27,13 @@ export default function InvoicesScreen() {
   const [search, setSearch] = useState('');
   const [currency, setCurrency] = useState('');
   const [status, setStatus] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   let list = invoices.filter((i) => i.status === 'approved');
   if (date) list = list.filter((i) => i.generatedDate === date);
@@ -45,49 +64,73 @@ export default function InvoicesScreen() {
   }
 
   return (
-    <>
-      <div className="topbar">
-        <div><div className="page-title">Invoices</div><div className="page-sub">{list.length} invoice{list.length === 1 ? '' : 's'}</div></div>
+    <div className="elg-page">
+      <div className="elg-crumbs">
+        <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
+        <span className="elg-crumb-sep">/</span>
+        <span className="elg-crumb-current">Invoices</span>
       </div>
-      <div className="panel" style={{ padding: '14px 18px' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }} />
-          <button className="btn btn-sm" onClick={() => setDate('')}>Show all dates</button>
-          <div className="search" style={{ width: 220 }}>
-            <span>&#128269;</span>
-            <input placeholder="Search customer..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }}>
-            <option value="">All currencies</option>
-            {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-          </select>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ padding: '7px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }}>
-            <option value="">All payment statuses</option>
-            <option value="Paid">Paid</option>
-            <option value="Pending">Pending (under 1 month)</option>
-            <option value="Overdue1">Unpaid — 1 month</option>
-            <option value="Overdue2">Unpaid — 2+ months</option>
-          </select>
+
+      <div className="elg-page-head">
+        <div>
+          <div className="elg-page-title">Invoices</div>
+          <div className="elg-page-sub">{list.length} invoice{list.length === 1 ? '' : 's'}</div>
         </div>
       </div>
-      <div className="panel">
-        <table>
-          <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment status</th><th></th></tr></thead>
+
+      <div className="elg-panel elg-filterbar">
+        <div className="elg-field-search">
+          <SearchIcon />
+          <input placeholder="Search invoices or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="elg-date-field">
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+            <CalendarIcon />
+          </span>
+          {date && <button className="elg-date-clear" title="Clear date" onClick={() => setDate('')}>&times;</button>}
+        </div>
+        <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="">All Status</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending (under 1 month)</option>
+          <option value="Overdue1">Unpaid — 1 month</option>
+          <option value="Overdue2">Unpaid — 2+ months</option>
+        </select>
+        <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+          <option value="">All Currencies</option>
+          {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+        </select>
+      </div>
+
+      <div className="elg-panel elg-table-wrap">
+        <table className="elg-table">
+          <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Currency</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={6} className="empty">No invoices match these filters.</td></tr>}
+            {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
             {list.map((i) => {
               const c = getCustomer(i.customerId);
-              const pb = paymentBadge(i);
+              const bi = invoiceBadgeInfo(i);
               return (
                 <tr key={i.id}>
                   <td>{i.invoiceNo}{i.version > 1 ? ` (v${i.version})` : ''}</td>
                   <td className="clickable" onClick={() => navigate(`/customers/${i.customerId}`)}>{c ? c.company : '—'}</td>
                   <td>{i.generatedDate}</td>
-                  <td>{fmt(i.total, i.currency)}</td>
-                  <td><span className={`badge ${pb.cls}`} style={{ cursor: 'pointer' }} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{pb.label}</span></td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <button className="btn btn-sm" onClick={() => toast(`Downloading ${i.invoiceNo}.pdf`)}>Download</button>
-                    <button className="btn btn-sm btn-ghost" onClick={() => openModal(<EditInvoiceOrdersModal invoiceId={i.id} />)}>Edit</button>
+                  <td>{i.currency}</td>
+                  <td>{i.total.toFixed(2)}</td>
+                  <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
+                  <td>
+                    <div className="elg-row-actions">
+                      <button className="elg-icon-sq" title="Download" onClick={() => toast(`Downloading ${i.invoiceNo}.pdf`)}><DownloadIcon /></button>
+                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><KebabIcon /></button>
+                      {openMenuId === i.id && (
+                        <div className="elg-row-menu">
+                          <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>
+                            <PencilIcon width={13} height={13} /> Edit
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -95,6 +138,6 @@ export default function InvoicesScreen() {
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }

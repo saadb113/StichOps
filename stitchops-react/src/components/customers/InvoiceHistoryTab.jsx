@@ -40,7 +40,7 @@ export default function InvoiceHistoryTab({ customer }) {
                   {i.status === 'approved' && (
                     <>
                       <button className="btn btn-sm" onClick={() => toast('Downloading ' + i.invoiceNo + '.pdf')}>Download</button>
-                      <button className="btn btn-sm btn-ghost" onClick={() => openModal(<EditInvoiceOrdersModal invoiceId={i.id} />)}>Edit</button>
+                      <button className="btn btn-sm btn-ghost" onClick={() => openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' })}>Edit</button>
                     </>
                   )}
                 </td>

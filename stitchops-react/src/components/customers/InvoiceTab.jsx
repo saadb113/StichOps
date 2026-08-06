@@ -139,7 +139,7 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ fontSize: 12.5, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)' }}>{fmt(commTotal, customer.currency)}</strong></div>
+        <div style={{ fontSize: 14, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)', fontWeight: 500 }}>{fmt(commTotal, customer.currency)}</strong></div>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
       </div>
     </>

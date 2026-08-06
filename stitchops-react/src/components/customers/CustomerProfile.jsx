@@ -102,7 +102,7 @@ export default function CustomerProfile() {
           </div>
         </div>
 
-        <div>
+        <div className="elg-profile-sidebar">
           <div className="elg-panel" style={{ marginBottom: 16 }}>
             <div className="elg-panel-head"><h3>Profile Details</h3></div>
             <div className="elg-panel-body">
@@ -135,7 +135,7 @@ export default function CustomerProfile() {
           <div className="elg-panel" style={{ marginBottom: 16 }}>
             <div className="elg-panel-head"><h3>Notes</h3></div>
             <div className="elg-panel-body">
-              <div style={{ fontSize: 12.5, color: c.notes ? 'var(--elg-ink)' : 'var(--elg-ink-3)', lineHeight: 1.5 }}>{c.notes || '—'}</div>
+              <div className="elg-kv-row" style={{ fontSize: 12.5, color: c.notes ? 'var(--elg-ink)' : 'var(--elg-ink-3)', lineHeight: 1.5 }}>{c.notes || '—'}</div>
             </div>
           </div>
 

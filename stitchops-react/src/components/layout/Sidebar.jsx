@@ -29,6 +29,8 @@ const SettingsIconActive = '/icons/settings-icon-active.svg';
 const AddOrder = '/icons/add-icon.svg';
 const AddCustomer = '/icons/add-customer-icon.svg';
 
+const notificationsIcon = '/images/important-notifications-icon.png';
+
 const ADMIN_NAV = [
   ['/dashboard', 'Dashboard', DashboardIcon, DashboardIconActive],
   ['/orders', 'Orders', OrdersIcon, OrdersIconActive],
@@ -112,11 +114,15 @@ export default function Sidebar({ open, onNavigate }) {
 
       {isAdmin && passwordResetRequests.length > 0 && (
         <div className="elg-attention-card">
-          <div className="elg-attention-icon"><ShieldIcon width={18} height={18} /></div>
-          <div className="elg-attention-text">
-            '{passwordResetRequests.length}' password reset request{passwordResetRequests.length > 1 ? 's' : ''} need{passwordResetRequests.length > 1 ? '' : 's'} your attention
+          <div className="elg-attention-content">
+            <div className="elg-attention-icon">
+              <img src={notificationsIcon} width={60} height={60} alt="Attention" />
+            </div>
+            <div className="elg-attention-text">
+              '{passwordResetRequests.length}' password reset request{passwordResetRequests.length > 1 ? 's' : ''} need{passwordResetRequests.length > 1 ? '' : 's'} your attention
+            </div>
+            <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
           </div>
-          <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
         </div>
       )}
     </div>

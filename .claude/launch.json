@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "stitchops-react", "run", "dev", "--", "--host", "--port", "5173"],
       "port": 5173
+    },
+    {
+      "name": "russ-media-homepage",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "russ-media-homepage", "-p", "4501", "-c-1"],
+      "port": 4501
     }
   ]
 }

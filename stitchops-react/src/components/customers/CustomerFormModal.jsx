@@ -88,13 +88,13 @@ export default function CustomerFormModal({ customer = null }) {
         <div className="elg-modal-head-plain"><h3>Edit Profile</h3></div>
       ) : (
         <div className="elg-modal-hero">
-          <div className="elg-modal-hero-icon"><UserPlusIcon width={22} height={22} /></div>
+          <div className="elg-modal-hero-icon"><img src="images/addCustomer.png" alt="" /></div>
           <div className="elg-modal-title">Add Customer</div>
           <div className="elg-modal-sub">Add your customer details to add customer profile.</div>
         </div>
       )}
 
-      <div className="elg-modal-body">
+      <div className="elg-modal-body addCustomer">
         {isAdmin && (
           <div className="elg-field">
             <label>Customer ID</label>
@@ -106,6 +106,7 @@ export default function CustomerFormModal({ customer = null }) {
           <div className="elg-field"><label>Contact Name</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Carla Montero" /></div>
           <div className="elg-field"><label>Company Name</label><input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Abc digitizing" /></div>
         </div>
+       
         <div className="elg-field-row">
           <div className="elg-field">
             <label>Country</label>
@@ -120,6 +121,20 @@ export default function CustomerFormModal({ customer = null }) {
             </select>
           </div>
         </div>
+         <div className="elg-field-row">
+          <div className="elg-field">
+            <label>Address</label>
+            <select value={country} onChange={(e) => handleCountryChange(e.target.value)}>
+              {countries.map((co) => <option key={co} value={co}>{co}</option>)}
+            </select>
+          </div>
+          <div className="elg-field">
+            <label>Zip Code</label>
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+              {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+            </select>
+          </div>
+        </div>
         <div className="elg-field-row">
           <div className="elg-field"><label>Customer Email</label><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. carla@abcdigitizing.com" /></div>
           <div className="elg-field">
@@ -129,14 +144,24 @@ export default function CustomerFormModal({ customer = null }) {
             </select>
           </div>
         </div>
-        <div className="elg-field-row">
+        <div className="elg-field-row gr1">
           <div className="elg-field"><label>Contact Number</label><input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="e.g. +44 7700 900123" /></div>
+          
+        </div>
+        <div className="elg-field-row">
+          
           <div className="elg-field">
             <label>Salesperson</label>
             <select value={salesperson} onChange={(e) => setSalesperson(e.target.value)} disabled={isSalesperson}>
               {salespeople.map((e) => <option key={e.id}>{e.name}</option>)}
             </select>
           </div>
+          {isAdmin && (
+            <>
+            <div className="elg-field"><label>Invoice Generation Day</label><input type="number" min="1" max="28" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" /></div>
+            <div />
+            </>
+          )}
         </div>
         {showReceivedEmail && (
           <div className="elg-field">
@@ -147,12 +172,7 @@ export default function CustomerFormModal({ customer = null }) {
             </select>
           </div>
         )}
-        {isAdmin && (
-          <div className="elg-field-row">
-            <div className="elg-field"><label>Invoice Generation Day</label><input type="number" min="1" max="28" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" /></div>
-            <div />
-          </div>
-        )}
+          
         <div className="elg-field"><label>Notes (Optional)</label><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Pricing notes, requirements..." /></div>
       </div>
       <div className={`elg-modal-foot ${c ? 'plain' : ''}`}>

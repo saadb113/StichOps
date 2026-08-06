@@ -67,12 +67,12 @@ export default function Dashboard() {
 
   return (
     <div className="elg-page">
-      <div className="elg-page-head" style={{ marginBottom: 22 }}>
+      <div className="elg-page-head" style={{ paddingBottom: 24, borderBottom : "1px solid #E8E8E8", marginBottom : 24}}>
         <div className="elg-greeting">{greetingFor(refDate)} <span>👋</span></div>
         <div className="elg-date-field">
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="date" value={refDate} onChange={(e) => setRefDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <CalendarIcon />
+            <img src="./images/calender.png" alt="" />
           </span>
         </div>
       </div>
@@ -99,22 +99,22 @@ export default function Dashboard() {
 
       <div className="elg-metric-grid">
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Active Customers</span><span className="elg-metric-icon"><PeopleIcon /></span></div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Active Customers</span><span className="elg-metric-icon"><img src="./images/activeCustomer.png" alt="" /></span></div>
           <div className="elg-metric-value">{activeCount}</div>
           <div className="elg-metric-sub">Of {customers.length} total</div>
         </div>
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Today's Orders</span><span className="elg-metric-icon"><BagIcon /></span></div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Today's Orders</span><span className="elg-metric-icon"><img src="./images/todaysOrder.png" alt="" /></span></div>
           <div className="elg-metric-value">{todaysOrders.length}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Ready to Invoice</span><span className="elg-metric-icon"><DocIcon /></span></div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Ready to Invoice</span><span className="elg-metric-icon"><img src="./images/Invoice.png" alt="" /></span></div>
           <div className="elg-metric-value">{pendingReview}</div>
           <div className="elg-metric-sub">Completed, not yet invoiced</div>
         </div>
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Current Revenue</span><span className="elg-metric-icon"><TrendUpIcon /></span></div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Current Revenue</span><span className="elg-metric-icon"><img src="./images/revenue.png" alt="" /></span></div>
           <div className="elg-metric-value">{monthRevenueStr}</div>
           <div className="elg-metric-sub">{monthName} Month</div>
         </div>

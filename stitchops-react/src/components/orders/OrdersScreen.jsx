@@ -112,7 +112,7 @@ export default function OrdersScreen() {
                   <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><PencilIcon /></button>
+                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="images/edit.png"/></button>
                       <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon /></button>
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">

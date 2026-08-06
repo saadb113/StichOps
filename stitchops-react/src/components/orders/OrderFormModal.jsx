@@ -82,7 +82,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="./images/cross.png" alt="" /></button>
 
       {order ? (
         <div className="elg-modal-head-plain">
@@ -90,7 +90,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
         </div>
       ) : (
         <div className="elg-modal-hero">
-          <div className="elg-modal-hero-icon"><BagIcon width={22} height={22} /></div>
+          <div className="elg-modal-hero-icon"><img src="./images/addOrder.png" alt="" /></div>
           <div className="elg-modal-title">Add Order</div>
           <div className="elg-modal-sub">{cust ? 'Add details to add your order!' : 'Select a company to continue with the order.'}</div>
         </div>
@@ -134,11 +134,11 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
               </div>
             )}
 
-            <div className="elg-field-row">
+            <div className="elg-field-row orderName">
               <div className="elg-field"><label>Order Name</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jacket Back" /></div>
               <div className="elg-field"><label>Date</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
             </div>
-            <div className="elg-field-row">
+            <div className="elg-field-row gr1">
               <div className="elg-field">
                 <label>Price</label>
                 <div className="elg-price-field">
@@ -148,13 +148,19 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
                   </select>
                 </div>
               </div>
-              <div className="elg-field"><label>Production Cost</label><input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" /></div>
             </div>
             <div className="elg-field-row">
-              <div className="elg-field"><label>Designer</label><select value={designer} onChange={(e) => setDesigner(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select></div>
+              <div className="elg-field">
+                <label>Designer</label>
+                <select value={designer} onChange={(e) => setDesigner(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
+                </div>
+              <div className="elg-field"><label>Production Cost</label>
+              <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
+              </div>
+            </div>
+            
+            <div className="elg-field-row">
               <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} /></div>
-            </div>
-            <div className="elg-field-row">
               <div className="elg-field">
                 <label>Status</label>
                 <select
@@ -168,7 +174,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
                     : (<><option>Pending</option><option>Completed</option></>)}
                 </select>
               </div>
-              <div />
+             
             </div>
           </>
         )}

@@ -121,7 +121,7 @@ export default function InvoicesScreen() {
                   <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Download" onClick={() => toast(`Downloading ${i.invoiceNo}.pdf`)}><DownloadIcon /></button>
+                      <button className="elg-icon-sq" title="Download" onClick={() => toast(`Downloading ${i.invoiceNo}.pdf`)}><img src="images/download.png"/></button>
                       <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><KebabIcon /></button>
                       {openMenuId === i.id && (
                         <div className="elg-row-menu">

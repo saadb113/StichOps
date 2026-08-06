@@ -19,8 +19,8 @@ export default function EditInvoiceOrdersModal({ invoiceId }) {
       <div className="elg-modal-head-plain">
         <h3>Edit {inv.invoiceNo} — {c ? c.company : ''}</h3>
       </div>
-      <div className="elg-modal-body">
-        <p style={{ fontSize: '13px', color: 'var(--elg-ink-2)', marginBottom: 16, lineHeight: 1.5 }}>
+      <div className="elg-modal-body invoicesModal">
+        <p style={{ fontSize: '16px', color: '#5C5C5C', marginBottom: 16, lineHeight: 1.5 }}>
           Edit this order. Changes will be saved immediately and reflected in the customer's invoice, the Orders list and the employee's earnings.
         </p>
         <table className="elg-table">

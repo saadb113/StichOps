@@ -131,6 +131,7 @@
   --elg-red: #E9898A;
   --elg-red-soft: #FDECEC;
   --elg-red-ink: #C23B3B;
+  --elg-delete-red: #D85658;
   --elg-orange: #E39B69;
   --elg-navy: #7C8FA8;
   --elg-gray: #EBEBEB;
@@ -580,13 +581,30 @@
   color: var(--elg-ink-grey);
   margin-top: 4px;
 }
+
 .elg-panel {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
   border-radius: 8px;
 }
 
-.elg-profile-grid #tabContent .elg-panel{
+.elg-panel-foot {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: 0px;
+  vertical-align: middle;
+  margin-top: 16px;
+  color: var(--elg-ink-light-grey)
+}
+
+
+.elg-panel-foot span{
+  color: var(--elg-primary);
+  font-weight: 500;
+}
+
+.elg-profile-grid #tabContent .elg-panel {
   padding: 11px 10px;
 }
 
@@ -717,7 +735,7 @@
 
 .elg-table thead th {
   text-align: left;
-  padding: 12px 20px;
+  padding: 11px 13px;
   font-size: 12.5px;
   text-transform: capitalize;
   font-weight: 600;
@@ -759,6 +777,11 @@
   height: 26px;
   font-weight: 500;
   color: #fff;
+  white-space: nowrap;
+}
+
+.elg-table .elg-badge {
+  font-size: 12px;
 }
 
 .elg-badge-completed {
@@ -1037,6 +1060,7 @@
 
 .elg-overlay.open {
   display: flex;
+  align-items: center;
 }
 
 .elg-modal {
@@ -1165,7 +1189,7 @@
 }
 
 .elg-modal-body {
-  padding: 32px 34px 24px;
+  padding: 30px 24px;
   max-height: 62vh;
   overflow: auto;
 }
@@ -1180,7 +1204,7 @@
 
 .elg-field label {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--elg-ink-2);
   margin-bottom: 8px;
@@ -1192,7 +1216,7 @@
   padding: 10px 14px;
   border: 1px solid var(--elg-line-strong);
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 14px;
   font-family: var(--elg-font-sans);
   background: var(--elg-surface);
   color: #737373;
@@ -1449,7 +1473,7 @@
   align-items: start;
 }
 
-.elg-profile-grid .elg-table tbody td{
+.elg-profile-grid .elg-table tbody td {
   font-size: 12px;
 }
 
@@ -1576,9 +1600,10 @@
 }
 
 .elg-comment-author {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--elg-ink);
+  margin-bottom: 6px;
 }
 
 .elg-comment-author span {
@@ -1587,7 +1612,7 @@
 }
 
 .elg-comment-text {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--elg-ink);
   margin-top: 2px;
 }
@@ -1612,6 +1637,15 @@
   outline: 2px solid var(--elg-primary-soft-2);
   border-color: var(--elg-primary);
 }
+
+@media (max-width: 1320px) {
+
+  #sidebar.elg-sidebar {
+    width: 260px;
+  }
+
+}
+
 
 @media (max-width:900px) {
   .elg-profile-grid {

@@ -4,6 +4,7 @@ import { useUi } from '../../store/UiContext';
 import { SYM, ORDER_STATUSES, TODAY } from '../../lib/constants';
 import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
 import { BagIcon, CloseIcon, WarningIcon } from '../icons/Icon';
+const addOrderImg = '../images/addOrder.png';
 
 function statusPillStyle(status) {
   const map = {
@@ -90,7 +91,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
         </div>
       ) : (
         <div className="elg-modal-hero">
-          <div className="elg-modal-hero-icon"><img src="./images/addOrder.png" alt="" /></div>
+          <div className="elg-modal-hero-icon"><img src={addOrderImg} alt="" /></div>
           <div className="elg-modal-title">Add Order</div>
           <div className="elg-modal-sub">{cust ? 'Add details to add your order!' : 'Select a company to continue with the order.'}</div>
         </div>
@@ -153,12 +154,12 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
               <div className="elg-field">
                 <label>Designer</label>
                 <select value={designer} onChange={(e) => setDesigner(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
-                </div>
+              </div>
               <div className="elg-field"><label>Production Cost</label>
-              <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
+                <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
               </div>
             </div>
-            
+
             <div className="elg-field-row">
               <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} /></div>
               <div className="elg-field">
@@ -169,12 +170,12 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                 >
-                  {allowCompanyPicker
-                    ? ORDER_STATUSES.map((s) => <option key={s}>{s}</option>)
-                    : (<><option>Pending</option><option>Completed</option></>)}
+                  {ORDER_STATUSES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
-             
+
             </div>
           </>
         )}

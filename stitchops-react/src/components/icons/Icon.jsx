@@ -121,3 +121,24 @@ export function GearIconActive(props) {
     </svg>
   );
 }
+
+export function KeyIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M21 2l-2 2m-3 1l4 4-9 9-4-1-1-4 9-9Z" /><circle cx="7.5" cy="16.5" r="3.5" /></svg>;
+}
+
+export function TrashIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;
+}
+
+export function MailIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>;
+}
+
+export function CheckIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><path d="M20 6L9 17l-5-5" /></svg>;
+}
+
+export function CopyIcon(props) {
+  return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>;
+}
+

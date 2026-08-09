@@ -10,6 +10,12 @@ import InvoiceTab from './InvoiceTab';
 import InvoiceHistoryTab from './InvoiceHistoryTab';
 import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon } from '../icons/Icon';
 
+function elgStatusClass(status) {
+  if (status === 'Free Trial') return 'elg-badge-inprogress';
+  if (status === 'Paid') return 'elg-badge-completed';
+  return 'elg-badge-cancelled';
+}
+
 export default function CustomerProfile() {
   const { customerId } = useParams();
   const id = Number(customerId);
@@ -115,7 +121,7 @@ export default function CustomerProfile() {
                 {c.receivedEmail && <div className="elg-kv-row"><span className="k">Received Via</span><span className="v" style={{ fontSize: 12 }}>{c.receivedEmail}</span></div>}
                 <div className="elg-kv-row">
                   <span className="k">Status</span>
-                  <span className="v">
+                  {/* <span className="v">
                     <select
                       className="elg-status-pill-select"
                       value={c.status === 'Paid' ? 'Paid' : 'Free Trial'}
@@ -125,7 +131,10 @@ export default function CustomerProfile() {
                       <option value="Free Trial">Free Trial</option>
                       <option value="Paid">Paid</option>
                     </select>
-                  </span>
+                  </span> */}
+                  <span className={`elg-badge ${elgStatusClass(c.status)}`}>
+                      {c.status}
+                    </span>
                 </div>
                 {isAdmin && <div className="elg-kv-row"><span className="k">Invoice Day</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
               </div>

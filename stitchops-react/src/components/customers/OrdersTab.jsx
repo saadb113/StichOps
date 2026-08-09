@@ -81,18 +81,9 @@ export default function OrdersTab({ customer, orders }) {
                   <td>{fmt(o.productionCost, o.currency)}</td>
                   <td>{fmt(commissionAmt(o), o.currency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
-                    {isAdmin ? (
-                      <select
-                        className="elg-status-pill-select"
-                        value={o.status}
-                        onChange={(e) => handleStatusChange(o, e.target.value)}
-                        style={{ background: statusPillStyle(o.status).bg, color: statusPillStyle(o.status).fg }}
-                      >
-                        {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    ) : (
-                      <span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span>
-                    )}
+                    <span className={`elg-badge ${elgStatusClass(o.status)}`}>
+                      {o.status}
+                    </span>
                   </td>
                   <td>
                     <div className="elg-row-actions">
@@ -101,16 +92,16 @@ export default function OrdersTab({ customer, orders }) {
                         {count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, background: 'var(--elg-primary)', color: '#fff', fontSize: 9.5, fontWeight: 700, borderRadius: 100, minWidth: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{count}</span>}
                       </button>
                       {isAdmin && (
-                        <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
-                          <PencilIcon width={14} height={14} />
-                        </button>
-                      )}
-                      {isAdmin && (
                         <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon width={14} height={14} /></button>
                       )}
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">
-                          <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>Delete order</button>
+                          <button className="elg-btn-danger-text" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                            Edit order
+                          </button>
+                          <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>
+                            Delete order
+                          </button>
                         </div>
                       )}
                     </div>

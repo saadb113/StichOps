@@ -6,6 +6,8 @@ const createCustomerSchema = z.object({
   company: z.string().trim().min(1, 'Company name is required.'),
   country: z.string().min(1),
   currency: z.string().min(1),
+  address: z.string().trim().default(''),
+  zip: z.string().trim().default(''),
   email: z.string().trim().default(''),
   emailClient: z.string().min(1),
   contact: z.string().trim().default(''),

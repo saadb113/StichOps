@@ -5,10 +5,19 @@ import EditSlipOrdersModal from './EditSlipOrdersModal';
 import { DownloadIcon } from '../icons/Icon';
 
 export default function SlipHistoryTab({ employee: e }) {
-  const { payslips } = useAppState();
+  const { payslips, togglePayslipPayment } = useAppState();
   const { openModal, toast } = useUi();
 
   const slips = payslips.filter((s) => s.employeeId === e.id).sort((a, b) => b.id - a.id);
+
+  async function handleTogglePayment(s) {
+    try {
+      const status = await togglePayslipPayment(s.id);
+      toast(status === 'Completed' ? `${s.slipNo} marked as paid.` : `${s.slipNo} marked as pending.`);
+    } catch (err) {
+      toast(err.message);
+    }
+  }
   if (!slips.length) {
     return (
       <div className="elg-panel" style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -27,6 +36,7 @@ export default function SlipHistoryTab({ employee: e }) {
             <th>Approved Date</th>
             <th>Total Amount</th>
             <th>Status</th>
+            <th>Payment</th>
             <th style={{ textAlign: 'right' }}>Actions</th>
           </tr>
         </thead>
@@ -39,21 +49,25 @@ export default function SlipHistoryTab({ employee: e }) {
               <td>
                 <span className="elg-pill elg-pill-approved">Approved</span>
               </td>
+              <td>
+                <span
+                  className={`elg-pill ${s.paymentStatus === 'Completed' ? 'elg-pill-approved' : 'elg-pill-review'}`}
+                  style={{ cursor: 'pointer', background : `${s.paymentStatus !== 'Completed' ? "#E9898A" : "#74C374"}` }}
+                  onClick={() => handleTogglePayment(s)}
+                  title="Click to toggle payment status"
+                >
+                  {s.paymentStatus === 'Completed' ? 'Paid' : 'Pending'}
+                </span>
+              </td>
               <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                 <button
                   className="elg-btn elg-btn-sm"
-                  style={{ width: 'auto', display: 'inline-flex', marginRight: 6 }}
+                  style={{padding : "4.5px 10px", width: 'auto', display: 'inline-flex', marginRight: 6 }}
                   onClick={() => toast('Downloading ' + s.slipNo + '.pdf')}
                 >
-                  <DownloadIcon /> Download
+                  <img src="/images/download.svg" alt="" /> Download
                 </button>
-                <button
-                  className="elg-btn elg-btn-ghost elg-btn-sm"
-                  style={{ width: 'auto', display: 'inline-flex' }}
-                  onClick={() => openModal(<EditSlipOrdersModal ctx={{ type: 'slip', slipId: s.id }} />, { variant: 'elegant' })}
-                >
-                  Edit
-                </button>
+                
               </td>
             </tr>
           ))}

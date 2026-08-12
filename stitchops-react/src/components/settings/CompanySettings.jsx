@@ -1,80 +1,80 @@
 import { useState } from 'react';
-import { useAppState } from '../../store/AppStateContext';
-import { useUi } from '../../store/UiContext';
+import { useNavigate } from 'react-router-dom';
+import { IdCardIcon, BankIcon, MailIcon } from '../icons/Icon';
+import CompanyDetailsTab from './CompanyDetailsTab';
+import BankAccountsTab from './BankAccountsTab';
+import AssignedEmailsTab from './AssignedEmailsTab';
 
+
+function Details(){
+  return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+<path d="M4.58323 9.94136C4.7217 9.81379 4.79094 9.75 4.875 9.75C4.95906 9.75 5.0283 9.81379 5.16677 9.94136L5.70127 10.4338C5.76584 10.4933 5.79813 10.523 5.83824 10.5378C5.87834 10.5525 5.92221 10.5508 6.00995 10.5473L6.73212 10.519C6.91807 10.5117 7.01105 10.508 7.07481 10.5616C7.13856 10.6152 7.15098 10.7074 7.1758 10.8918L7.27528 11.6308C7.28678 11.7162 7.29252 11.7589 7.31334 11.7953C7.33415 11.8318 7.368 11.8584 7.4357 11.9117L8.01736 12.3696C8.16131 12.4829 8.23328 12.5395 8.24754 12.6205C8.2618 12.7015 8.2135 12.7794 8.11691 12.935L7.72239 13.5707C7.67726 13.6435 7.65469 13.6798 7.64752 13.7209C7.64035 13.762 7.64928 13.8039 7.66713 13.8876L7.8236 14.6214C7.86205 14.8017 7.88127 14.8918 7.83999 14.9634C7.79871 15.035 7.71108 15.0636 7.53581 15.1207L6.8415 15.3468C6.75875 15.3737 6.71738 15.3872 6.68506 15.4146C6.65275 15.442 6.63271 15.4807 6.59262 15.5579L6.25348 16.2115C6.16706 16.3781 6.12384 16.4614 6.04507 16.4901C5.9663 16.5188 5.87963 16.4829 5.70628 16.411L5.03997 16.1346C4.95857 16.1009 4.91788 16.084 4.875 16.084C4.83212 16.084 4.79143 16.1009 4.71003 16.1346L4.04372 16.411C3.87037 16.4829 3.7837 16.5188 3.70493 16.4901C3.62616 16.4614 3.58294 16.3781 3.49652 16.2115L3.15738 15.5579C3.11729 15.4807 3.09725 15.442 3.06494 15.4146C3.03262 15.3872 2.99125 15.3737 2.9085 15.3468L2.2142 15.1207C2.03892 15.0636 1.95129 15.035 1.91001 14.9634C1.86873 14.8918 1.88795 14.8017 1.9264 14.6214L2.08287 13.8876C2.10072 13.8039 2.10965 13.762 2.10248 13.7209C2.09531 13.6798 2.07274 13.6435 2.02761 13.5707L1.6331 12.935C1.5365 12.7794 1.4882 12.7015 1.50246 12.6205C1.51672 12.5395 1.58869 12.4829 1.73264 12.3696L2.3143 11.9117C2.382 11.8584 2.41585 11.8318 2.43666 11.7953C2.45748 11.7589 2.46322 11.7162 2.47472 11.6308L2.5742 10.8918C2.59902 10.7074 2.61144 10.6152 2.67519 10.5616C2.73895 10.508 2.83193 10.5117 3.01788 10.519L3.74005 10.5473C3.82779 10.5508 3.87166 10.5525 3.91176 10.5378C3.95187 10.523 3.98416 10.4933 4.04873 10.4338L4.58323 9.94136Z" stroke="#191919" stroke-width="1.2"/>
+<path d="M4.875 6.75H4.125M7.875 6.75H7.125M4.875 4.5H4.125M7.875 4.5H7.125" stroke="#191919" stroke-width="1.2" stroke-linecap="round"/>
+<path d="M13.875 11.25H13.125M13.875 8.25H13.125" stroke="#191919" stroke-width="1.2" stroke-linecap="round"/>
+<path d="M10.5 6V16.5H13.5C14.9142 16.5 15.6213 16.5 16.0607 16.0607C16.5 15.6213 16.5 14.9142 16.5 13.5V9C16.5 7.58579 16.5 6.87868 16.0607 6.43934C15.6213 6 14.9142 6 13.5 6H10.5ZM10.5 6C10.5 3.87868 10.5 2.81802 9.84099 2.15901C9.18198 1.5 8.12132 1.5 6 1.5C3.87868 1.5 2.81802 1.5 2.15901 2.15901C1.5 2.81802 1.5 3.87868 1.5 6V8.25" stroke="#191919" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+}
+function Accounts(){
+  return <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+<path d="M0.600586 5.52641C0.600586 4.62928 0.962372 4.07947 1.71106 3.66282L4.79299 1.94769C6.40791 1.04897 7.21537 0.599609 8.10059 0.599609C8.9858 0.599609 9.79326 1.04897 11.4082 1.94769L14.4901 3.66282C15.2388 4.07947 15.6006 4.62928 15.6006 5.52641C15.6006 5.76968 15.6006 5.89132 15.574 5.99132C15.4344 6.51669 14.9584 6.59961 14.4986 6.59961L1.70255 6.59961C1.24279 6.59961 0.766726 6.51669 0.627151 5.99132C0.600586 5.89132 0.600586 5.76968 0.600586 5.52641Z" stroke="#191919" stroke-width="1.2"/>
+<path d="M8.09751 4.34961H8.10425" stroke="#191919" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M2.10059 6.59961L2.10059 12.9746M5.10059 6.59961L5.10059 12.9746" stroke="#191919" stroke-width="1.2"/>
+<path d="M11.1006 6.59961L11.1006 12.9746M14.1006 6.59961L14.1006 12.9746" stroke="#191919" stroke-width="1.2"/>
+<path d="M13.3506 12.9746L2.85059 12.9746C1.60795 12.9746 0.600586 13.982 0.600586 15.2246C0.600586 15.4317 0.768479 15.5996 0.975586 15.5996L15.2256 15.5996C15.4327 15.5996 15.6006 15.4317 15.6006 15.2246C15.6006 13.982 14.5932 12.9746 13.3506 12.9746Z" stroke="#191919" stroke-width="1.2"/>
+</svg>
+}
+function Emails(){
+  return <svg xmlns="http://www.w3.org/2000/svg" width="17" height="14" viewBox="0 0 17 14" fill="none">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.0742 0.027604C8.60739 -0.00920511 7.5176 -0.0091987 6.05078 0.0276074L5.99464 0.029015C4.86262 0.0573898 3.93121 0.0807362 3.18048 0.211315C2.38371 0.349903 1.71657 0.619807 1.15152 1.1863C0.589425 1.74983 0.320289 2.40645 0.183943 3.19062C0.0559858 3.92654 0.0366226 4.83468 0.0131869 5.93381L0.0119807 5.99036C-0.00399958 6.73879 -0.0039907 7.13621 0.0119902 7.88465L0.0131964 7.94119C0.0366331 9.04033 0.0559972 9.94847 0.183955 10.6844C0.320301 11.4686 0.589437 12.1252 1.15153 12.6887C1.71658 13.2552 2.38372 13.5251 3.18049 13.6637C3.93122 13.7943 4.86262 13.8176 5.99464 13.846L6.05079 13.8474C7.51762 13.8842 8.6074 13.8842 10.0742 13.8474L10.1303 13.846C11.2624 13.8176 12.1938 13.7943 12.9445 13.6637C13.7413 13.5251 14.4084 13.2552 14.9735 12.6887C15.5356 12.1252 15.8047 11.4685 15.9411 10.6844C16.069 9.94846 16.0884 9.04033 16.1118 7.94121L16.113 7.88464C16.129 7.13621 16.129 6.73879 16.113 5.99036L16.1118 5.93383C16.0884 4.8347 16.069 3.92653 15.941 3.19062C15.8047 2.40645 15.5356 1.74983 14.9735 1.18631C14.6559 0.867958 14.3062 0.643273 13.9193 0.482921C13.8604 0.450777 13.7973 0.42655 13.7316 0.411083C13.4842 0.323877 13.2222 0.259621 12.9445 0.211317C12.1938 0.0807373 11.2624 0.0573889 10.1304 0.0290117L10.0742 0.027604ZM14.5723 4.57523C14.5578 4.27109 14.5506 4.11903 14.4404 4.05832C14.3303 3.99761 14.1949 4.07431 13.9242 4.22773L10.7473 6.02775C9.77261 6.58003 8.94826 6.93749 8.06235 6.93749C7.17645 6.93749 6.3521 6.58003 5.37739 6.02775L2.20084 4.22789C1.93007 4.07447 1.79469 3.99776 1.68456 4.05848C1.57443 4.11919 1.56718 4.27126 1.55267 4.5754C1.53312 4.98528 1.52252 5.46046 1.51053 6.02227C1.495 6.74943 1.49501 7.12557 1.51053 7.85273C1.53552 9.02273 1.55446 9.817 1.66074 10.4283C1.76082 11.0038 1.92779 11.3458 2.21341 11.6322C2.49607 11.9155 2.8427 12.0854 3.43766 12.1889C4.0663 12.2982 4.88623 12.3207 6.08844 12.3509C7.53017 12.387 8.59484 12.387 10.0366 12.3508C11.2388 12.3207 12.0587 12.2982 12.6874 12.1889C13.2823 12.0854 13.6289 11.9155 13.9116 11.6322C14.1972 11.3458 14.3642 11.0038 14.4643 10.4282C14.5706 9.81699 14.5895 9.02272 14.6145 7.85272C14.63 7.12557 14.63 6.74943 14.6145 6.02228C14.6025 5.46038 14.5919 4.98515 14.5723 4.57523Z" fill="#191919"/>
+</svg>
+}
+const TABS = [
+  { key: 'details', label: 'Company Details', icon: <Details /> },
+  { key: 'accounts', label: 'Back Accounts', icon: <Accounts /> },
+  { key: 'emails', label: 'Assigned Emails', icon:  <Emails />}
+];
 export default function CompanySettings() {
-  const { company, companyEmails, employees, addCompanyEmail, removeCompanyEmail } = useAppState();
-  const { toast } = useUi();
-  const c = company;
-  const [newEmail, setNewEmail] = useState('');
-
-  async function handleAdd() {
-    const em = newEmail.trim().toLowerCase();
-    if (!em) { toast('Enter an email first.'); return; }
-    const res = await addCompanyEmail(em);
-    if (!res.ok) { toast(res.error); return; }
-    setNewEmail('');
-    toast('Email added to pool.');
-  }
-  async function handleRemove(em) {
-    const res = await removeCompanyEmail(em);
-    toast(res.ok ? 'Email removed from pool.' : res.error);
-  }
+  const [tab, setTab] = useState('details');
+  const navigate = useNavigate();
 
   return (
-    <>
-      <div className="topbar"><div><div className="page-title">Company settings</div><div className="page-sub">Used on the invoice header and payment footer</div></div></div>
-      <div className="panel">
-        <div className="panel-head"><h3>Company details</h3></div>
-        <div style={{ padding: 18 }}>
-          <div className="field-row">
-            <div className="field"><label>Company name</label><input value={c.name} disabled /></div>
-            <div className="field"><label>Address</label><input value={c.address} disabled /></div>
-          </div>
+    <div className="elg-page">
+      <div className="elg-crumbs">
+        <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
+        <span className="elg-crumb-sep">/</span>
+        <span className="elg-crumb-current">Settings</span>
+      </div>
+
+      <div className="elg-page-head">
+        <div>
+          <div className="elg-page-title">Settings</div>
+          <div className="elg-page-sub">Used on the invoice header and payment footer</div>
         </div>
       </div>
-      <div className="panel">
-        <div className="panel-head"><h3>Bank accounts by currency</h3></div>
-        <div style={{ padding: 18 }}>
-          <div className="field"><label>GBP account</label><input value={c.accountGBP} disabled /></div>
-          <div className="field"><label>USD account</label><input value={c.accountUSD} disabled /></div>
-          <div className="field"><label>EUR account</label><input value={c.accountEUR} disabled /></div>
-          <div className="field" style={{ marginBottom: 0 }}><label>AUD account</label><input value={c.accountAUD} disabled /></div>
+
+      <div className="elg-settings-grid">
+        <div className="elg-settings-nav">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <div
+                key={t.key}
+                className={`elg-settings-nav-item ${tab === t.key ? 'active' : ''}`}
+                onClick={() => setTab(t.key)}
+              >
+                {Icon}
+                {t.label}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="elg-settings-main">
+          {tab === 'details' && <CompanyDetailsTab />}
+          {tab === 'accounts' && <BankAccountsTab />}
+          {tab === 'emails' && <AssignedEmailsTab />}
         </div>
       </div>
-      <div className="panel">
-        <div className="panel-head"><h3>Employee emails</h3></div>
-        <div style={{ padding: '16px 18px' }}>
-          <div className="hint" style={{ marginTop: 0, marginBottom: 12 }}>Add every inbox your team receives client leads on. An email shows <strong>Active</strong> once it's assigned to an employee, and <strong>Inactive</strong> if it's sitting unused in the pool.</div>
-          <table>
-            <thead><tr><th>Email</th><th>Status</th><th>Assigned to</th><th></th></tr></thead>
-            <tbody>
-              {companyEmails.map((em) => {
-                const owner = employees.find((e) => e.emails && e.emails.includes(em));
-                return (
-                  <tr key={em}>
-                    <td style={{ fontFamily: 'var(--mono)', fontSize: '12.5px' }}>{em}</td>
-                    <td><span className={`badge ${owner ? 'b-active' : 'b-inactive'}`}>{owner ? 'Active' : 'Inactive'}</span></td>
-                    <td>{owner ? owner.name : '—'}</td>
-                    <td><button className="btn btn-sm btn-ghost btn-danger-text" onClick={() => handleRemove(em)}>Remove</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-            <input
-              placeholder="name@stitchops.com"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-              style={{ flex: 1, padding: '8px 10px', border: '1px solid var(--line-strong)', borderRadius: 7, fontSize: 13, fontFamily: 'var(--font)' }}
-            />
-            <button className="btn btn-sm btn-primary" onClick={handleAdd}>+ Add email</button>
-          </div>
-        </div>
-      </div>
-      <div className="hint">In the full build, these fields will be editable and pulled from your actual invoice template.</div>
-    </>
+    </div>
   );
 }

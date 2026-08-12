@@ -48,6 +48,7 @@ router.post('/', requireAuth, requireAdmin, validateBody(createOrderSchema), asy
         currency: body.currency,
         designerId: designer.id,
         productionCost: body.productionCost,
+        productionCostCurrency: body.productionCostCurrency,
         commissionRate: body.commissionRate,
         status: body.status
       },
@@ -84,6 +85,7 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateOrderSchema),
   if (body.price !== undefined) data.price = body.price;
   if (body.currency !== undefined) data.currency = body.currency;
   if (body.productionCost !== undefined) data.productionCost = body.productionCost;
+  if (body.productionCostCurrency !== undefined) data.productionCostCurrency = body.productionCostCurrency;
   if (body.commissionRate !== undefined) data.commissionRate = body.commissionRate;
   if (body.status !== undefined) data.status = body.status;
   if (body.designer !== undefined) {

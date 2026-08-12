@@ -41,7 +41,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
               <th>Customer</th>
               <th>Orders</th>
               <th>{e.role === 'Salesperson' ? 'Total Commission' : 'Total Production Cost'}</th>
-              <th>Status</th>
+             
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
@@ -52,7 +52,8 @@ export default function EarningsTab({ employee: e, orders: os }) {
               let allPaid = true;
               cOrders.forEach((o) => {
                 const amt = e.role === 'Salesperson' ? commissionAmt(o) : o.productionCost;
-                totals[o.currency] = (totals[o.currency] || 0) + amt;
+                const cc = e.role === 'Salesperson' ? o.currency : (o.productionCostCurrency || o.currency);
+                totals[cc] = (totals[cc] || 0) + amt;
                 const paid = e.role === 'Salesperson' ? o.commissionPaid : o.productionPaid;
                 if (!paid) allPaid = false;
               });
@@ -62,25 +63,15 @@ export default function EarningsTab({ employee: e, orders: os }) {
                   <td><span>{cust?.company || 'Unknown Customer'}</span></td>
                   <td>{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</td>
                   <td><span>{totalStr}</span></td>
-                  <td>
-                    <span className={`elg-pill ${allPaid ? 'elg-pill-approved' : 'elg-pill-review'}`}>
-                      {allPaid ? 'Paid' : 'Unpaid'}
-                    </span>
-                  </td>
+                  
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button
-                      className="elg-btn elg-btn-ghost elg-btn-sm"
-                      style={{ width: 'auto', display: 'inline-flex', marginRight: 6 }}
-                      onClick={() => handleToggle(custId)}
-                    >
-                      Mark as {allPaid ? 'unpaid' : 'paid'}
-                    </button>
+                    
                     <button
                       className="elg-btn elg-btn-sm"
                       style={{ width: 'auto', display: 'inline-flex' }}
                       onClick={() => openModal(<EditSlipOrdersModal ctx={{ type: 'earnings', employeeId: e.id, customerId: Number(custId) }} />, { variant: 'elegant' })}
                     >
-                      Edit
+                      <img src="/icons/pencil-icon.svg" alt="" />
                     </button>
                   </td>
                 </tr>

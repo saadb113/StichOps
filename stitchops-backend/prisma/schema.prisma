@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum UserRole {
@@ -22,15 +23,30 @@ model Counter {
 }
 
 model Company {
+  id              Int    @id @default(autoincrement())
+  name            String
+  address         String
+  email           String @default("")
+  contact         String @default("")
+  defaultCurrency String @default("PKR")
+}
+
+model BankAccount {
   id          Int    @id @default(autoincrement())
-  name        String
-  address     String
-  bankName    String
-  accountName String
-  accountGBP  String
-  accountUSD  String
-  accountEUR  String
-  accountAUD  String
+  currency    String
+  accountName String @default("")
+  accountNo   String @default("")
+
+  createdAt DateTime @default(now())
+}
+
+model CurrencyRate {
+  id       Int     @id @default(autoincrement())
+  currency String  @unique
+  rate     Float
+  isCustom Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
 }
 
 model EmployeeCategory {
@@ -47,6 +63,7 @@ model Employee {
   baseSalary  Float
   payoutDay   Int
   email       String?
+  contact     String?
 
   user                  User?
   companyEmails         CompanyEmail[]
@@ -87,6 +104,8 @@ model Customer {
   company       String
   country       String
   currency      String
+  address       String   @default("")
+  zip           String   @default("")
   email         String
   emailClient   String
   contact       String
@@ -115,6 +134,7 @@ model Order {
   designerId     Int
   designer       Employee @relation("OrderDesigner", fields: [designerId], references: [id])
   productionCost Float    @default(0)
+  productionCostCurrency String @default("PKR")
   commissionRate Float    @default(10)
   status         String   @default("Pending")
 
@@ -173,6 +193,7 @@ model Payslip {
   baseSalary   Float
   commission   Float
   approvedDate DateTime @db.Date
+  paymentStatus String  @default("Pending")
 
   commissionOrders Order[] @relation("CommissionPayslip")
   productionOrders Order[] @relation("ProductionPayslip")

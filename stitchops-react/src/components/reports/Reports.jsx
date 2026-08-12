@@ -1,16 +1,29 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, paymentBadge, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt } from '../../lib/helpers';
-import { TODAY } from '../../lib/constants';
+import { fmt, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt, convertToDefault } from '../../lib/helpers';
+import {SYMIcon, SYM, TODAY } from '../../lib/constants';
+import { CalendarIcon } from '../icons/Icon';
+
+const ORDER_CURRENCIES = Object.keys(SYM).filter((cc) => cc !== 'PKR');
+
+function fmtRate(v) {
+  return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 export default function Reports() {
-  const { orders, invoices, getCustomer, togglePaymentStatus } = useAppState();
+  const { orders, invoices, currencyRates, company, getCustomer, togglePaymentStatus } = useAppState();
   const { toast } = useUi();
-  const [from, setFrom] = useState('2026-06-01');
+  const navigate = useNavigate();
+  const [period, setPeriod] = useState('day');
+  const [from, setFrom] = useState(TODAY);
   const [to, setTo] = useState(TODAY);
 
-  function setPeriod(p) {
+  const defaultCcy = company?.defaultCurrency || 'PKR';
+
+  function setPeriodRange(p) {
+    setPeriod(p);
     const ref = new Date(TODAY);
     let f; let t;
     if (p === 'day') { f = t = ref.toISOString().slice(0, 10); } else if (p === 'month') {
@@ -30,17 +43,34 @@ export default function Reports() {
 
   const totalsByCcy = {}; curr.forEach((o) => { totalsByCcy[o.currency] = (totalsByCcy[o.currency] || 0) + o.price; });
   const prevTotalsByCcy = {}; prev.forEach((o) => { prevTotalsByCcy[o.currency] = (prevTotalsByCcy[o.currency] || 0) + o.price; });
-  const orderGrowth = growthPct(curr.length, prev.length);
+  const countByCcy = {}; curr.forEach((o) => { countByCcy[o.currency] = (countByCcy[o.currency] || 0) + 1; });
 
   const byDesigner = {};
-  curr.forEach((o) => { byDesigner[o.designer] = (byDesigner[o.designer] || 0) + o.productionCost; });
+  curr.forEach((o) => {
+    if (!byDesigner[o.designer]) byDesigner[o.designer] = {};
+    const cc = o.productionCostCurrency || o.currency;
+    byDesigner[o.designer][cc] = (byDesigner[o.designer][cc] || 0) + o.productionCost;
+  });
+
   const bySales = {};
   curr.forEach((o) => {
     const c = getCustomer(o.customerId);
+    if (!c) return;
     if (!bySales[c.salesperson]) bySales[c.salesperson] = { count: 0, commission: {} };
     bySales[c.salesperson].count++;
     bySales[c.salesperson].commission[o.currency] = (bySales[c.salesperson].commission[o.currency] || 0) + commissionAmt(o);
   });
+
+  function convertedTotal(byCcy) {
+    let total = 0;
+    let hasUnknown = false;
+    Object.entries(byCcy).forEach(([cc, v]) => {
+      const converted = convertToDefault(v, cc, currencyRates, defaultCcy);
+      if (converted == null) hasUnknown = true;
+      else total += converted;
+    });
+    return hasUnknown ? null : total;
+  }
 
   async function handleToggle(id) {
     try {
@@ -52,86 +82,132 @@ export default function Reports() {
   }
 
   return (
-    <>
-      <div className="topbar"><div><div className="page-title">Reports</div><div className="page-sub">{from} to {to} &middot; compared with the {days}-day period before</div></div></div>
+    <div className="elg-page">
+      <div className="elg-crumbs">
+        <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
+        <span className="elg-crumb-sep">/</span>
+        <span className="elg-crumb-current">Reports</span>
+      </div>
 
-      <div className="panel" style={{ padding: '14px 18px', marginBottom: 18 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button className="btn btn-sm" onClick={() => setPeriod('day')}>Today</button>
-          <button className="btn btn-sm" onClick={() => setPeriod('month')}>This month</button>
-          <button className="btn btn-sm" onClick={() => setPeriod('year')}>This year</button>
-          <span style={{ width: 1, height: 20, background: 'var(--line)' }}></span>
-          <label style={{ fontSize: 12, color: 'var(--ink-2)' }}>From</label>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ width: 'auto' }} />
-          <label style={{ fontSize: 12, color: 'var(--ink-2)' }}>To</label>
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ width: 'auto' }} />
+      <div className="elg-page-head">
+        <div>
+          <div className="elg-page-title">Reports</div>
+          <div className="elg-page-sub">Track orders, revenue, and production costs for your selected period.</div>
         </div>
       </div>
 
-      <div className="grid4">
-        <div className="metric">
-          <div className="label">Orders in range</div><div className="value">{curr.length}</div>
-          <div className="sub" style={{ color: orderGrowth >= 0 ? 'var(--accent)' : 'var(--red)' }}>{orderGrowth >= 0 ? '+' : ''}{orderGrowth}% vs previous period</div>
+      <div className="elg-panel elg-filterbar" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className={`elg-btn ${period === 'day' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('day')}>Today</button>
+          <button className={`elg-btn ${period === 'month' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('month')}>This Month</button>
+          <button className={`elg-btn ${period === 'year' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('year')}>This Year</button>
         </div>
-        {Object.keys(totalsByCcy).slice(0, 3).map((cc) => {
-          const g = growthPct(totalsByCcy[cc], prevTotalsByCcy[cc] || 0);
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+            <img src="/images/calender.png" style={{right : "12px"}} alt="" />
+          </span>
+          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={to} onChange={(e) => { setTo(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+                        <img src="/images/calender.png" style={{right : "12px"}} alt="" />
+          </span>
+        </div>
+      </div>
+
+      <div className="elg-metric-grid">
+        {ORDER_CURRENCIES.map((cc) => {
+          const total = totalsByCcy[cc] || 0;
+          const g = growthPct(total, prevTotalsByCcy[cc] || 0);
           return (
-            <div className="metric" key={cc}>
-              <div className="label">Total {cc}</div><div className="value">{fmt(totalsByCcy[cc], cc)}</div>
-              <div className="sub" style={{ color: g >= 0 ? 'var(--accent)' : 'var(--red)' }}>{g >= 0 ? '+' : ''}{g}% vs previous</div>
+            <div className="elg-metric-card" key={cc}>
+              <div className="elg-metric-head">
+                <span className="elg-metric-label">Total {cc}</span>
+                <span className="elg-metric-icon" ><img src={SYMIcon[cc]}/></span>
+              </div>
+              <div className="elg-metric-value">{SYM[cc]} {fmtRate(total)}</div>
+              <div className="elg-metric-sub">{countByCcy[cc] || 0} orders &middot; <span style={{ color: g >= 0 ? 'var(--elg-primary)' : 'var(--elg-red-ink)' }}>{g >= 0 ? '+' : ''}{g}%</span> than last date</div>
             </div>
           );
         })}
       </div>
 
-      <div className="panel">
-        <div className="panel-head"><h3>Production cost by designer</h3></div>
-        {Object.keys(byDesigner).length ? (
-          <table>
-            <thead><tr><th>Designer</th><th>Total production cost</th></tr></thead>
-            <tbody>
-              {Object.keys(byDesigner).map((d) => <tr key={d}><td>{d}</td><td>{byDesigner[d].toFixed(2)} (mixed currencies — totals shown per original order currency in the full build)</td></tr>)}
-            </tbody>
-          </table>
-        ) : <div className="empty">No orders in this range.</div>}
-      </div>
-
-      <div className="panel">
-        <div className="panel-head"><h3>Salesperson invoice / commission summary</h3></div>
-        {Object.keys(bySales).length ? (
-          <table>
-            <thead><tr><th>Salesperson</th><th>Orders</th><th>Commission earned</th></tr></thead>
-            <tbody>
-              {Object.entries(bySales).map(([name, d]) => (
-                <tr key={name}><td>{name}</td><td>{d.count}</td><td>{Object.entries(d.commission).map(([cc, v]) => fmt(v, cc)).join(' + ')}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        ) : <div className="empty">No orders in this range.</div>}
-      </div>
-
-      <div className="panel">
-        <div className="panel-head"><h3>Client payment status</h3></div>
-        <table>
-          <thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Payment status</th><th></th></tr></thead>
+      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 20 }}>
+        <div >
+          <div className="elg-section-title" style={{ marginBottom: 14 }}>Production Cost by Designer</div>
+        </div>
+        <table className="elg-table">
+          <thead><tr><th>Designer</th><th>Total Production Cost</th></tr></thead>
           <tbody>
-            {invoices.length === 0 && <tr><td colSpan={5} className="empty">No approved invoices yet.</td></tr>}
-            {invoices.map((i) => {
-              const c = getCustomer(i.customerId);
-              const pb = paymentBadge(i);
+            {Object.keys(byDesigner).length === 0 && <tr><td colSpan={2} className="elg-empty">No orders in this range.</td></tr>}
+            {Object.entries(byDesigner).map(([d, byCcy]) => {
+              const total = convertedTotal(byCcy);
               return (
-                <tr key={i.id}>
-                  <td>{i.invoiceNo}</td>
-                  <td>{c.company}</td>
-                  <td>{fmt(i.total, i.currency)}</td>
-                  <td><span className={`badge ${pb.cls}`}>{pb.label}</span></td>
-                  <td><button className="btn btn-sm" onClick={() => handleToggle(i.id)}>Mark as {i.paymentStatus === 'Completed' ? 'pending' : 'completed'}</button></td>
+                <tr key={d}>
+                  <td>{d}</td>
+                  <td>{total == null ? '—' : fmt(total, defaultCcy)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div style={{ padding: '12px 20px', fontSize: 12, color: 'var(--elg-ink-3)', borderTop: '1px solid var(--elg-line)' }}>
+          All totals are converted and displayed in the selected default currency.
+        </div>
+      </div>
+
+      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 20 }}>
+        <div>
+          <div className="elg-section-title" style={{ marginBottom: 14 }}>Salesperson Invoice/Commission Summary</div>
+        </div>
+        <table className="elg-table">
+          <thead><tr><th>Salesperson</th><th>Orders</th><th>Commission Earned</th><th>Commission in {defaultCcy}</th></tr></thead>
+          <tbody>
+            {Object.keys(bySales).length === 0 && <tr><td colSpan={4} className="elg-empty">No orders in this range.</td></tr>}
+            {Object.entries(bySales).map(([name, d]) => {
+              const total = convertedTotal(d.commission);
+              return (
+                <tr key={name}>
+                  <td>{name}</td>
+                  <td>{d.count}</td>
+                  <td>{Object.entries(d.commission).map(([cc, v]) => fmt(v, cc)).join(' + ')}</td>
+                  <td>{total == null ? '—' : fmt(total, defaultCcy)}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-    </>
+
+      <div className="elg-panel elg-table-wrap">
+        <div>
+          <div className="elg-section-title" style={{ marginBottom: 14 }}>Client Payment Status</div>
+        </div>
+        <table className="elg-table">
+          <thead><tr><th>ID</th><th>Customer</th><th>Currency</th><th>Amount</th><th>Payment Status</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
+          <tbody>
+            {invoices.length === 0 && <tr><td colSpan={6} className="elg-empty">No approved invoices yet.</td></tr>}
+            {invoices.map((i) => {
+              const c = getCustomer(i.customerId);
+              const paid = i.paymentStatus === 'Completed';
+              return (
+                <tr key={i.id}>
+                  <td>{i.invoiceNo}</td>
+                  <td>{c ? c.company : '—'}</td>
+                  <td>{i.currency} {SYM[i.currency]}</td>
+                  <td>{i.total.toFixed(2)}</td>
+                  <td><span className={`elg-badge ${paid ? 'elg-badge-paid' : 'elg-badge-unpaid'}`}>{paid ? 'Paid' : 'Unpaid'}</span></td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="elg-btn elg-btn-sm" style={{marginLeft : "auto", width: 'auto' }} onClick={() => handleToggle(i.id)}>
+                      Mark as {paid ? 'Unpaid' : 'Paid'}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

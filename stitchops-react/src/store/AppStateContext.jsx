@@ -16,6 +16,8 @@ export function AppStateProvider({ children }) {
   const [employeeCategories, setEmployeeCategories] = useState([]);
   const [companyEmails, setCompanyEmails] = useState([]);
   const [company, setCompany] = useState(null);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [passwordResetRequests, setPasswordResetRequests] = useState([]);
   const [nextInvoiceNo, setNextInvoiceNo] = useState(null);
   const [nextCustomerCode, setNextCustomerCode] = useState(null);
@@ -31,6 +33,8 @@ export function AppStateProvider({ children }) {
   const refreshEmployees = async () => setEmployees(await api.get('/employees'));
   const refreshEmployeeCategories = async () => setEmployeeCategories(await api.get('/employee-categories'));
   const refreshCompanyEmails = async () => setCompanyEmails(await api.get('/company-emails'));
+  const refreshBankAccounts = async () => setBankAccounts(await api.get('/bank-accounts'));
+  const refreshCurrencyRates = async () => setCurrencyRates(await api.get('/currency-rates'));
   const refreshPasswordResetRequests = async () => setPasswordResetRequests(await api.get('/password-reset-requests'));
   const refreshMeta = async () => {
     const m = await api.get('/meta');
@@ -47,6 +51,8 @@ export function AppStateProvider({ children }) {
         refreshEmployeeCategories(),
         refreshCompanyEmails(),
         api.get('/company').then(setCompany),
+        refreshBankAccounts(),
+        refreshCurrencyRates(),
         refreshPasswordResetRequests(),
         refreshMeta()
       );
@@ -59,7 +65,8 @@ export function AppStateProvider({ children }) {
     setCurrentEmployee(null);
     setCustomers([]); setOrders([]); setInvoices([]); setPayslips([]);
     setEmployees([]); setEmployeeCategories([]); setCompanyEmails([]);
-    setCompany(null); setPasswordResetRequests([]);
+    setCompany(null); setBankAccounts([]); setCurrencyRates([]);
+    setPasswordResetRequests([]);
     setNextInvoiceNo(null); setNextCustomerCode(null);
   }
 
@@ -151,6 +158,11 @@ export function AppStateProvider({ children }) {
     await api.patch(`/employees/${employeeId}/earnings/${customerId}/toggle-paid`);
     await refreshOrders();
   }
+  async function togglePayslipPayment(id) {
+    const updated = await api.patch(`/payslips/${id}/payment`);
+    await refreshPayslips();
+    return updated.paymentStatus;
+  }
   async function addEmployee(data) {
     const result = await api.post('/employees', data);
     await Promise.all([refreshEmployees(), refreshCompanyEmails()]);
@@ -188,15 +200,39 @@ export function AppStateProvider({ children }) {
     await refreshPasswordResetRequests();
     return result;
   }
+  async function rejectPasswordReset(requestId) {
+    try {
+      await api.post(`/password-reset-requests/${requestId}/reject`);
+    } catch (e) {
+      if (e.status === 404) return { ok: false };
+      throw e;
+    }
+    await refreshPasswordResetRequests();
+    return { ok: true };
+  }
 
   // ---------- company settings ----------
-  async function addCompanyEmail(email) {
+  async function updateCompany(data) {
+    const updated = await api.patch('/company', data);
+    setCompany(updated);
+    return updated;
+  }
+  async function addCompanyEmail(email, employeeId) {
     try {
-      await api.post('/company-emails', { email });
+      await api.post('/company-emails', { email, employeeId: employeeId ?? null });
     } catch (e) {
       return { ok: false, error: e.message };
     }
-    await refreshCompanyEmails();
+    await Promise.all([refreshCompanyEmails(), refreshEmployees()]);
+    return { ok: true };
+  }
+  async function updateCompanyEmail(currentEmail, data) {
+    try {
+      await api.patch(`/company-emails/${encodeURIComponent(currentEmail)}`, data);
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+    await Promise.all([refreshCompanyEmails(), refreshEmployees()]);
     return { ok: true };
   }
   async function removeCompanyEmail(email) {
@@ -205,7 +241,52 @@ export function AppStateProvider({ children }) {
     } catch (e) {
       return { ok: false, error: e.message };
     }
-    await refreshCompanyEmails();
+    await Promise.all([refreshCompanyEmails(), refreshEmployees()]);
+    return { ok: true };
+  }
+
+  // ---------- bank accounts ----------
+  async function addBankAccount(data) {
+    const created = await api.post('/bank-accounts', data);
+    await refreshBankAccounts();
+    return created;
+  }
+  async function updateBankAccount(id, data) {
+    const updated = await api.patch(`/bank-accounts/${id}`, data);
+    await refreshBankAccounts();
+    return updated;
+  }
+  async function deleteBankAccount(id) {
+    await api.delete(`/bank-accounts/${id}`);
+    await refreshBankAccounts();
+  }
+
+  // ---------- currency rates ----------
+  async function addCurrencyRate(data) {
+    const created = await api.post('/currency-rates', data);
+    await refreshCurrencyRates();
+    return created;
+  }
+  async function updateCurrencyRate(currency, data) {
+    const updated = await api.patch(`/currency-rates/${currency}`, data);
+    await refreshCurrencyRates();
+    return updated;
+  }
+  async function deleteCurrencyRate(currency) {
+    await api.delete(`/currency-rates/${currency}`);
+    await refreshCurrencyRates();
+  }
+
+  // ---------- self-service password change ----------
+  async function changePassword(currentPassword, newPassword) {
+    let result;
+    try {
+      result = await api.post('/auth/change-password', { currentPassword, password: newPassword });
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+    setCurrentUser(result.user);
+    setCurrentEmployee(result.employee);
     return { ok: true };
   }
 
@@ -250,7 +331,7 @@ export function AppStateProvider({ children }) {
     authLoading,
     // data
     customers, orders, invoices, payslips, employees, employeeCategories,
-    company, companyEmails, nextInvoiceNo, nextCustomerCode, passwordResetRequests,
+    company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,
     currentUser, isAdmin, isSalesperson, currentEmployee,
     // lookups
     getCustomer, getEmployee,
@@ -258,10 +339,12 @@ export function AppStateProvider({ children }) {
     addCustomer, updateCustomer, setCustomerStatus,
     addOrder, updateOrder, deleteOrder, setOrderStatus, addComment,
     approveInvoice, togglePaymentStatus,
-    approveSlip, toggleCustomerEarningsPaid,
-    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, approvePasswordReset,
-    addCompanyEmail, removeCompanyEmail,
-    attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword
+    approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
+    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, approvePasswordReset, rejectPasswordReset,
+    updateCompany, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
+    addBankAccount, updateBankAccount, deleteBankAccount,
+    addCurrencyRate, updateCurrencyRate, deleteCurrencyRate,
+    attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, changePassword
   };
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

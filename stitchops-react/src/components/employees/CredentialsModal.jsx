@@ -2,22 +2,18 @@ import { useUi } from '../../store/UiContext';
 import { copyToClipboard } from '../../lib/clipboard';
 import { CloseIcon, CopyIcon, KeyIcon } from '../icons/Icon';
 
-export default function CredentialsModal({ title, name, email, tempPw }) {
+export default function CredentialsModal({request, title, name, email, tempPw }) {
   const { closeModal, toast } = useUi();
   function copy(text, label) { copyToClipboard(text, label, toast); }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 460 }}>
+    <div className="credentials" style={{ width : "100%"}}>
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ color: 'var(--elg-primary)', display: 'flex', alignItems: 'center' }}>
-            <KeyIcon width={20} height={20} />
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--elg-ink)' }}>{title}</div>
+
+          <div style={{ fontSize: 20, fontWeight: 400, color: 'var(--elg-ink)', fontFamily :  'var(--elg-font-serif)', textTransform : "capitalize"}}>{title}</div>
         </div>
-        <button
-          className="elg-btn elg-btn-ghost"
-          style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+        <button className='elg-modal-close' style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
           <CloseIcon />
@@ -25,18 +21,24 @@ export default function CredentialsModal({ title, name, email, tempPw }) {
       </div>
 
       <div className="elg-modal-body" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <p style={{ fontSize: 14, color: 'var(--elg-ink)', margin: 0 }}>
-          Share these login credentials with <strong>{name}</strong>. They will be prompted to change their password upon initial sign in.
+        {
+          request ?
+          <p style={{ fontSize: 16, color: '#5C5C5C', margin: 0 }}>
+            Share these temporary login credentials with <strong style={{color : "var(--elg-ink)"}}>{name}</strong> so he can sign in and reset his password.
+        </p> :
+        <p style={{ fontSize: 16, color: '#5C5C5C', margin: 0 }}>
+            Share these credentials with <strong style={{color : "var(--elg-ink)"}}>{name}</strong> He'll be asked to set his password on first login..
         </p>
+        }
 
-        <div style={{ background: 'var(--elg-page-bg)', border: '1px solid var(--elg-line)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ border: '1px solid var(--elg-line)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13.5 }}>
-            <span style={{ color: 'var(--elg-ink-3)' }}>Email</span>
+            <span style={{ color: '#5C5C5C' }}>Email</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <strong style={{ color: 'var(--elg-ink)' }}>{email}</strong>
+              <strong style={{ fontWeight : 500,color: 'var(--elg-ink)' }}>{email}</strong>
               <button
-                className="elg-btn elg-btn-ghost elg-btn-sm"
-                style={{ width: 28, height: 28, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                className=""
+                style={{background : "none", border : 0, outline : "none" }}
                 onClick={() => copy(email, 'Email')}
                 title="Copy Email"
               >
@@ -46,9 +48,9 @@ export default function CredentialsModal({ title, name, email, tempPw }) {
           </div>
 
           <div style={{ borderTop: '1px solid var(--elg-line)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13.5 }}>
-            <span style={{ color: 'var(--elg-ink-3)' }}>Temp Password</span>
+            <span style={{ color: '#5C5C5C' }}>Temp Password</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <code style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: 'var(--elg-primary)', background: 'var(--elg-surface)', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--elg-line-strong)' }}>
+              <code style={{background : "none", border : 0, outline : "none", fontSize : 14, fontWeight : 500, color : "#191919"}}>
                 {tempPw}
               </code>
               <button
@@ -65,15 +67,15 @@ export default function CredentialsModal({ title, name, email, tempPw }) {
 
         <button
           className="elg-btn"
-          style={{ width: '100%', display: 'inline-flex' }}
+          style={{fontWeight : 500, width: '100%', display: 'inline-flex' }}
           onClick={() => copy(`Email: ${email}\nTemp password: ${tempPw}`, 'Email and temp password')}
         >
-          <CopyIcon /> Copy Both Credentials
+          <CopyIcon /> Copy Both
         </button>
       </div>
 
       <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end' }}>
-        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={closeModal}>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'max-content !important' }} onClick={closeModal}>
           Done
         </button>
       </div>

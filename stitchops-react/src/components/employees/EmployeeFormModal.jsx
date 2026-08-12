@@ -1,66 +1,44 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { SYM } from '../../lib/constants';
+import { SYM, PHONE_CODES, splitContact } from '../../lib/constants';
 import CredentialsModal from './CredentialsModal';
-import { CloseIcon, UserPlusIcon, PlusIcon, TrashIcon } from '../icons/Icon';
+import { CloseIcon } from '../icons/Icon';
+import AssignedEmailsField from './AssignedEmailsField';
 
 export default function EmployeeFormModal({ employee = null, defaultCategory }) {
-  const { employeeCategories, companyEmails, employees, addEmployee, updateEmployee } = useAppState();
+  const { employeeCategories, addEmployee, updateEmployee } = useAppState();
   const { closeModal, openModal, toast } = useUi();
   const e = employee;
+
+  const initialContact = splitContact(e ? e.contact : '');
 
   const [name, setName] = useState(e ? e.name : '');
   const [role, setRole] = useState(e ? e.role : (defaultCategory || employeeCategories[0] || 'Salesperson'));
   const [designation, setDesignation] = useState(e ? (e.designation || '') : '');
   const [email, setEmail] = useState(e ? (e.email || '') : '');
-  const [phoneCode, setPhoneCode] = useState(e?.phoneCode || '+92');
-  const [phone, setPhone] = useState(e?.phone || '');
+  const [phoneCode, setPhoneCode] = useState(initialContact.code);
+  const [phone, setPhone] = useState(initialContact.num);
   const [currency, setCurrency] = useState(e ? e.currency : 'GBP');
   const [salary, setSalary] = useState(e ? e.baseSalary : '');
   const [payoutDay, setPayoutDay] = useState(e ? e.payoutDay : 28);
 
-  const [checkedEmails, setCheckedEmails] = useState(new Set(e && e.emails ? e.emails : []));
-  const [customEmail, setCustomEmail] = useState('');
+  const [emails, setEmails] = useState(e && e.emails && e.emails.length ? e.emails : ['']);
 
   const showEmailPool = role === 'Salesperson';
-
-  function toggleEmail(em) {
-    setCheckedEmails((prev) => {
-      const next = new Set(prev);
-      if (next.has(em)) next.delete(em); else next.add(em);
-      return next;
-    });
-  }
-
-  function handleAddCustomEmail() {
-    const trimmed = customEmail.trim().toLowerCase();
-    if (!trimmed) return;
-    if (!trimmed.includes('@')) { toast('Please enter a valid email.'); return; }
-    setCheckedEmails((prev) => new Set(prev).add(trimmed));
-    setCustomEmail('');
-  }
-
-  function handleRemoveEmail(em) {
-    setCheckedEmails((prev) => {
-      const next = new Set(prev);
-      next.delete(em);
-      return next;
-    });
-  }
 
   async function handleSave() {
     const trimmedName = name.trim();
     if (!trimmedName) { toast('Name is required.'); return; }
     const trimmedEmail = email.trim().toLowerCase();
-    const emailsList = showEmailPool ? Array.from(checkedEmails) : (e ? (e.emails || []) : []);
+    const trimmedPhone = phone.trim();
+    const emailsList = showEmailPool ? emails.map((em) => em.trim()).filter(Boolean) : (e ? (e.emails || []) : []);
     const data = {
       name: trimmedName,
       role,
       designation: designation.trim(),
       email: trimmedEmail,
-      phoneCode,
-      phone: phone.trim(),
+      contact: trimmedPhone ? `${phoneCode} ${trimmedPhone}` : '',
       emails: emailsList,
       currency,
       baseSalary: Number(salary) || 0,
@@ -87,12 +65,19 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 580 }}>
+    <div className="elg-modal employeesModal">
       {/* Modal Header */}
       <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
-      <div className="elg-modal-head-plain">
-        <h3>{e ? 'Edit Profile' : 'Add Employee'}</h3>
+      {!e ? 
+      <div className="elg-modal-head-plain addemployee">
+        <img src="/images/addEmployee.png" alt="" />
+        <h3>Add Employee</h3>
+        <p>Add employee details to add employee profile.</p>
+      </div> :
+      <div className="elg-modal-head-plain" style={{padding : 18, display: "block"}}>
+        <h3 style={{fontSize : 20}}>Edit Employee</h3>
       </div>
+      }
 
       {/* Modal Body */}
       <div className="elg-modal-body">
@@ -145,18 +130,14 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
           </div>
           <div className="elg-field">
             <label className="elg-label">Contact Number</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className='elg-price-field' style={{ display: 'flex', gap: 8 }}>
               <select
                 className="elg-select"
-                style={{ width: 85, flexShrink: 0 }}
+                
                 value={phoneCode}
                 onChange={(ev) => setPhoneCode(ev.target.value)}
               >
-                <option value="+92">+92</option>
-                <option value="+44">+44</option>
-                <option value="+1">+1</option>
-                <option value="+971">+971</option>
-                <option value="+61">+61</option>
+                {PHONE_CODES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
               <input
                 className="elg-input"
@@ -171,7 +152,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
         {/* Row 4: Base Salary (with Currency select) & Payout Day */}
         <div className="elg-field">
           <label className="elg-label">Base Salary</label>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className='elg-price-field' style={{ display: 'flex', gap: 8 }}>
             <input
               className="elg-input"
               type="number"
@@ -181,8 +162,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               placeholder="0.00"
             />
             <select
-              className="elg-select"
-              style={{ width: 90, flexShrink: 0 }}
+              style={{outline : "none" }}
               value={currency}
               onChange={(ev) => setCurrency(ev.target.value)}
             >
@@ -207,85 +187,9 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
 
         {/* Row 5: Assigned Client-Facing Emails (If Salesperson) */}
         {showEmailPool && (
-          <div className="elg-field">
+          <div className="elg-field assignedEmails">
             <label className="elg-label">Assigned Client-Facing Emails</label>
-
-            {/* List of checked emails */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
-              {Array.from(checkedEmails).map((em) => (
-                <div
-                  key={em}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    background: 'var(--elg-page-bg)',
-                    border: '1px solid var(--elg-line)',
-                    borderRadius: 8
-                  }}
-                >
-                  <span style={{ fontFamily: 'monospace', fontSize: 13, color: 'var(--elg-ink)' }}>{em}</span>
-                  <button
-                    className="elg-btn elg-btn-ghost elg-btn-sm"
-                    style={{ width: 26, height: 26, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--elg-red-ink)' }}
-                    onClick={() => handleRemoveEmail(em)}
-                    title="Remove Email"
-                  >
-                    <TrashIcon width={14} height={14} />
-                  </button>
-                </div>
-              ))}
-
-              {/* Company email options available to check */}
-              {companyEmails.map((em) => {
-                if (checkedEmails.has(em)) return null;
-                const takenBy = employees.find((x) => x.id !== (e ? e.id : -1) && x.emails && x.emails.includes(em));
-                return (
-                  <label
-                    key={em}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '6px 8px',
-                      fontSize: 13,
-                      opacity: takenBy ? 0.5 : 1,
-                      cursor: takenBy ? 'default' : 'pointer'
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      disabled={!!takenBy}
-                      onChange={() => toggleEmail(em)}
-                      style={{ width: 'auto' }}
-                    />
-                    <span style={{ fontFamily: 'monospace' }}>{em}</span>
-                    {takenBy && <span style={{ color: 'var(--elg-ink-3)', fontSize: 11.5 }}>(assigned to {takenBy.name})</span>}
-                  </label>
-                );
-              })}
-            </div>
-
-            {/* Custom Add Email Input */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                className="elg-input"
-                value={customEmail}
-                onChange={(ev) => setCustomEmail(ev.target.value)}
-                placeholder="name@theelegantsdesign.com"
-                onKeyDown={(ev) => { if (ev.key === 'Enter') { ev.preventDefault(); handleAddCustomEmail(); } }}
-              />
-              <button
-                type="button"
-                className="elg-btn elg-btn-ghost"
-                style={{ width: 'auto', whiteSpace: 'nowrap', display: 'inline-flex', gap: 4 }}
-                onClick={handleAddCustomEmail}
-              >
-                <PlusIcon width={15} height={15} /> Add Email
-              </button>
-            </div>
+            <AssignedEmailsField employeeId={e ? e.id : null} value={emails} onChange={setEmails} />
           </div>
         )}
       </div>

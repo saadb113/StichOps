@@ -65,7 +65,7 @@ export default function CustomerProfile() {
               <PlusIcon /> Add Order
             </button>
             <button className="elg-btn" style={{ width: 'auto' }} onClick={() => openModal(<CustomerFormModal customer={c} />, { variant: 'elegant' })}>
-              <PencilIcon width={14} height={14} /> Edit Profile
+              <img src="/images/edit.svg" alt="" /> Edit Profile
             </button>
           </div>
         )}
@@ -88,15 +88,15 @@ export default function CustomerProfile() {
           <div className="elg-tabs">
             {isAdmin && (
               <div className={`elg-tab ${tab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>
-                <BagOutlineSmallIcon width={14} height={14} /> Orders ({os.length})
+                {tab === 'orders' ? <img src="/images/orderActive.svg" alt="" /> : <img src="/images/order.svg" alt="" />} Orders ({os.length})
               </div>
             )}
             <div className={`elg-tab ${isAdmin ? (tab === 'invoice' ? 'active' : '') : 'active'}`} onClick={() => setTab('invoice')}>
-              <DocIcon width={14} height={14} /> Invoice{uninvoiced.length ? ` · ${uninvoiced.length} ready` : ''}
+              {tab === 'invoice' ? <img src="/images/invactive.svg" alt="" /> : <img src="/images/invoice.svg" alt="" />} Invoice{uninvoiced.length ? ` · ${uninvoiced.length} ready` : ''}
             </div>
             {isAdmin && (
               <div className={`elg-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>
-                <ClockIcon width={14} height={14} /> Invoice History
+                {tab === 'history' ? <img src="/images/invHistoryActive.svg" alt="" /> : <img src="/images/invHistory.svg" alt="" />} Invoice History
               </div>
             )}
           </div>
@@ -132,7 +132,7 @@ export default function CustomerProfile() {
                       <option value="Paid">Paid</option>
                     </select>
                   </span> */}
-                  <span className={`elg-badge ${elgStatusClass(c.status)}`}>
+                  <span style={{fontSize : 12}} className={`elg-badge ${elgStatusClass(c.status)}`}>
                       {c.status}
                     </span>
                 </div>

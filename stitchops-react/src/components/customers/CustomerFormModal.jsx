@@ -17,6 +17,8 @@ export default function CustomerFormModal({ customer = null }) {
   const [company, setCompany] = useState(c ? c.company : '');
   const [country, setCountry] = useState(c ? c.country : countries[0]);
   const [currency, setCurrency] = useState(c ? c.currency : CCY[countries[0]]);
+  const [address, setAddress] = useState(c ? (c.address || '') : '');
+  const [zip, setZip] = useState(c ? (c.zip || '') : '');
   const [email, setEmail] = useState(c ? c.email : '');
   const [emailClient, setEmailClient] = useState(c ? c.emailClient : 'Gmail');
   const [contact, setContact] = useState(c ? c.contact : '');
@@ -56,6 +58,7 @@ export default function CustomerFormModal({ customer = null }) {
       customerCode: finalCode,
       name: trimmedName, company: trimmedCompany,
       country, currency,
+      address: address.trim(), zip: zip.trim(),
       email: email.trim(), emailClient,
       contact: contact.trim(),
       salesperson,
@@ -88,7 +91,7 @@ export default function CustomerFormModal({ customer = null }) {
         <div className="elg-modal-head-plain"><h3>Edit Profile</h3></div>
       ) : (
         <div className="elg-modal-hero">
-          <div className="elg-modal-hero-icon"><img src="images/addCustomer.png" alt="" /></div>
+          <div className="elg-modal-hero-icon"><img src="/images/addCustomer.png" alt="" /></div>
           <div className="elg-modal-title">Add Customer</div>
           <div className="elg-modal-sub">Add your customer details to add customer profile.</div>
         </div>
@@ -124,15 +127,11 @@ export default function CustomerFormModal({ customer = null }) {
          <div className="elg-field-row">
           <div className="elg-field">
             <label>Address</label>
-            <select value={country} onChange={(e) => handleCountryChange(e.target.value)}>
-              {countries.map((co) => <option key={co} value={co}>{co}</option>)}
-            </select>
+            <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. 14 Riverside Yard, Manchester" />
           </div>
           <div className="elg-field">
             <label>Zip Code</label>
-            <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-              {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-            </select>
+            <input value={zip} onChange={(e) => setZip(e.target.value)} placeholder="e.g. M1 4AB" />
           </div>
         </div>
         <div className="elg-field-row">

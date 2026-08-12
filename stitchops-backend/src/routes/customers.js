@@ -60,6 +60,8 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
         company: body.company,
         country: body.country,
         currency: body.currency,
+        address: body.address || '',
+        zip: body.zip || '',
         email: body.email || '',
         emailClient: body.emailClient,
         contact: body.contact || '',
@@ -100,6 +102,8 @@ router.patch('/:id', requireAuth, validateBody(updateCustomerSchema), asyncHandl
     if (body.company !== undefined) data.company = body.company;
     if (body.country !== undefined) data.country = body.country;
     if (body.currency !== undefined) data.currency = body.currency;
+    if (body.address !== undefined) data.address = body.address;
+    if (body.zip !== undefined) data.zip = body.zip;
     if (body.email !== undefined) data.email = body.email;
     if (body.emailClient !== undefined) data.emailClient = body.emailClient;
     if (body.contact !== undefined) data.contact = body.contact;

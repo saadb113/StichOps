@@ -11,3 +11,6 @@ Customer:
     ->add customer popup
         client on email field is not showing on modal and is showing CustomerFormModal.js…t=1785993190539:487 Uncaught TypeError: Cannot read properties of null (reading 'emails')at CustomerFormModal (CustomerFormModal.js…785993190539:487:33) error
         I have aded address and zipcode fields in there, make them funcitonal for the modal and the customer db so it saves the address and zipcode values
+
+Employees:
+    -> in employee options, clicking on regenrate login credentials gives this error "Something went wrong on our end. Please try again."

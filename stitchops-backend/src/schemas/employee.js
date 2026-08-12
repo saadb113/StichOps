@@ -5,6 +5,7 @@ const createEmployeeSchema = z.object({
   role: z.string().min(1),
   designation: z.string().trim().optional().default(''),
   email: z.string().trim().optional().default(''),
+  contact: z.string().trim().optional().default(''),
   currency: z.string().min(1),
   baseSalary: z.number().nonnegative(),
   payoutDay: z.number().int().min(1).max(28),

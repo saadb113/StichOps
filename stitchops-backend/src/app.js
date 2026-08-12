@@ -13,6 +13,8 @@ const payslipRoutes = require('./routes/payslips');
 const passwordResetRequestRoutes = require('./routes/passwordResetRequests');
 const companyRoutes = require('./routes/company');
 const companyEmailRoutes = require('./routes/companyEmails');
+const bankAccountRoutes = require('./routes/bankAccounts');
+const currencyRateRoutes = require('./routes/currencyRates');
 const metaRoutes = require('./routes/meta');
 
 const app = express();
@@ -33,6 +35,8 @@ app.use('/api/payslips', payslipRoutes);
 app.use('/api/password-reset-requests', passwordResetRequestRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/company-emails', companyEmailRoutes);
+app.use('/api/bank-accounts', bankAccountRoutes);
+app.use('/api/currency-rates', currencyRateRoutes);
 app.use('/api/meta', metaRoutes);
 
 // eslint-disable-next-line no-unused-vars

@@ -45,8 +45,8 @@ const ADMIN_NAV_2 = [
 // No custom icon files for these yet — keep the built-in component icons
 // until matching SVGs are added to public/icons/.
 const SALES_NAV = [
-  ['/my-customers', 'My Customers', PeopleIcon, PeopleIconActive],
-  ['/my-payslip', 'My Payslip', DocIcon, DocIconActive],
+  ['/my-customers', 'Customers', PeopleIcon, PeopleIconActive],
+  ['/my-payslip', 'Payslip', DocIcon, DocIconActive],
   ['/my-info', 'My Info', PersonIcon, PersonIconActive]
 ];
 

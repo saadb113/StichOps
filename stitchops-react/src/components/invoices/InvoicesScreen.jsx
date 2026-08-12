@@ -4,6 +4,7 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { paymentBadge } from '../../lib/helpers';
 import { SYM } from '../../lib/constants';
+import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon } from '../icons/Icon';
 
@@ -19,7 +20,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, getCustomer, togglePaymentStatus } = useAppState();
+  const { invoices, orders, company, getCustomer, togglePaymentStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -61,6 +62,12 @@ export default function InvoicesScreen() {
     } catch (e) {
       toast(e.message);
     }
+  }
+
+  function handleDownload(inv) {
+    const customer = getCustomer(inv.customerId);
+    const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders });
   }
 
   return (
@@ -121,7 +128,7 @@ export default function InvoicesScreen() {
                   <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Download" onClick={() => toast(`Downloading ${i.invoiceNo}.pdf`)}><img src="images/download.png"/></button>
+                      <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><img src="/images/download.png"/></button>
                       <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><KebabIcon /></button>
                       {openMenuId === i.id && (
                         <div className="elg-row-menu">

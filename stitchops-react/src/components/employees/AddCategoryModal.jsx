@@ -3,7 +3,7 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { CloseIcon, PlusIcon } from '../icons/Icon';
 
-const addTabImg = '../images/addOrder.png';
+const addTabImg = '/images/addTeam.svg';
 
 export default function AddCategoryModal({ onAdded }) {
   const { employeeCategories, addCategory } = useAppState();

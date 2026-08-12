@@ -142,3 +142,11 @@ export function CopyIcon(props) {
   return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>;
 }
 
+export function BankIcon(props) {
+  return <svg {...base} {...props} width={props.width || 18} height={props.height || 18}><path d="M3 10l9-6 9 6" /><path d="M4 10h16v9H4z" /><path d="M9 13v4M15 13v4" /><path d="M3 21h18" /></svg>;
+}
+
+export function IdCardIcon(props) {
+  return <svg {...base} {...props} width={props.width || 18} height={props.height || 18}><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="12" r="2" /><path d="M6 16.2c.5-1.4 1.4-2.2 2.5-2.2s2 .8 2.5 2.2" /><path d="M14 9.5h5M14 12.5h5M14 15.5h3" /></svg>;
+}
+

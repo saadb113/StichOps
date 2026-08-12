@@ -10,8 +10,8 @@ function statusPillStyle(status) {
   const map = {
     Completed: { bg: 'var(--elg-green)', fg: '#fff' },
     Pending: { bg: 'var(--elg-red)', fg: '#fff' },
-    'In progress': { bg: 'var(--elg-orange)', fg: '#fff' },
-    'On hold': { bg: 'var(--elg-navy)', fg: '#fff' },
+    'In Progress': { bg: 'var(--elg-orange)', fg: '#fff' },
+    'On Hold': { bg: 'var(--elg-navy)', fg: '#fff' },
     Cancelled: { bg: 'var(--elg-gray)', fg: '#5B5F6B' }
   };
   return map[status] || map.Pending;
@@ -87,10 +87,7 @@ export default function OrdersTab({ customer, orders }) {
                   </td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Comments" onClick={() => setOpenCommentId(commentOpen ? null : o.id)} style={{ position: 'relative' }}>
-                        <MessageIcon width={15} height={15} />
-                        {count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, background: 'var(--elg-primary)', color: '#fff', fontSize: 9.5, fontWeight: 700, borderRadius: 100, minWidth: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{count}</span>}
-                      </button>
+                     
                       {isAdmin && (
                         <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon width={14} height={14} /></button>
                       )}
@@ -107,31 +104,7 @@ export default function OrdersTab({ customer, orders }) {
                     </div>
                   </td>
                 </tr>
-                {commentOpen && (
-                  <tr>
-                    <td colSpan={8} style={{ padding: 0 }}>
-                      <div className="elg-comment-panel">
-                        <div style={{ maxWidth: 520 }}>
-                          {o.comments.length ? o.comments.map((cm) => (
-                            <div key={cm.id} className="elg-comment-item">
-                              <div className="elg-comment-author">{cm.author} <span>&middot; {cm.date}</span></div>
-                              <div className="elg-comment-text">{cm.text}</div>
-                            </div>
-                          )) : <div style={{ fontSize: 12, color: 'var(--elg-ink-3)' }}>No comments yet on this order.</div>}
-                          <div className="elg-comment-input-row">
-                            <input
-                              placeholder="Add a comment..."
-                              value={commentDrafts[o.id] || ''}
-                              onChange={(e) => setCommentDrafts((d) => ({ ...d, [o.id]: e.target.value }))}
-                              onKeyDown={(e) => { if (e.key === 'Enter') handlePostComment(o.id); }}
-                            />
-                            <button className="elg-btn elg-btn-primary elg-btn-sm" style={{ width: 'auto' }} onClick={() => handlePostComment(o.id)}>Post</button>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
+                
               </Fragment>
             );
           })}

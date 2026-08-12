@@ -1,14 +1,12 @@
-import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, ordersForEmployee, commissionAmt } from '../../lib/helpers';
+import OrderFormModal from '../orders/OrderFormModal';
+import { CloseIcon, PencilIcon } from '../icons/Icon';
 
 export default function EditSlipOrdersModal({ ctx }) {
-  const { orders, customers, payslips, getEmployee, getCustomer, updateOrder } = useAppState();
-  const { closeModal, toast } = useUi();
-  const [editingId, setEditingId] = useState(null);
-  const [editPrice, setEditPrice] = useState('');
-  const [editRateOrCost, setEditRateOrCost] = useState('');
+  const { orders, customers, payslips, getEmployee, getCustomer } = useAppState();
+  const { closeModal, openModal } = useUi();
 
   let e; let rows; let showCustomer; let title; let bodyText;
   if (ctx.type === 'earnings') {
@@ -17,76 +15,59 @@ export default function EditSlipOrdersModal({ ctx }) {
     showCustomer = false;
     const cust = getCustomer(ctx.customerId);
     title = `${cust ? cust.company : ''} — orders`;
-    bodyText = 'Edit price or rate directly below. Changes save immediately and also update this payslip and the Reports commission summary.';
+    bodyText = 'Edit this order. Changes will be saved immediately and reflected in the employee\'s earnings and the Reports commission summary.';
   } else {
     const s = payslips.find((x) => x.id === ctx.slipId);
     e = getEmployee(s.employeeId);
     rows = orders.filter((o) => s.orderIds.includes(o.id));
     showCustomer = true;
     title = `Edit ${s.slipNo} — ${e.name}`;
-    bodyText = "Edit price or rate directly below. Changes save immediately and also show on the Reports commission summary and this employee's Earnings tab. The slip total shown in history reflects the original approved amount.";
+    bodyText = 'Edit this order. Changes will be saved immediately and reflected in the Reports commission summary and this employee\'s Earnings tab. The slip total shown in history reflects the original approved amount.';
   }
   const isSales = e.role === 'Salesperson';
 
-  function startEdit(o) {
-    setEditingId(o.id);
-    setEditPrice(o.price);
-    setEditRateOrCost(isSales ? o.commissionRate : o.productionCost);
-  }
-  function cancelEdit() { setEditingId(null); }
-  async function saveEdit(o) {
-    const price = Number(editPrice);
-    if (!price) { toast('Price is required.'); return; }
-    const data = { price };
-    if (isSales) data.commissionRate = Number(editRateOrCost) || 0;
-    else data.productionCost = Number(editRateOrCost) || 0;
-    try {
-      await updateOrder(o.id, data);
-      setEditingId(null);
-      toast('Order updated — reflected in Reports and the Earnings tab.');
-    } catch (e) {
-      toast(e.message);
-    }
-  }
-
   return (
     <>
-      <div className="modal-head"><h3>{title}</h3><button className="btn btn-ghost btn-sm" onClick={closeModal}>Close</button></div>
-      <div className="modal-body">
-        <p style={{ fontSize: '12.5px', color: 'var(--ink-2)', marginBottom: 12 }}>{bodyText}</p>
-        <table>
-          <thead><tr><th>Order</th>{showCustomer && <th>Customer</th>}<th>{isSales ? 'Commission' : 'Production'}</th><th></th></tr></thead>
+      <button className="elg-modal-close" style={{background : "none"}} onClick={closeModal}><CloseIcon /></button>
+      <div className="elg-modal-head-plain">
+        <h3>{title}</h3>
+      </div>
+      <div className="elg-modal-body invoicesModal">
+        <p style={{ fontSize: '16px', color: '#5C5C5C', marginBottom: 16, lineHeight: 1.5 }}>
+          {bodyText}
+        </p>
+        <table className="elg-table">
+          <thead><tr>
+            <th>Order Name</th>
+            {showCustomer && <th>Customer</th>}
+            
+            <th>{isSales ? 'Commission' : 'Production'}</th>
+            
+            <th>Action</th>
+            </tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={showCustomer ? 4 : 3} className="empty">No linked orders.</td></tr>}
-            {rows.map((o) => (editingId === o.id ? (
+            {rows.length === 0 && <tr><td colSpan={showCustomer ? 3 : 2} className="elg-empty">No linked orders.</td></tr>}
+            {rows.map((o) => (
               <tr key={o.id}>
+                {console.log(o)}
                 <td>{o.name}</td>
                 {showCustomer && <td>{getCustomer(o.customerId).company}</td>}
+                <td>{fmt(isSales ? commissionAmt(o) : o.productionCost, isSales ? o.currency : (o.productionCostCurrency || o.currency))}</td>
                 <td>
-                  <input type="number" step="0.01" value={editPrice} onChange={(ev) => setEditPrice(ev.target.value)} style={{ width: 80, padding: '5px 7px', border: '1px solid var(--accent)', borderRadius: 5, fontSize: '12.5px', fontFamily: 'var(--font)' }} />
-                  {isSales ? (
-                    <> <input type="number" value={editRateOrCost} onChange={(ev) => setEditRateOrCost(ev.target.value)} style={{ width: 70, padding: '5px 7px', border: '1px solid var(--accent)', borderRadius: 5, fontSize: '12.5px', fontFamily: 'var(--font)' }} /> %</>
-                  ) : (
-                    <input type="number" step="0.01" value={editRateOrCost} onChange={(ev) => setEditRateOrCost(ev.target.value)} style={{ width: 90, padding: '5px 7px', border: '1px solid var(--accent)', borderRadius: 5, fontSize: '12.5px', fontFamily: 'var(--font)' }} />
-                  )}
-                </td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  <button className="btn btn-sm btn-primary" onClick={() => saveEdit(o)}>Save</button>
-                  <button className="btn btn-sm btn-ghost" onClick={cancelEdit}>Cancel</button>
+                  <button style={{marginLeft : "auto"}} className="elg-icon-sq" title="Edit order" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                    <img src="/icons/pencil-icon.svg" alt="" />
+                  </button>
                 </td>
               </tr>
-            ) : (
-              <tr key={o.id}>
-                <td>{o.name}</td>
-                {showCustomer && <td>{getCustomer(o.customerId).company}</td>}
-                <td>{fmt(isSales ? commissionAmt(o) : o.productionCost, o.currency)}</td>
-                <td><button className="btn btn-sm btn-ghost" onClick={() => startEdit(o)} title="Edit">&#9998;</button></td>
-              </tr>
-            )))}
+            ))}
           </tbody>
         </table>
       </div>
-      <div className="modal-foot"><button className="btn" onClick={closeModal}>Close</button></div>
+      <div className="elg-modal-foot plain">
+        <span className="spacer" />
+        <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={closeModal}>Done</button>
+      </div>
     </>
   );
 }

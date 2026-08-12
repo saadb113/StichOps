@@ -9,6 +9,7 @@ const createOrderSchema = z.object({
   currency: z.string().min(1),
   designer: z.string().min(1, 'Designer is required.'),
   productionCost: z.number().nonnegative().optional().default(0),
+  productionCostCurrency: z.string().min(1).optional().default('PKR'),
   commissionRate: z.number().nonnegative().optional().default(10),
   status: z.enum(ORDER_STATUSES).optional().default('Pending')
 });

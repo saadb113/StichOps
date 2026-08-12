@@ -32,4 +32,13 @@ router.post('/:id/approve', requireAuth, requireAdmin, asyncHandler(async (req, 
   res.json({ name: employee.name, email: user.email, tempPw });
 }));
 
+router.post('/:id/reject', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const request = await prisma.passwordResetRequest.findUnique({ where: { id } });
+  if (!request) return res.status(404).json({ error: 'Request not found.' });
+
+  await prisma.passwordResetRequest.delete({ where: { id } });
+  res.json({ ok: true });
+}));
+
 module.exports = router;

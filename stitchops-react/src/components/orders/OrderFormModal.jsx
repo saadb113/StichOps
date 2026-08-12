@@ -3,8 +3,8 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { SYM, ORDER_STATUSES, TODAY } from '../../lib/constants';
 import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
-import { BagIcon, CloseIcon, WarningIcon } from '../icons/Icon';
-const addOrderImg = '../images/addOrder.png';
+import { BagIcon, CloseIcon, WarningIcon, ChevronDownIcon } from '../icons/Icon';
+const addOrderImg = '/images/addOrder.png';
 
 function statusPillStyle(status) {
   const map = {
@@ -33,6 +33,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   const [currency, setCurrency] = useState(order ? order.currency : (cust ? cust.currency : ''));
   const [designer, setDesigner] = useState(order ? order.designer : (designers[0]?.name || ''));
   const [cost, setCost] = useState(order ? order.productionCost : '');
+  const [costCurrency, setCostCurrency] = useState(order ? order.productionCostCurrency : (designers[0]?.currency || 'PKR'));
   const [commission, setCommission] = useState(order ? order.commissionRate : 10);
   const [status, setStatus] = useState(order ? order.status : 'Completed');
 
@@ -42,6 +43,12 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
     setSelectedCustomerId(id);
     const c = getCustomer(Number(id));
     if (c) setCurrency(c.currency);
+  }
+
+  function handleDesignerChange(name) {
+    setDesigner(name);
+    const d = designers.find((x) => x.name === name);
+    if (d) setCostCurrency(d.currency);
   }
 
   const overdue = cust ? customerOverdueInvoices(invoices, cust.id) : [];
@@ -54,6 +61,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
     const data = {
       customerId: Number(selectedCustomerId), name: trimmedName, date: date || TODAY,
       price: priceNum, currency, designer, productionCost: Number(cost) || 0,
+      productionCostCurrency: costCurrency,
       commissionRate: Number(commission) || 10, status
     };
     try {
@@ -83,7 +91,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><img src="./images/cross.png" alt="" /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/images/cross.png" alt="" /></button>
 
       {order ? (
         <div className="elg-modal-head-plain">
@@ -153,10 +161,16 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
             <div className="elg-field-row">
               <div className="elg-field">
                 <label>Designer</label>
-                <select value={designer} onChange={(e) => setDesigner(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
+                <select value={designer} onChange={(e) => handleDesignerChange(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
               </div>
-              <div className="elg-field"><label>Production Cost</label>
-                <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
+              <div className="elg-field">
+                <label>Production Cost</label>
+                <div className="elg-price-field">
+                  <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
+                  <select value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)}>
+                    {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -164,16 +178,19 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
               <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} /></div>
               <div className="elg-field">
                 <label>Status</label>
-                <select
-                  className="elg-status-pill-select"
-                  style={statusPillStyle(status)}
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
+                <div className="elg-status-box">
+                  <select
+                    className="elg-status-pill-select"
+                    style={statusPillStyle(status)}
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    {ORDER_STATUSES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  <ChevronDownIcon className="elg-status-chevron" />
+                </div>
               </div>
 
             </div>

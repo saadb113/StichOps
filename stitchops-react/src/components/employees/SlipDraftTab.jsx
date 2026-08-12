@@ -29,7 +29,7 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
   return (
     <>
       <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="elg-pill elg-pill-review" style={{ fontSize: 12, padding: '4px 12px' }}>
+        <span className="elg-pill elg-pill-review" style={{ fontSize: 12, padding: '2px 8px', lineHeight : "21px", borderRadius : "8px" }}>
           Pending review &middot; draft, not yet finalized
         </span>
       </div>
@@ -37,15 +37,15 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
       <div className="elg-panel" style={{ padding: 24, marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--elg-line)', paddingBottom: 16, marginBottom: 20 }}>
           <div>
-            <div style={{ fontFamily: 'var(--elg-font-serif)', fontSize: 18, fontWeight: 700, color: 'var(--elg-ink)' }}>
+            <div style={{ fontFamily: 'var(--elg-font-serif)', fontSize: 18, fontWeight: 500, color: 'var(--elg-ink)' }}>
               {company.name}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--elg-ink-3)', marginTop: 2 }}>{company.address}</div>
+            <div style={{ fontSize: 13, color: '#5C5C5C', marginTop: 2 }}>{company.address}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--elg-primary)' }}>Draft Salary Slip</div>
-            <div style={{ fontSize: 13, color: 'var(--elg-ink)', marginTop: 2 }}>Pay to: <strong>{e.name}</strong></div>
-            <div style={{ fontSize: 13, color: 'var(--elg-ink-3)' }}>Payout day: {e.payoutDay}{nth(e.payoutDay)}</div>
+            <div style={{ fontSize: 16, fontWeight: 300, fontFamily : "var(--elg-font-serif)" }}>Draft Salary Slip</div>
+            <div style={{ fontSize: 14, color: '#5C5C5C', marginTop: 2 }}>Pay to: {e.name}</div>
+            <div style={{ fontSize: 14, color: '#5C5C5C' }}>Payout day: {e.payoutDay}{nth(e.payoutDay)}</div>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
           <table className="elg-table">
             <thead>
               <tr>
-                <th>Item</th>
+                <th>Order</th>
                 <th style={{ textAlign: 'right' }}>Amount</th>
               </tr>
             </thead>
@@ -85,9 +85,9 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
                   </tr>
                 );
               })}
-              <tr style={{ background: 'var(--elg-page-bg)', fontWeight: 700 }}>
-                <td style={{ fontSize: 15, color: 'var(--elg-ink)' }}>Total Salary Payout</td>
-                <td style={{ textAlign: 'right', fontSize: 16, color: 'var(--elg-primary)' }}>{fmt(grandTotal, e.currency)}</td>
+              <tr style={{  fontWeight: 500 }}>
+                <td style={{ fontSize: 14, color: 'var(--elg-ink)' }}>Total</td>
+                <td style={{ textAlign: 'right', fontSize: 16 }}>{fmt(grandTotal, e.currency)}</td>
               </tr>
             </tbody>
           </table>

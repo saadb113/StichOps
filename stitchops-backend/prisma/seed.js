@@ -27,16 +27,33 @@ async function main() {
     update: {},
     create: {
       id: 1,
-      name: 'StitchOps Digitizing',
+      name: 'The Elegants Design',
       address: '14 Riverside Yard, Manchester, UK',
-      bankName: 'Barclays Bank UK',
-      accountName: 'StitchOps Digitizing Ltd',
-      accountGBP: 'IBAN GB29 NWBK 6016 1331 9268 19',
-      accountUSD: 'ACC 004512398, Routing 026009593',
-      accountEUR: 'IBAN DE89 3704 0044 0532 0130 00',
-      accountAUD: 'BSB 062-000, ACC 1122 3344'
+      email: 'shaheerbaig@gmail.com',
+      contact: '+92 313 2799726',
+      defaultCurrency: 'PKR'
     }
   });
+
+  const bankAccountSeed = [
+    { currency: 'GBP', accountName: 'The Elegants Design', accountNo: 'IBAN GB29 NWBK 6016 1331 9268 19' },
+    { currency: 'USD', accountName: 'The Elegants Design', accountNo: 'ACC 004512398, Routing 026009593' },
+    { currency: 'EUR', accountName: 'The Elegants Design', accountNo: 'IBAN DE89 3704 0044 0532 0130 00' },
+    { currency: 'AUD', accountName: 'The Elegants Design', accountNo: 'BSB 062-000, ACC 1122 3344' }
+  ];
+  for (const account of bankAccountSeed) {
+    await prisma.bankAccount.create({ data: account });
+  }
+
+  const currencyRateSeed = [
+    { currency: 'USD', rate: 276.89 },
+    { currency: 'EUR', rate: 319.44 },
+    { currency: 'GBP', rate: 374.10 },
+    { currency: 'AUD', rate: 195.25 }
+  ];
+  for (const rate of currencyRateSeed) {
+    await prisma.currencyRate.create({ data: rate });
+  }
 
   for (const name of ['Salesperson', 'Designer']) {
     await prisma.employeeCategory.upsert({ where: { name }, update: {}, create: { name } });

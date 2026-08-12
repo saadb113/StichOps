@@ -28,6 +28,7 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
         role: body.role,
         designation: body.designation || null,
         email: body.email || null,
+        contact: body.contact || null,
         currency: body.currency,
         baseSalary: body.baseSalary,
         payoutDay: body.payoutDay
@@ -84,6 +85,7 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateEmployeeSchem
   if (body.role !== undefined) data.role = body.role;
   if (body.designation !== undefined) data.designation = body.designation;
   if (body.email !== undefined) data.email = body.email || null;
+  if (body.contact !== undefined) data.contact = body.contact || null;
   if (body.currency !== undefined) data.currency = body.currency;
   if (body.baseSalary !== undefined) data.baseSalary = body.baseSalary;
   if (body.payoutDay !== undefined) data.payoutDay = body.payoutDay;

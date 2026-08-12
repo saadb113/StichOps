@@ -45,11 +45,9 @@ export default function CustomersList() {
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
-        {isAdmin && (
-          <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
-            <UserPlusIcon /> Add Customer
-          </button>
-        )}
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
+          <img src="/images/addCustomerBtn.svg" alt="" /> Add Customer
+        </button>
       </div>
 
       <div className="elg-panel elg-table-wrap">
@@ -71,8 +69,8 @@ export default function CustomersList() {
               const active = isActive(orders, c);
               return (
                 <tr className="clickable" key={c.id} onClick={() => navigate(`${basePath}/${c.id}`)}>
-                  <td style={{ color: 'var(--elg-ink-3)', fontSize: 12.5 }}>{c.customerCode || '—'}</td>
-                  <td style={{ fontWeight: 600 }}>{c.company}</td>
+                  <td style={{ fontSize: 12.5 }}>{c.customerCode || '—'}</td>
+                  <td style={{ fontWeight: 400 }}>{c.company}</td>
                   <td>{c.name}</td>
                   <td>{c.country}</td>
                   <td>{c.currency}</td>

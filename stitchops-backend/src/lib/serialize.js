@@ -21,6 +21,7 @@ function serializeEmployee(employee) {
     baseSalary: employee.baseSalary,
     payoutDay: employee.payoutDay,
     email: employee.email || '',
+    contact: employee.contact || '',
     emails: (employee.companyEmails || []).map((ce) => ce.email),
     hasLogin: !!employee.user
   };
@@ -34,6 +35,8 @@ function serializeCustomer(customer) {
     company: customer.company,
     country: customer.country,
     currency: customer.currency,
+    address: customer.address || '',
+    zip: customer.zip || '',
     email: customer.email,
     emailClient: customer.emailClient,
     contact: customer.contact,
@@ -55,6 +58,7 @@ function serializeOrder(order) {
     currency: order.currency,
     designer: order.designer.name,
     productionCost: order.productionCost,
+    productionCostCurrency: order.productionCostCurrency,
     commissionRate: order.commissionRate,
     status: order.status,
     invoiced: order.invoiceId != null,
@@ -103,6 +107,7 @@ function serializePayslip(payslip) {
     baseSalary: payslip.baseSalary,
     commission: payslip.commission,
     approvedDate: toDateOnlyString(payslip.approvedDate),
+    paymentStatus: payslip.paymentStatus,
     orderIds
   };
 }
@@ -120,12 +125,27 @@ function serializeCompany(company) {
   return {
     name: company.name,
     address: company.address,
-    bankName: company.bankName,
-    accountName: company.accountName,
-    accountGBP: company.accountGBP,
-    accountUSD: company.accountUSD,
-    accountEUR: company.accountEUR,
-    accountAUD: company.accountAUD
+    email: company.email || '',
+    contact: company.contact || '',
+    defaultCurrency: company.defaultCurrency
+  };
+}
+
+function serializeBankAccount(account) {
+  return {
+    id: account.id,
+    currency: account.currency,
+    accountName: account.accountName || '',
+    accountNo: account.accountNo || ''
+  };
+}
+
+function serializeCurrencyRate(rate) {
+  return {
+    id: rate.id,
+    currency: rate.currency,
+    rate: rate.rate,
+    isCustom: rate.isCustom
   };
 }
 
@@ -138,5 +158,7 @@ module.exports = {
   serializeInvoice,
   serializePayslip,
   serializePasswordResetRequest,
-  serializeCompany
+  serializeCompany,
+  serializeBankAccount,
+  serializeCurrencyRate
 };

@@ -7,7 +7,8 @@ const loginSchema = z.object({
 });
 
 const changePasswordSchema = z.object({
-  password: z.string().min(6, 'Password must be at least 6 characters.')
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  currentPassword: z.string().min(1).optional()
 });
 
 const forgotPasswordSchema = z.object({

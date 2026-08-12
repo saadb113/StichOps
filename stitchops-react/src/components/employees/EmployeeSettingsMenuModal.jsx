@@ -21,17 +21,14 @@ function ConfirmDeleteEmployeeModal({ employeeId, name }) {
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 440 }}>
+    <div className="elg-modal" style={{ maxWidth: 560 }}>
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ color: 'var(--elg-delete-red)', display: 'flex', alignItems: 'center' }}>
-            <WarningIcon width={20} height={20} />
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--elg-ink)' }}>Delete Employee</div>
+          <div style={{ fontSize: 20, fontWeight: 300, color: 'var(--elg-ink)', fontFamily : 'var(--elg-font-serif)' }}>Are you sure?</div>
         </div>
         <button
           className="elg-btn elg-btn-ghost"
-          style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: 32, height: 32,background :"none", border : 0, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
           <CloseIcon />
@@ -39,18 +36,18 @@ function ConfirmDeleteEmployeeModal({ employeeId, name }) {
       </div>
 
       <div className="elg-modal-body" style={{ padding: 24 }}>
-        <p style={{ fontSize: 14, color: 'var(--elg-ink)', margin: 0, lineHeight: 1.5 }}>
-          Are you sure you want to delete employee <strong>"{name}"</strong>? This action cannot be undone. Their past salary slip history will be retained, but their profile will be permanently removed from active employees.
+        <p style={{ fontSize: 14, color: '#5C5C5C', margin: 0, lineHeight: 1.5 }}>
+          You're deleting the employee <b style={{fontWeight : 500, color : "var(--elg-ink)"}}>"Shaheer Baig."</b> This action can't be undone. Their salary slip history will remain on record, but they'll no longer appear in the Employees list.
         </p>
       </div>
 
       <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-        <button className="elg-btn elg-btn-ghost" style={{ width: 'auto' }} onClick={closeModal}>
+        <button className="elg-btn elg-btn-ghost" style={{ width: 'max-content !important' }} onClick={closeModal}>
           Cancel
         </button>
         <button
           className="elg-btn"
-          style={{ width: 'auto', background: 'var(--elg-delete-red)', borderColor: 'var(--elg-delete-red)', color: '#fff' }}
+          style={{ width: 'max-content !important', background: 'var(--elg-delete-red)', borderColor: 'var(--elg-delete-red)', color: '#fff' }}
           onClick={handleDelete}
         >
           Delete Employee
@@ -76,7 +73,7 @@ export default function EmployeeSettingsMenuModal({ employeeId }) {
       return;
     }
     if (!res) { toast('This employee has no login yet.'); closeModal(); return; }
-    openModal(<CredentialsModal title="Login credentials regenerated" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
+    openModal(<CredentialsModal request={false} title="Login credentials regenerated" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
   }
 
   return (
@@ -85,7 +82,7 @@ export default function EmployeeSettingsMenuModal({ employeeId }) {
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--elg-ink)' }}>Employee Options</div>
         <button
           className="elg-btn elg-btn-ghost"
-          style={{ width: 30, height: 30, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: 30, height: 30,border: 0,background : "none", padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
           <CloseIcon />

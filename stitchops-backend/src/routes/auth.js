@@ -38,6 +38,10 @@ router.get('/me', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 router.post('/change-password', requireAuth, validateBody(changePasswordSchema), asyncHandler(async (req, res) => {
+  if (req.body.currentPassword !== undefined) {
+    const ok = await comparePassword(req.body.currentPassword, req.user.passwordHash);
+    if (!ok) return res.status(400).json({ error: 'Current password is incorrect.' });
+  }
   const passwordHash = await hashPassword(req.body.password);
   const user = await prisma.user.update({
     where: { id: req.user.id },

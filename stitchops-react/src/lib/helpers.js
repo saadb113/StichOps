@@ -111,3 +111,13 @@ export function unpaidAmountFor(orders, customers, emp) {
 export function genTempPassword() {
   return 'Temp-' + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
+
+// Converts an amount in `ccy` to the company's default currency using stored
+// CurrencyRate rows (rate = units of default currency per 1 unit of ccy).
+// Returns null when there's no rate to convert with (ccy isn't the default
+// and has no stored rate), so callers can decide how to display "unknown".
+export function convertToDefault(amount, ccy, rates, defaultCcy) {
+  if (ccy === defaultCcy) return amount;
+  const r = rates.find((x) => x.currency === ccy);
+  return r ? amount * r.rate : null;
+}

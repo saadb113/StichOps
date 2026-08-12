@@ -1,0 +1,20 @@
+<svg width="64" height="60" viewBox="0 0 64 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="addTeamBack" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#AAB9F0"/>
+      <stop offset="1" stop-color="#7C8EE8"/>
+    </linearGradient>
+    <linearGradient id="addTeamFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6E7EE0"/>
+      <stop offset="1" stop-color="#4453C9"/>
+    </linearGradient>
+  </defs>
+  <rect x="14" y="4" width="40" height="40" rx="11" fill="url(#addTeamBack)" transform="rotate(8 34 24)"/>
+  <rect x="8" y="10" width="40" height="40" rx="11" fill="url(#addTeamFront)"/>
+  <circle cx="28" cy="30" r="12" fill="#ffffff"/>
+  <path d="M28 24.5a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" fill="#4453C9"/>
+  <path d="M20.5 37.5c1-3.8 4.1-6 7.5-6s6.5 2.2 7.5 6a12 12 0 0 1-15 0Z" fill="#4453C9"/>
+  <circle cx="42" cy="38" r="9" fill="#3446C4"/>
+  <path d="M42 33.6a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8Zm0 2.1a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6Z" fill="#ffffff"/>
+  <path d="M42 33v1.1M42 41.9V43M46.5 38h-1.1M38.6 38h-1.1M45.2 34.8l-.78.78M38.58 41.42l-.78.78M45.2 41.2l-.78-.78M38.58 34.58l-.78-.78" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+</svg>

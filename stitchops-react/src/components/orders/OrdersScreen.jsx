@@ -107,12 +107,12 @@ export default function OrdersScreen() {
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
                   <td><span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span></td>
-                  <td>{o.currency}</td>
+                  <td>{o.currency} {SYM[o.currency]}</td>
                   <td>{o.price.toFixed(2)}</td>
                   <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="images/edit.png"/></button>
+                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="/images/edit.png"/></button>
                       <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon /></button>
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">

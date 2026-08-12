@@ -31,8 +31,8 @@ export default function EditInvoiceOrdersModal({ invoiceId }) {
                 <td>{o.name}</td>
                 <td>{o.price.toFixed(2)}</td>
                 <td>
-                  <button className="elg-icon-sq" title="Edit order" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
-                    <PencilIcon />
+                  <button className="elg-icon-sq" style={{marginLeft : "auto"}} title="Edit order" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                    <img src="/images/edit.svg" alt="" />
                   </button>
                 </td>
               </tr>

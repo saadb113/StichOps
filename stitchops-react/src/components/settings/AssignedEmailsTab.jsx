@@ -56,10 +56,10 @@ export default function AssignedEmailsTab() {
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: 8 }}>
                       <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<EditEmailModal email={em} employeeId={owner ? owner.id : null} />, { variant: 'elegant' })}>
-                        <img src='/images/edit.svg' />
+                        <img src='/images/edit.svg' width="14px" height="14px" />
                       </button>
                       <button className="elg-icon-sq" title="Delete" onClick={() => openModal(<ConfirmDeleteEmailModal email={em} />, { variant: 'elegant' })}>
-                        <img src="/images/redX.png" alt="" />
+                        <img src="/images/cancel-x-mark.svg" alt="" width="14px" height="14px" />
                       </button>
                     </div>
                   </td>

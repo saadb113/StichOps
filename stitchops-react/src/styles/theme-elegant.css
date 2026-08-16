@@ -1944,6 +1944,20 @@ width: max-content !important;
 }
 
 /* ---------- Settings page ---------- */
+.edit-currency-modal-foot{
+  padding: 16px 24px !important;
+}
+.elg-modal-foot.edit-currency-modal-foot .elg-btn{
+  width: max-content !important;
+}
+.elg-edit-currency-modal .elg-table tbody td{
+  border: none !important;
+}
+
+.edit-currency-modal-foot button{
+  font-size: 16px !important;
+  padding: 8px 16px !important;
+}
 .elg-settings-grid {
   display: grid;
   grid-template-columns: 284px 1fr;
@@ -2062,6 +2076,7 @@ width: max-content !important;
   border: 1px solid #E8E8E8;
   padding: 3px 6px;
   border-radius: 8px;
+  font-family: 'Inter Display';
 }
 
 .elg-settings-rate-toggle {
@@ -2084,6 +2099,7 @@ width: max-content !important;
   height: 17px;
   accent-color: var(--elg-primary);
   cursor: pointer;
+  margin: 0;
 }
 
 @media (max-width: 900px) {

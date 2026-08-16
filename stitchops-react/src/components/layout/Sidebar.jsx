@@ -29,6 +29,13 @@ const SettingsIconActive = '/icons/settings-icon-active.svg';
 const AddOrder = '/icons/add-icon.svg';
 const AddCustomer = '/icons/add-customer-icon.svg';
 
+const salesCustomerIcon = '/images/sales-customer-icon.svg';
+const salesCustomerIconActive = '/images/sales-customer-icon-active.svg';
+const salesPayslipIcon = '/images/sales-payslip-icon.svg';
+const salesPayslipIconActive = '/images/sales-payslip-icon-active.svg';
+const salesInfoIcon = '/images/sales-about-icon.svg';
+const salesInfoIconActive = '/images/sales-about-icon-active.svg';
+
 const notificationsIcon = '/images/important-notifications-icon.png';
 
 const ADMIN_NAV = [
@@ -45,9 +52,9 @@ const ADMIN_NAV_2 = [
 // No custom icon files for these yet — keep the built-in component icons
 // until matching SVGs are added to public/icons/.
 const SALES_NAV = [
-  ['/my-customers', 'Customers', PeopleIcon, PeopleIconActive],
-  ['/my-payslip', 'Payslip', DocIcon, DocIconActive],
-  ['/my-info', 'My Info', PersonIcon, PersonIconActive]
+  ['/my-customers', 'Customers', salesCustomerIcon, salesCustomerIconActive],
+  ['/my-payslip', 'Payslip', salesPayslipIcon, salesPayslipIconActive],
+  ['/my-info', 'My Info', salesInfoIcon, salesInfoIconActive]
 ];
 
 // Icon entries can be either a React component (from icons/Icon.jsx) or a

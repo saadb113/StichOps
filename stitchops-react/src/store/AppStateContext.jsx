@@ -276,6 +276,9 @@ export function AppStateProvider({ children }) {
     await api.delete(`/currency-rates/${currency}`);
     await refreshCurrencyRates();
   }
+  async function fetchMarketRate(currency) {
+    return api.get(`/currency-rates/${currency}/market`);
+  }
 
   // ---------- self-service password change ----------
   async function changePassword(currentPassword, newPassword) {
@@ -343,7 +346,7 @@ export function AppStateProvider({ children }) {
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, approvePasswordReset, rejectPasswordReset,
     updateCompany, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
     addBankAccount, updateBankAccount, deleteBankAccount,
-    addCurrencyRate, updateCurrencyRate, deleteCurrencyRate,
+    addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
     attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, changePassword
   };
 

@@ -107,7 +107,7 @@ export default function CompanyDetailsTab() {
             {Object.keys(CCY_NAMES).map((cc) => <option key={cc} value={cc}>{CCY_NAMES[cc]}</option>)}
           </select>
         </div>
-        <div className="elg-table-wrap" style={{ border: '1px solid var(--elg-line)', borderRadius: 8 }}>
+        <div className="elg-table-wrap elg-edit-currency-modal" style={{ border: '1px solid var(--elg-line)', borderRadius: 8, padding: 10 }}>
           <table className="elg-table">
             <thead><tr><th>Currency</th><th>Current Rates in {defaultCurrency}</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
             <tbody>

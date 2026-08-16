@@ -5,12 +5,21 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validate');
 const { serializeCurrencyRate } = require('../lib/serialize');
 const { currencyRateSchema, currencyRateUpdateSchema } = require('../schemas/misc');
+const { fetchMarketRate } = require('../lib/marketRates');
 
 const router = express.Router();
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const rates = await prisma.currencyRate.findMany({ orderBy: { id: 'asc' } });
   res.json(rates.map(serializeCurrencyRate));
+}));
+
+router.get('/:currency/market', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const currency = req.params.currency.toUpperCase();
+  const company = await prisma.company.findUnique({ where: { id: 1 } });
+  const base = company?.defaultCurrency || 'PKR';
+  const rate = currency === base ? 1 : await fetchMarketRate(currency, base);
+  res.json({ currency, base, rate });
 }));
 
 router.post('/', requireAuth, requireAdmin, validateBody(currencyRateSchema), asyncHandler(async (req, res) => {

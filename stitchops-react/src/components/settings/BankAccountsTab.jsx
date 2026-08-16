@@ -77,7 +77,7 @@ function BankAccountCard({ account }) {
             </button>
           )}
           <button className="elg-icon-sq" title="Delete" style={{border : 0,background : "none"}} onClick={() => openModal(<ConfirmDeleteAccountModal account={account} />, { variant: 'elegant' })}>
-            <img src="/images/redX.png" alt="" />
+            <img src="/images/cancel-x-mark.svg" alt="" />
           </button>
         </div>
       </div>

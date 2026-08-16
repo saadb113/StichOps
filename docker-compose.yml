@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: stitchops-db
     environment:
       POSTGRES_DB: stitchops
       POSTGRES_USER: stitchops
@@ -18,7 +17,6 @@ services:
     build:
       context: ./stitchops-backend
       dockerfile: Dockerfile
-    container_name: stitchops-backend
     depends_on:
       db:
         condition: service_healthy
@@ -27,11 +25,11 @@ services:
       DATABASE_URL: postgresql://stitchops:stitchops@db:5432/stitchops?sslmode=disable
       DIRECT_DATABASE_URL: postgresql://stitchops:stitchops@db:5432/stitchops?sslmode=disable
       JWT_SECRET: change-me-to-a-long-random-string
-      CLIENT_ORIGIN: http://localhost:8080
+      CLIENT_ORIGIN: http://localhost:${FRONTEND_PORT:-8080}
       COOKIE_SECURE: "false"
       EXCHANGE_RATE_API_KEY: "08f68d0db829fc75606bc491"
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT:-4000}:4000"
 
   frontend:
     build:
@@ -39,19 +37,17 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_TARGET: http://backend:4000
-    container_name: stitchops-frontend
     depends_on:
       - backend
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8080}:80"
 
   adminer:
     image: adminer
-    container_name: stitchops-adminer
     depends_on:
       - db
     ports:
-      - "8081:8080"
+      - "${ADMINER_PORT:-8081}:8080"
 
 volumes:
   postgres_data:

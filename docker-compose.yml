@@ -29,6 +29,7 @@ services:
       JWT_SECRET: change-me-to-a-long-random-string
       CLIENT_ORIGIN: http://localhost:8080
       COOKIE_SECURE: "false"
+      EXCHANGE_RATE_API_KEY="08f68d0db829fc75606bc491"
     ports:
       - "4000:4000"
 

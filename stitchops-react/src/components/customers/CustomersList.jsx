@@ -22,11 +22,11 @@ export default function CustomersList() {
 
   return (
     <div className="elg-page">
-      <div className="elg-crumbs">
+      {isAdmin && <div className="elg-crumbs">
         <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate(isAdmin ? '/dashboard' : basePath)}>Dashboard</span>
         <span className="elg-crumb-sep">/</span>
         <span className="elg-crumb-current">{isAdmin ? 'Customers' : 'My Customers'}</span>
-      </div>
+      </div>}
 
       <div className="elg-page-head">
         <div>

@@ -227,7 +227,7 @@ export default function EmployeesList() {
                     <span>{e.name}</span>
                   </td>
                   <td>{e.designation || '—'}</td>
-                  <td><span className="elg-pill">{e.currency}</span></td>
+                  <td><span className="elg-currency">{e.currency}</span></td>
                   {category === 'Salesperson' && <td>{fmt(e.baseSalary, e.currency)}</td>}
                   <td>The {e.payoutDay}th of each month</td>
                   <td><strong>{unpaidStr}</strong></td>

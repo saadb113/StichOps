@@ -1449,12 +1449,15 @@ width: max-content !important;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 14px;
   padding: 4.5px 10px;
   font-weight: 400;
   color: var(--elg-ink-2);
   cursor: pointer;
   margin-bottom: 24px;
+  line-height: 21px;
+  border: 1px solid #E8E8E8;
+  border-radius: 6px;
 }
 
 .elg-back-link:hover {
@@ -1576,6 +1579,9 @@ width: max-content !important;
   grid-template-columns: 2fr 284px;
   gap: 20px;
   align-items: start;
+}
+.elg-profile-grid #tabContent tbody td{
+  border: none;
 }
 
 .elg-profile-grid .elg-table tbody td {

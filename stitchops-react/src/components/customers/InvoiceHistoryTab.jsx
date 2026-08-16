@@ -1,6 +1,7 @@
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, paymentBadge } from '../../lib/helpers';
+import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from '../invoices/EditInvoiceOrdersModal';
 import { DownloadIcon, PencilIcon } from '../icons/Icon';
 
@@ -16,7 +17,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoiceHistoryTab({ customer }) {
-  const { invoices, togglePaymentStatus } = useAppState();
+  const { invoices, orders, company, togglePaymentStatus } = useAppState();
   const { openModal, toast } = useUi();
 
   const invs = invoices.filter((i) => i.customerId === customer.id).sort((a, b) => b.id - a.id);
@@ -31,6 +32,11 @@ export default function InvoiceHistoryTab({ customer }) {
     } catch (e) {
       toast(e.message);
     }
+  }
+
+  function handleDownload(inv) {
+    const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders });
   }
 
   return (
@@ -51,7 +57,7 @@ export default function InvoiceHistoryTab({ customer }) {
                 <td>
                   {i.status === 'approved' && (
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Download" onClick={() => toast('Downloading ' + i.invoiceNo + '.pdf')}><DownloadIcon width={14} height={14} /></button>
+                      <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><DownloadIcon width={14} height={14} /></button>
                       <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' })}><PencilIcon width={14} height={14} /></button>
                     </div>
                   )}

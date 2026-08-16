@@ -45,7 +45,7 @@ export default function CustomerProfile() {
   return (
     <div className="elg-page">
       <div className="elg-back-link" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}>
-        <ArrowLeftIcon /> Back
+        <img src="/icons/customers-back-btn.svg" alt="" /> Back
       </div>
 
       <div className="elg-profile-head">
@@ -85,21 +85,19 @@ export default function CustomerProfile() {
 
       <div className="elg-profile-grid">
         <div>
-          <div className="elg-tabs">
-            {isAdmin && (
+          {isAdmin && (
+            <div className="elg-tabs">
               <div className={`elg-tab ${tab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>
                 {tab === 'orders' ? <img src="/images/orderActive.svg" alt="" /> : <img src="/images/order.svg" alt="" />} Orders ({os.length})
               </div>
-            )}
-            <div className={`elg-tab ${isAdmin ? (tab === 'invoice' ? 'active' : '') : 'active'}`} onClick={() => setTab('invoice')}>
-              {tab === 'invoice' ? <img src="/images/invactive.svg" alt="" /> : <img src="/images/invoice.svg" alt="" />} Invoice{uninvoiced.length ? ` · ${uninvoiced.length} ready` : ''}
-            </div>
-            {isAdmin && (
+              <div className={`elg-tab ${isAdmin ? (tab === 'invoice' ? 'active' : '') : 'active'}`} onClick={() => setTab('invoice')}>
+                {tab === 'invoice' ? <img src="/images/invactive.svg" alt="" /> : <img src="/images/invoice.svg" alt="" />} Invoice{uninvoiced.length ? ` · ${uninvoiced.length} ready` : ''}
+              </div>
               <div className={`elg-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>
                 {tab === 'history' ? <img src="/images/invHistoryActive.svg" alt="" /> : <img src="/images/invHistory.svg" alt="" />} Invoice History
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <div id="tabContent">
             {!isAdmin && <InvoiceTab customer={c} orders={os} />}
             {isAdmin && tab === 'orders' && <OrdersTab customer={c} orders={os} />}
@@ -132,9 +130,9 @@ export default function CustomerProfile() {
                       <option value="Paid">Paid</option>
                     </select>
                   </span> */}
-                  <span style={{fontSize : 12}} className={`elg-badge ${elgStatusClass(c.status)}`}>
-                      {c.status}
-                    </span>
+                  <span style={{ fontSize: 12 }} className={`elg-badge ${elgStatusClass(c.status)}`}>
+                    {c.status}
+                  </span>
                 </div>
                 {isAdmin && <div className="elg-kv-row"><span className="k">Invoice Day</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
               </div>

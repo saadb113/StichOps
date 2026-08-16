@@ -48,7 +48,7 @@ function InvoiceTabSales({ customer, orders }) {
           })}
         </tbody>
       </table>
-      <div style={{ padding: '12px 20px', fontSize: 11.5, color: 'var(--elg-ink-3)', borderTop: '1px solid var(--elg-line)' }}>
+      <div style={{ padding: '12px 12px', fontSize: 11.5, color: 'var(--elg-ink-3)' }}>
         Totals only — order-level detail and invoice downloads are only available to admin.
       </div>
     </div>

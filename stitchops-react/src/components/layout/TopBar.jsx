@@ -19,16 +19,19 @@ export default function TopBar() {
   return (
     <div className="elg-topbar">
       <div className="elg-search">
-        <SearchIcon />
-        <input placeholder="Search" />
-        <span className="kbd">⌘K</span>
+        <img src="/icons/nav-search-icon.svg" alt="Search" />
+        <input id="search" name="search" placeholder="Search" type="text" />
+        <p className="kbd">
+          <img src="/icons/command-icon.svg" alt="Command" />
+          <span>K</span>
+        </p>
       </div>
       <div className="elg-topbar-right">
-        <button className="elg-icon-btn" title="Notifications"><BellIcon /></button>
+        <button className="elg-icon-btn" title="Notifications"><img src="/icons/notifications-icon.svg" alt="Notifications" /></button>
         <div className="elg-account" ref={ref} onClick={() => setMenuOpen((v) => !v)}>
           <div className="elg-avatar">{initials}</div>
           <span className="elg-account-name">{displayName}</span>
-          <ChevronDownIcon />
+          <img src="/icons/down-icon.svg" alt="dropdown icon" />
           {menuOpen && (
             <div className="elg-account-menu">
               <button onClick={logout}>Log out</button>

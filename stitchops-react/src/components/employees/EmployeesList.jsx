@@ -156,9 +156,9 @@ export default function EmployeesList() {
         </div>
       )}
 
-      <div className="elg-panel elg-filterbar" style={{ gap: 14 }}>
-        <div className="elg-field-search" style={{ flex: 1 }}>
-          <SearchIcon />
+      <div className="elg-panel elg-filterbar">
+        <div className="elg-field-search">
+          <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input
             placeholder="Search employees by name or email..."
             value={search}
@@ -241,7 +241,7 @@ export default function EmployeesList() {
                       }}
                       title="Options"
                     >
-                      <KebabIcon />
+                      <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
                     </button>
                   </td>
                 </tr>

@@ -87,7 +87,7 @@ export default function InvoicesScreen() {
 
       <div className="elg-panel elg-filterbar">
         <div className="elg-field-search">
-          <SearchIcon />
+          <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search invoices or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="elg-date-field">
@@ -129,7 +129,7 @@ export default function InvoicesScreen() {
                   <td>
                     <div className="elg-row-actions">
                       <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><img src="/images/download-invoice.svg"/></button>
-                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><KebabIcon /></button>
+                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
                       {openMenuId === i.id && (
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>

@@ -109,7 +109,7 @@ export default function Dashboard() {
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Ready to Invoice</span><span className="elg-metric-icon"><img src="/images/invoice.svg" alt="" /></span></div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Ready to Invoice</span><span className="elg-metric-icon"><img src="/images/todays-invoice.svg" alt="" /></span></div>
           <div className="elg-metric-value">{pendingReview}</div>
           <div className="elg-metric-sub">Completed, not yet invoiced</div>
         </div>
@@ -127,7 +127,7 @@ export default function Dashboard() {
       <div className="elg-panel elg-table-wrap">
         <div className="elg-section-head">
           <div className="elg-section-title">Recent Orders</div>
-          <button className="elg-btn" style={{ width: 'auto' }} onClick={() => navigate('/orders')}>View All</button>
+          <button className="elg-btn elg-view-all-btn" style={{ width: 'auto' }} onClick={() => navigate('/orders')}>View All</button>
         </div>
         <table className="elg-table">
           <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th>Action</th></tr></thead>
@@ -145,7 +145,7 @@ export default function Dashboard() {
                   <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon /></button>
+                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' }); }}>

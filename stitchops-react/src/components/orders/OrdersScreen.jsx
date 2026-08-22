@@ -72,7 +72,7 @@ export default function OrdersScreen() {
 
       <div className="elg-panel elg-filterbar">
         <div className="elg-field-search">
-          <SearchIcon />
+          <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search order or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="elg-date-field">
@@ -112,8 +112,8 @@ export default function OrdersScreen() {
                   <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="/images/edit.png"/></button>
-                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon /></button>
+                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /></button>
+                      <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">
                           <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>Delete order</button>

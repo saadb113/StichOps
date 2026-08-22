@@ -152,7 +152,7 @@
   flex: 1;
   max-width: none;
   min-width: 0;
-  padding: 25px;
+  padding: 24px;
 }
 
 #sidebar.elg-sidebar {
@@ -249,6 +249,29 @@
   color: var(--elg-ink);
 }
 
+.elg-view-all-btn{
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: 0px;
+  padding-top: 8px;
+  padding-right: 13px;
+  padding-bottom: 8px;
+  padding-left: 13px;
+}
+
+.earnings-action-btn{
+  height: 30px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.earnings-action-btn img{
+  width: 14px;
+  height: 14px;
+}
+
 .elg-btn:hover {
   background: var(--elg-page-bg);
 }
@@ -310,7 +333,7 @@
   align-items: center;
   gap: 12px;
   padding: 9px 10px;
-  border-radius: 9px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 500;
   color: var(--elg-ink-2);
@@ -354,7 +377,7 @@
 .elg-nav-divider {
   height: 1px;
   background: var(--elg-line);
-  margin: 12px 4px;
+  margin: 24px 4px;
 }
 
 .elg-attention-card {
@@ -408,14 +431,18 @@
 
 .elg-search {
   flex: 1;
-  max-width: 460px;
+  max-width: 475px;
   display: flex;
   align-items: center;
   gap: 8px;
   background: var(--elg-page-bg);
-  border: 1px solid var(--elg-line);
-  border-radius: 10px;
-  padding: 9px 12px;
+  border: 1px solid #EBEBEB;
+  border-radius: 8px;
+  padding-top: 10px;
+  padding-right: 8px;
+  padding-bottom: 10px;
+  padding-left: 12px;
+
 }
 
 .elg-search input {
@@ -423,18 +450,30 @@
   outline: none;
   background: transparent;
   flex: 1;
-  font-size: 13.5px;
+  font-size: 14px;
   font-family: var(--elg-font-sans);
-  color: var(--elg-ink);
+  color: #191919;
+  font-weight: 400
 }
 
 .elg-search .kbd {
-  font-size: 11px;
-  color: var(--elg-ink-3);
+  font-size: 12px;
+  color: #666666;
   background: var(--elg-surface);
-  border: 1px solid var(--elg-line-strong);
-  border-radius: 5px;
-  padding: 1px 6px;
+  border-radius: 6.86px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3.43px;
+  line-height: 1;
+  margin: 0;
+}
+
+.elg-search .kbd span{
+  margin-top: 2px;
+  font-weight: 400;
+  color: #666666;
 }
 
 .elg-topbar-right {
@@ -444,10 +483,10 @@
 }
 
 .elg-icon-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid var(--elg-line);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #EBEBEB;
   background: var(--elg-surface);
   display: flex;
   align-items: center;
@@ -455,6 +494,10 @@
   color: var(--elg-ink-2);
   cursor: pointer;
   flex-shrink: 0;
+}
+.elg-icon-btn img{
+  width: 18px;
+  height: 18px;
 }
 
 .elg-icon-btn:hover {
@@ -467,8 +510,8 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px 6px 6px;
-  border: 1px solid var(--elg-line);
-  border-radius: 10px;
+  border: 1px solid #EBEBEB;
+  border-radius: 8px;
   cursor: pointer;
   background: var(--elg-surface);
 }
@@ -649,8 +692,8 @@
 }
 .elg-modal:has(.assignmentEmailModal) .elg-icon-sq{
   padding: 10px;
-  width: max-content;
-  height: max-content;
+  width: 30px;
+  height: 30px;
 }
 .assignmentEmailModal .elg-select{
 font-weight: 400;
@@ -711,11 +754,16 @@ color: #191919;
   margin-right: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid var(--elg-line-strong);
   border-radius: 10px;
   padding: 9.5px 12px;
   background: var(--elg-surface);
+}
+
+.elg-field-search img{
+  height: 18px;
+  width: 18px;
 }
 
 .elg-field-search input {
@@ -725,6 +773,7 @@ color: #191919;
   flex: 1;
   font-size: 14px;
   font-family: var(--elg-font-sans);
+  color: #191919;
 }
 
 .elg-date-field {
@@ -761,22 +810,25 @@ color: #191919;
 
 .elg-table thead th {
   text-align: left;
-  padding: 11px 13px;
+  padding: 9.5px 16px;
   font-size: 12.5px;
   text-transform: capitalize;
   font-weight: 500;
   color: var(--elg-ink-grey);
   background: var(--elg-border-grey);
-  border-bottom: 1px solid var(--elg-line);
   white-space: nowrap;
+  border-bottom: none;
+  line-height: 17px;
 }
 
 .elg-table tbody td {
-  padding: 11px 13px;
+  padding: 9.5px 16px;
   border-bottom: 1px solid var(--elg-line);
   color: var(--elg-ink);
   vertical-align: middle;
   font-size: 14px;
+  border-top: none;
+  line-height: 17px;
 }
 .elg-table tbody td strong{
   font-weight: 500;
@@ -866,13 +918,13 @@ color: #191919;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .elg-metric-card {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
-  border-radius: var(--elg-radius-lg);
+  border-radius: 8px;
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -914,7 +966,7 @@ color: #191919;
 .elg-hint-line {
   font-size: 14px;
   color: #5C5C5C;
-  margin: -8px 0 20px;
+  margin:  0 0 24px 0;
 }
 
 .elg-hint-line a {
@@ -927,7 +979,7 @@ color: #191919;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px 16px;
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--elg-line);
 }
 
@@ -1164,8 +1216,8 @@ color: #191919;
 }
 .elg-icon-sq{
   padding: 10px;
-  width: max-content;
-  height: max-content;
+  width: 30px;
+  height: 30px;
 }
 
 .elg-modal-close:hover {

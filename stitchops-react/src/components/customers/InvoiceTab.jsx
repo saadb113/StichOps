@@ -126,7 +126,7 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
             ) : (
               <tr key={o.id}>
                 <td>{o.name}</td><td>{o.date}</td><td style={{ textAlign: 'right' }}>{fmt(o.price, o.currency)}</td>
-                <td><button className="elg-icon-sq" onClick={() => startEdit(o)} title="Edit"><PencilIcon width={13} height={13} /></button></td>
+                <td><button className="elg-icon-sq" onClick={() => startEdit(o)} title="Edit"><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button></td>
               </tr>
             )))}
             <tr className="elg-invoice-total-row"><td colSpan={2}>Total</td><td style={{ textAlign: 'right' }}>{fmt(total, customer.currency)}</td><td></td></tr>

@@ -64,7 +64,7 @@ export default function EmployeeProfile() {
               title="Settings"
               aria-label="Settings"
             >
-              <img src="/icons/dots-icon.svg" alt="" />
+              <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
             </button>
           </div>
         </div>

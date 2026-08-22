@@ -42,7 +42,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
               <th>Orders</th>
               <th>{e.role === 'Salesperson' ? 'Total Commission' : 'Total Production Cost'}</th>
              
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th style={{width: 73}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -64,11 +64,10 @@ export default function EarningsTab({ employee: e, orders: os }) {
                   <td>{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</td>
                   <td><span>{totalStr}</span></td>
                   
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <td style={{ whiteSpace: 'nowrap' , textAlign: 'center', display: 'flex', justifyContent: 'center'}}>
                     
                     <button
-                      className="elg-btn elg-btn-sm"
-                      style={{ width: 'auto', display: 'inline-flex' }}
+                      className="elg-btn elg-btn-sm earnings-action-btn"
                       onClick={() => openModal(<EditSlipOrdersModal ctx={{ type: 'earnings', employeeId: e.id, customerId: Number(custId) }} />, { variant: 'elegant' })}
                     >
                       <img src="/icons/pencil-icon.svg" alt="" />

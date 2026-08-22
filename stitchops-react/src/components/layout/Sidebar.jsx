@@ -9,7 +9,7 @@ import {
   PlusIcon, UserPlusIcon, ShieldIcon
 } from '../icons/Icon';
 
-const elegantsLogo = '/images/elegant-designs-logo.svg';
+const elegantsLogo = '/images/elegants-logo-svg.svg';
 
 const DashboardIcon = '/icons/dashboard-icon.svg';
 const DashboardIconActive = '/icons/dashboard-icon-active.svg';
@@ -53,7 +53,9 @@ const ADMIN_NAV_2 = [
 // until matching SVGs are added to public/icons/.
 const SALES_NAV = [
   ['/my-customers', 'Customers', salesCustomerIcon, salesCustomerIconActive],
-  ['/my-payslip', 'Payslip', salesPayslipIcon, salesPayslipIconActive],
+  ['/my-payslip', 'Payslip', salesPayslipIcon, salesPayslipIconActive]
+];
+const SALES_NAV_2 = [
   ['/my-info', 'My Info', salesInfoIcon, salesInfoIconActive]
 ];
 
@@ -100,7 +102,7 @@ export default function Sidebar({ open, onNavigate }) {
 
       {isAdmin && (
         <div className="elg-sidebar-actions">
-          <button className="elg-btn elg-btn-primary" onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+          <button className="elg-btn elg-btn-primary" style={{fontWeight: 500}} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
             <img src={AddOrder} alt="Add Order" /> Add Order
           </button>
           <button className="elg-customer-btn" onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
@@ -115,6 +117,12 @@ export default function Sidebar({ open, onNavigate }) {
           <>
             <div className="elg-nav-divider"></div>
             {ADMIN_NAV_2.map(renderNavItem)}
+          </>
+        )}
+        {!isAdmin && (
+          <>
+            <div className="elg-nav-divider"></div>
+            {SALES_NAV_2.map(renderNavItem)}
           </>
         )}
       </div>

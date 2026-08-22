@@ -89,7 +89,9 @@ export default function OrdersTab({ customer, orders }) {
                     <div className="elg-row-actions">
                      
                       {isAdmin && (
-                        <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><KebabIcon width={14} height={14} /></button>
+                        <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}>
+                          <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+                        </button>
                       )}
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">

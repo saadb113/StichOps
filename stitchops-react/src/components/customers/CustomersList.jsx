@@ -12,11 +12,14 @@ export default function CustomersList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [country, setCountry] = useState('');
 
   const base = isAdmin ? customers : customers.filter((c) => c.salesperson === currentEmployee?.name);
+  const countries = [...new Set(base.map((c) => c.country))].sort();
   const q = search.toLowerCase();
   let list = q ? base.filter((c) => c.name.toLowerCase().includes(q) || c.company.toLowerCase().includes(q)) : base;
   if (status) list = list.filter((c) => (isActive(orders, c) ? 'Active' : 'Inactive') === status);
+  if (country) list = list.filter((c) => c.country === country);
 
   const basePath = isAdmin ? '/customers' : '/my-customers';
 
@@ -37,13 +40,17 @@ export default function CustomersList() {
 
       <div className="elg-panel elg-filterbar">
         <div className="elg-field-search">
-          <SearchIcon />
+          <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All Status</option>
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
+        </select>
+        <select className="elg-select" value={country} onChange={(e) => setCountry(e.target.value)}>
+          <option value="">All Countries</option>
+          {countries.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
           <img src="/images/addCustomerBtn.svg" alt="" /> Add Customer
@@ -62,7 +69,7 @@ export default function CustomersList() {
           <tbody>
             {list.length === 0 && (
               <tr><td colSpan={isAdmin ? 7 : 6} className="elg-empty">
-                {search || status ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
+                {search || status || country ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
               </td></tr>
             )}
             {list.map((c) => {

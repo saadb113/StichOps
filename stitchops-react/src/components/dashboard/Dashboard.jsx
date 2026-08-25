@@ -149,7 +149,7 @@ export default function Dashboard() {
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' }); }}>
-                            <PencilIcon width={13} height={13} /> Edit
+                            <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
                           </button>
                         </div>
                       )}

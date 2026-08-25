@@ -91,7 +91,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><img src="/images/cross.png" alt="" /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
 
       {order ? (
         <div className="elg-modal-head-plain">
@@ -145,7 +145,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
 
             <div className="elg-field-row orderName">
               <div className="elg-field"><label>Order Name</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jacket Back" /></div>
-              <div className="elg-field"><label>Date</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
+              <div className="elg-field"><label>Date</label><span className='modal-elg-input'><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /> <img src="/images/calender.svg" alt="" /></span></div>
             </div>
             <div className="elg-field-row gr1">
               <div className="elg-field">

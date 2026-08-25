@@ -15,7 +15,7 @@ export default function EditInvoiceOrdersModal({ invoiceId }) {
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       <div className="elg-modal-head-plain">
         <h3>Edit {inv.invoiceNo} — {c ? c.company : ''}</h3>
       </div>
@@ -40,7 +40,7 @@ export default function EditInvoiceOrdersModal({ invoiceId }) {
           </tbody>
         </table>
       </div>
-      <div className="elg-modal-foot plain">
+      <div className="elg-modal-foot">
         <span className="spacer" />
         <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={closeModal}>Done</button>

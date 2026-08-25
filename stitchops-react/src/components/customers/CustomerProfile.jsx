@@ -101,7 +101,7 @@ export default function CustomerProfile() {
           <div id="tabContent">
             {!isAdmin && <InvoiceTab customer={c} orders={os} />}
             {isAdmin && tab === 'orders' && <OrdersTab customer={c} orders={os} />}
-            {isAdmin && tab === 'invoice' && <InvoiceTab customer={c} orders={os} onApproved={() => setTab('history')} />}
+            {isAdmin && tab === 'invoice' && <InvoiceTab customer={c} orders={os} onApproved={() => setTab('history')} onEditOrders={() => setTab('orders')} />}
             {isAdmin && tab === 'history' && <InvoiceHistoryTab customer={c} />}
           </div>
         </div>

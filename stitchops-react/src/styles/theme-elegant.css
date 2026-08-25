@@ -249,7 +249,22 @@
   color: var(--elg-ink);
 }
 
-.elg-view-all-btn{
+.elg-download-btn {
+  padding: 4.5px 10px !important;
+  color: #191919;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 21px;
+  width: auto;
+  gap: 4px;
+
+}
+
+.elg-btn.transparent {
+  background: transparent;
+}
+
+.elg-view-all-btn {
   font-weight: 400;
   font-size: 14px;
   line-height: 21px;
@@ -260,14 +275,15 @@
   padding-left: 13px;
 }
 
-.earnings-action-btn{
+.earnings-action-btn {
   height: 30px;
   width: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.earnings-action-btn img{
+
+.earnings-action-btn img {
   width: 14px;
   height: 14px;
 }
@@ -388,7 +404,7 @@
 
 .elg-attention-content {
   border: 1px solid #EBEBEB;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 20px 16px;
 }
 
@@ -470,7 +486,7 @@
   margin: 0;
 }
 
-.elg-search .kbd span{
+.elg-search .kbd span {
   margin-top: 2px;
   font-weight: 400;
   color: #666666;
@@ -495,7 +511,8 @@
   cursor: pointer;
   flex-shrink: 0;
 }
-.elg-icon-btn img{
+
+.elg-icon-btn img {
   width: 18px;
   height: 18px;
 }
@@ -631,19 +648,24 @@
   border: 1px solid var(--elg-line);
   border-radius: 8px;
 }
-.elg-profile-grid .elg-panel{
+
+.elg-profile-grid .elg-panel {
   padding: 10px;
   border-color: #E8E8E8;
 }
-.elg-profile-sidebar .elg-panel{
+
+.elg-profile-sidebar .elg-panel {
   padding: 16px;
 }
-.elg-profile-sidebar .elg-panel .elg-panel-body{
+
+.elg-profile-sidebar .elg-panel .elg-panel-body {
   padding-top: 8px;
 }
-.elg-profile-sidebar .elg-panel h3{
+
+.elg-profile-sidebar .elg-panel h3 {
   font-size: 14px;
 }
+
 .elg-panel-foot {
   font-weight: 400;
   font-size: 14px;
@@ -655,7 +677,7 @@
 }
 
 
-.elg-panel-foot span{
+.elg-panel-foot span {
   color: var(--elg-primary);
   font-weight: 500;
 }
@@ -686,18 +708,21 @@
   font-size: 14px;
   line-height: 21px;
 }
-.elg-modal:has(.assignmentEmailModal){
+
+.elg-modal:has(.assignmentEmailModal) {
   width: 95vw;
   max-width: 560px;
 }
-.elg-modal:has(.assignmentEmailModal) .elg-icon-sq{
+
+.elg-modal:has(.assignmentEmailModal) .elg-icon-sq {
   padding: 10px;
   width: 30px;
   height: 30px;
 }
-.assignmentEmailModal .elg-select{
-font-weight: 400;
-color: #191919;
+
+.assignmentEmailModal .elg-select {
+  font-weight: 400;
+  color: #191919;
 }
 
 .elg-filterbar .elg-date-field span {
@@ -721,14 +746,29 @@ color: #191919;
   background: var(--elg-surface);
 }
 
+.modal-elg-input {
+  position: relative;
+}
+
 .elg-input:has(input[type="date"]) {
   position: relative;
+}
+
+.modal-elg-input:has(input[type="date"]) img {
+
+  position: absolute;
+  right: 15px;
+  background: white;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .elg-input:has(input[type="date"]) img {
   position: absolute;
   right: 7px;
   background: white;
+  pointer-events: none;
 }
 
 .elg-date-field {
@@ -761,7 +801,7 @@ color: #191919;
   background: var(--elg-surface);
 }
 
-.elg-field-search img{
+.elg-field-search img {
   height: 18px;
   width: 18px;
 }
@@ -811,7 +851,7 @@ color: #191919;
 .elg-table thead th {
   text-align: left;
   padding: 9.5px 16px;
-  font-size: 12.5px;
+  font-size: 12px;
   text-transform: capitalize;
   font-weight: 500;
   color: var(--elg-ink-grey);
@@ -823,16 +863,18 @@ color: #191919;
 
 .elg-table tbody td {
   padding: 9.5px 16px;
-  border-bottom: 1px solid var(--elg-line);
   color: var(--elg-ink);
   vertical-align: middle;
   font-size: 14px;
   border-top: none;
   line-height: 17px;
+  border: none;
 }
-.elg-table tbody td strong{
+
+.elg-table tbody td strong {
   font-weight: 500;
 }
+
 .elg-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -966,7 +1008,7 @@ color: #191919;
 .elg-hint-line {
   font-size: 14px;
   color: #5C5C5C;
-  margin:  0 0 24px 0;
+  margin: 0 0 24px 0;
 }
 
 .elg-hint-line a {
@@ -1090,13 +1132,11 @@ color: #191919;
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background: var(--elg-surface);
-  border: 1px solid var(--elg-line);
-  border-radius: 10px;
-  box-shadow: var(--elg-shadow);
-  min-width: 130px;
+  min-width: 72px;
   overflow: hidden;
   z-index: 15;
+  white-space: nowrap;
+
 }
 
 .elg-row-menu button {
@@ -1107,11 +1147,14 @@ color: #191919;
   text-align: left;
   padding: 9px 14px;
   border: none;
-  background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   font-family: var(--elg-font-sans);
   color: var(--elg-ink);
   cursor: pointer;
+  border: 1px solid #E8E8E8;
+  border-radius: 5px;
+
+  background: #FFFFFF;
 }
 
 .elg-row-menu button:hover {
@@ -1145,7 +1188,7 @@ color: #191919;
 
 .elg-modal {
   background: var(--elg-surface);
-  border-radius: var(--elg-radius-lg);
+  border-radius: 12px;
   width: 95vw;
   max-width: 446px;
   box-shadow: 0 30px 70px rgba(20, 20, 40, 0.22);
@@ -1173,6 +1216,14 @@ color: #191919;
   border: 1px solid #E8E8E8;
   border-radius: 8px;
   margin-right: auto;
+}
+
+.elg-modal .right-btns-fixed {
+  justify-content: end;
+}
+
+.elg-modal .right-btns-fixed .elg-btn {
+  width: auto !important;
 }
 
 .elg-modal:has(.elg-info-panel) .elg-btn {
@@ -1214,7 +1265,8 @@ color: #191919;
   justify-content: center;
   border-radius: 8px;
 }
-.elg-icon-sq{
+
+.elg-icon-sq {
   padding: 10px;
   width: 30px;
   height: 30px;
@@ -1266,7 +1318,8 @@ color: #191919;
   padding: 18px 24px;
   border-bottom: 1px solid #E8E8E8;
 }
-.employeesModal .elg-modal-head-plain{
+
+.employeesModal .elg-modal-head-plain {
   display: flex;
   flex-direction: column;
   padding-top: 40px;
@@ -1280,9 +1333,11 @@ color: #191919;
   color: var(--elg-ink);
   margin: 0;
 }
-.employeesModal .elg-modal-head-plain h3{
+
+.employeesModal .elg-modal-head-plain h3 {
   font-size: 28px;
 }
+
 .elg-modal-head-plain p {
   font-size: 16px;
   color: #5C5C5C;
@@ -1303,9 +1358,11 @@ color: #191919;
 .elg-field {
   margin-bottom: 16px;
 }
-.elg-field.assignedEmails .elg-select{
+
+.elg-field.assignedEmails .elg-select {
   color: #191919;
 }
+
 .elg-field label {
   display: block;
   font-size: 16px;
@@ -1444,11 +1501,13 @@ color: #191919;
   padding: 6px 14px 6px 6px;
   background: var(--elg-surface);
 }
-.elg-status-box select{
+
+.elg-status-box select {
   padding: 2px 8px !important;
   font-size: 14px !important;
   border-radius: 8px !important;
 }
+
 .elg-status-pill-select {
   font-weight: 600;
   font-size: 13px;
@@ -1475,7 +1534,7 @@ color: #191919;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 24px 34px !important;
+  padding: 18px 24px !important;
   border-top: 1px solid var(--elg-line);
 }
 
@@ -1493,9 +1552,11 @@ color: #191919;
   font-size: 16px;
   width: 50% !important;
 }
-.elg-modal-foot.buttons3 .elg-btn{
-width: max-content !important;
+
+.elg-modal-foot.buttons3 .elg-btn {
+  width: max-content !important;
 }
+
 /* ---------- Customer profile ---------- */
 .elg-back-link {
   display: inline-flex;
@@ -1617,10 +1678,12 @@ width: max-content !important;
   background: var(--elg-primary-soft);
   color: var(--elg-primary);
 }
+
 .elg-pill-approved {
   background: var(--elg-green);
   color: #fff;
 }
+
 .elg-pill-review {
   background: var(--elg-orange);
   color: #fff;
@@ -1632,7 +1695,8 @@ width: max-content !important;
   gap: 20px;
   align-items: start;
 }
-.elg-profile-grid #tabContent tbody td{
+
+.elg-profile-grid #tabContent tbody td {
   border: none;
 }
 
@@ -1679,14 +1743,17 @@ width: max-content !important;
   font-size: 12px;
   font-weight: 400;
 }
-.myinfo .elg-kv-row .k{
+
+.myinfo .elg-kv-row .k {
   color: #5C5C5C;
 }
-.myinfo  .elg-input,
+
+.myinfo .elg-input,
 .myinfo .elg-kv-row .v,
-.myinfo .elg-kv-row .k{
+.myinfo .elg-kv-row .k {
   font-size: 16px;
 }
+
 .elg-kv-row .v {
   color: var(--elg-ink);
   font-weight: 500;
@@ -1708,8 +1775,8 @@ width: max-content !important;
 .elg-invoice-doc {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
-  border-radius: var(--elg-radius-lg);
-  padding: 26px 28px;
+  border-radius: 10px;
+  padding: 26px 26px;
   font-size: 13px;
 }
 
@@ -1742,13 +1809,14 @@ width: max-content !important;
 }
 
 .elg-bank-box {
-  margin-top: 20px;
+  margin-top: 12px;
   padding: 16px 15px;
-  background: var(--elg-page-bg);
-  border-radius: 10px;
+  background: #F9F9F9;
+  border-radius: 8px;
   font-size: 14px;
   line-height: 1.7;
-  color: var(--elg-ink-grey);
+  color: #191919;
+  border: 1px solid #E8E8E8;
 }
 
 .elg-bank-box strong {
@@ -2002,20 +2070,23 @@ width: max-content !important;
 }
 
 /* ---------- Settings page ---------- */
-.edit-currency-modal-foot{
+.edit-currency-modal-foot {
   padding: 16px 24px !important;
 }
-.elg-modal-foot.edit-currency-modal-foot .elg-btn{
+
+.elg-modal-foot.edit-currency-modal-foot .elg-btn {
   width: max-content !important;
 }
-.elg-edit-currency-modal .elg-table tbody td{
+
+.elg-edit-currency-modal .elg-table tbody td {
   border: none !important;
 }
 
-.edit-currency-modal-foot button{
+.edit-currency-modal-foot button {
   font-size: 16px !important;
   padding: 8px 16px !important;
 }
+
 .elg-settings-grid {
   display: grid;
   grid-template-columns: 284px 1fr;
@@ -2054,16 +2125,19 @@ width: max-content !important;
   color: var(--elg-primary);
   font-weight: 500;
 }
+
 .elg-settings-nav-item:nth-child(2).active svg path,
-.elg-settings-nav-item:nth-child(1).active svg path{
-  stroke : var(--elg-primary)
+.elg-settings-nav-item:nth-child(1).active svg path {
+  stroke: var(--elg-primary)
 }
+
 .myinfo .elg-settings-nav-item:nth-child(2).active svg path,
-.elg-settings-nav-item:nth-child(3).active svg path{
-  fill : var(--elg-primary)
+.elg-settings-nav-item:nth-child(3).active svg path {
+  fill: var(--elg-primary)
 }
-.myinfo .elg-settings-nav-item:nth-child(2).active svg path{
-  stroke : none
+
+.myinfo .elg-settings-nav-item:nth-child(2).active svg path {
+  stroke: none
 }
 
 .elg-settings-main {
@@ -2072,10 +2146,12 @@ width: max-content !important;
   gap: 20px;
   min-width: 0;
 }
-.elg-settings-main .elg-btn{
+
+.elg-settings-main .elg-btn {
   line-height: 21px;
   padding: 4.5px 10px;
 }
+
 .elg-settings-card {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
@@ -2158,6 +2234,12 @@ width: max-content !important;
   accent-color: var(--elg-primary);
   cursor: pointer;
   margin: 0;
+}
+
+@media (max-width: 1040px) {
+  .elg-metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 900px) {

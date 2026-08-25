@@ -4,13 +4,6 @@ import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt } from '../../lib/helpers';
 import { PencilIcon } from '../icons/Icon';
 
-function bankLineFor(company, ccy) {
-  if (ccy === 'GBP') return company.accountGBP;
-  if (ccy === 'USD') return company.accountUSD;
-  if (ccy === 'EUR') return company.accountEUR;
-  return company.accountAUD;
-}
-
 function InvoiceTabSales({ customer, orders }) {
   const completed = orders.filter((o) => o.status === 'Completed');
   if (!completed.length) {
@@ -55,8 +48,8 @@ function InvoiceTabSales({ customer, orders }) {
   );
 }
 
-export default function InvoiceTab({ customer, orders, onApproved }) {
-  const { isAdmin, company, nextInvoiceNo, approveInvoice, updateOrder } = useAppState();
+export default function InvoiceTab({ customer, orders, onApproved, onEditOrders }) {
+  const { isAdmin, company, bankAccounts, approveInvoice, updateOrder } = useAppState();
   const { toast } = useUi();
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
@@ -70,6 +63,7 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
   }
   const total = draft.reduce((s, o) => s + o.price, 0);
   const commTotal = draft.reduce((s, o) => s + commissionAmt(o), 0);
+  const bankAccount = bankAccounts.find((a) => a.currency === customer.currency);
 
   function startEdit(o) { setEditingId(o.id); setEditName(o.name); setEditPrice(o.price); }
   function cancelEdit() { setEditingId(null); }
@@ -104,10 +98,12 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
         <div className="idr">
           <div><h2>{company.name}</h2><div className="meta">{company.address}</div></div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>Draft invoice</div>
-            <div className="meta">Will be numbered {'INV-0' + nextInvoiceNo} on approval</div>
-            <div className="meta">Bill to: {customer.company}</div>
-            <div className="meta">Customer ID: {customer.customerCode || '—'}</div>
+            <div className="meta">Bill to: {customer.customerCode || '—'}</div>
+            <div style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>{customer.company}</div>
+            {customer.address && <div className="meta">{customer.address}</div>}
+            {(customer.zip || customer.country) && (
+              <div className="meta">{[customer.zip, customer.country].filter(Boolean).join(', ')}</div>
+            )}
           </div>
         </div>
         <table className="elg-table">
@@ -134,13 +130,26 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
         </table>
         <div className="elg-bank-box">
           <strong>Payment Details</strong><br />
-          {company.bankName} &middot; {company.accountName}<br />
-          {bankLineFor(company, customer.currency)}
+          {bankAccount ? (
+            <>
+              {bankAccount.accountName}<br />
+              {bankAccount.accountNo}
+            </>
+          ) : (
+            <span>No {customer.currency} bank account on file.</span>
+          )}
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ fontSize: 14, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)', fontWeight: 500 }}>{fmt(commTotal, customer.currency)}</strong></div>
-        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {onEditOrders && (
+            <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={onEditOrders}>
+              <PencilIcon width={13} height={13} /> Edit Orders
+            </button>
+          )}
+          <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
+        </div>
       </div>
     </>
   );

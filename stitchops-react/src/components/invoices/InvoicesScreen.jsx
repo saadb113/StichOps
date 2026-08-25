@@ -93,7 +93,7 @@ export default function InvoicesScreen() {
         <div className="elg-date-field">
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <CalendarIcon />
+            <img src="/images/calender.svg" alt="" />
           </span>
           {date && <button className="elg-date-clear" title="Clear date" onClick={() => setDate('')}>&times;</button>}
         </div>
@@ -133,7 +133,7 @@ export default function InvoicesScreen() {
                       {openMenuId === i.id && (
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>
-                            <PencilIcon width={13} height={13} /> Edit
+                            <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
                           </button>
                         </div>
                       )}

@@ -67,7 +67,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   return (
     <div className="elg-modal employeesModal">
       {/* Modal Header */}
-      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       {!e ? 
       <div className="elg-modal-head-plain addemployee">
         <img src="/images/addEmployee.png" alt="" />
@@ -195,7 +195,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       </div>
 
       {/* Modal Footer */}
-      <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+      <div className="elg-modal-foot right-btns-fixed" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
         <button className="elg-btn elg-btn-ghost" style={{ width: 'auto' }} onClick={closeModal}>
           Cancel
         </button>

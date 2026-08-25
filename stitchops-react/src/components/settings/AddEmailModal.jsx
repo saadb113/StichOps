@@ -21,7 +21,7 @@ export default function AddEmailModal() {
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       <div className="elg-modal-hero">
         <div className="elg-modal-hero-icon"><img src="/images/addEmail.svg" alt="" /></div>
         <div className="elg-modal-title">Add Email</div>

@@ -16,7 +16,7 @@ export default function CredentialsModal({request, title, name, email, tempPw })
         <button className='elg-modal-close' style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
-          <CloseIcon />
+          <img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" />
         </button>
       </div>
 

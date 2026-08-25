@@ -78,7 +78,7 @@ export default function OrdersScreen() {
         <div className="elg-date-field">
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <CalendarIcon />
+            <img src="/images/calender.svg" alt="" />
           </span>
           {date && <button className="elg-date-clear" title="Clear date" onClick={() => setDate('')}>&times;</button>}
         </div>

@@ -85,7 +85,7 @@ export default function CustomerFormModal({ customer = null }) {
 
   return (
     <>
-      <button className="elg-modal-close" onClick={closeModal}><CloseIcon /></button>
+      <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
 
       {c ? (
         <div className="elg-modal-head-plain"><h3>Edit Profile</h3></div>
@@ -174,7 +174,7 @@ export default function CustomerFormModal({ customer = null }) {
           
         <div className="elg-field"><label>Notes (Optional)</label><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Pricing notes, requirements..." /></div>
       </div>
-      <div className={`elg-modal-foot ${c ? 'plain' : ''}`}>
+      <div className={`elg-modal-foot right-btns-fixed ${c ? 'plain' : ''}`}>
         <span className="spacer" />
         <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleSave}>{c ? 'Save Changes' : 'Add Customer'}</button>

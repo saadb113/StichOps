@@ -43,7 +43,7 @@ export default function AssignedEmailsField({ employeeId = null, value, onChange
                 onClick={() => removeRow(idx)}
                 title="Remove Email"
               >
-                <img src="/images/redX.png" alt="" />
+                <img src="/images/cancel-x-mark.svg" alt="" />
               </button>
             </div>
           );

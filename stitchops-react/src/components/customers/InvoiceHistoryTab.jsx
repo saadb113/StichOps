@@ -57,8 +57,7 @@ export default function InvoiceHistoryTab({ customer }) {
                 <td>
                   {i.status === 'approved' && (
                     <div className="elg-row-actions">
-                      <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><DownloadIcon width={14} height={14} /></button>
-                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' })}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
+                      <button className="elg-btn elg-download-btn" title="Download" onClick={() => handleDownload(i)}><img src="/images/download-invoice.svg" alt="Download" width={14} height={14} />Download</button>
                     </div>
                   )}
                 </td>

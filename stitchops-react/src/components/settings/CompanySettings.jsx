@@ -48,7 +48,7 @@ export default function CompanySettings() {
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">Settings</div>
-          <div className="elg-page-sub">Used on the invoice header and payment footer</div>
+          {/* <div className="elg-page-sub">Used on the invoice header and payment footer</div> */}
         </div>
       </div>
 

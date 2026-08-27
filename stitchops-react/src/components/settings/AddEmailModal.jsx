@@ -28,7 +28,7 @@ export default function AddEmailModal() {
         <div className="elg-modal-sub">Add new email and assigned to employee.</div>
       </div>
 
-      <div className="elg-modal-body">
+      <div className="elg-modal-body addemail">
         <div className="elg-field">
           <label>Email</label>
           <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. you@company.com" />

@@ -115,11 +115,11 @@
 
   --elg-page-bg: #F7F7F9;
   --elg-surface: #FFFFFF;
-  --elg-line: #ECECF0;
-  --elg-line-strong: #DEDEE4;
+  --elg-line: #E8E8E8;
+  --elg-line-strong: #E8E8E8;
   --elg-border-grey: #EBEBEB;
 
-  --elg-ink: #1A1A1E;
+  --elg-ink: #191919;
   --elg-ink-2: #191919;
   --elg-ink-3: #9CA3AF;
   --elg-ink-4: #5C5C5C;
@@ -305,6 +305,7 @@
 .elg-btn-ghost {
   border-color: transparent;
   background: transparent;
+  font-weight: 500;
   border: 1px solid #E8E8E8;
 }
 
@@ -594,7 +595,7 @@
 .elg-crumbs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 24px;
   font-size: 12.5px;
 }
@@ -602,7 +603,7 @@
 .elg-crumb-pill {
   background: var(--elg-primary-soft);
   color: var(--elg-primary);
-  padding: 3px 10px;
+  padding: 3px 8px;
   line-height: 21px;
   font-size: 14px;
   border-radius: 8px;
@@ -617,7 +618,7 @@
 }
 
 .elg-crumb-current {
-
+    line-height: 21px;
   font-size: 14px;
   color: var(--elg-ink-grey);
 }
@@ -633,11 +634,12 @@
   font-family: var(--elg-font-serif);
   font-size: 32px;
   font-weight: 300;
-  color: var(--elg-ink);
-  letter-spacing: -0.01em;
+  color: #191919;
+  letter-spacing: 0;
 }
 
 .elg-page-sub {
+      line-height: 21px;
   font-size: 14px;
   color: #5C5C5C;
   margin-top: 6px;
@@ -692,12 +694,28 @@
   gap: 6px;
   flex-wrap: wrap;
   background: transparent;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   padding: 0 !important;
   margin-top: 4px;
   border: 0 !important;
 }
-
+.elg-filterbar .elg-btn{
+  padding: 8px 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.elg-filterbar .elg-input:has(input[type="date"]){
+  padding: 9.5px 14px;
+  font-size: 14px;
+  line-height: 21px;
+  border-radius: 8px;
+  color: #323232;
+  font-weight: 400;
+}
+.elg-filterbar span{
+  font-size: 16px !important;
+  color: #191919 !important ;
+}
 .elg-filterbar .elg-btn-primary svg {
   width: 18px;
   height: 18px;
@@ -862,13 +880,21 @@
 }
 
 .elg-table tbody td {
-  padding: 9.5px 16px;
-  color: var(--elg-ink);
+  padding: 0 16px;
+  height: 52px;
+  color: #383838;
   vertical-align: middle;
   font-size: 14px;
   border-top: none;
-  line-height: 17px;
+  line-height: 21px;
   border: none;
+}
+.elg-settings-card .elg-table tbody td {
+  padding: 8.5px 12px;
+}
+
+.elg-settings-card .elg-table thead tr{
+  margin-bottom: 8px;
 }
 
 .elg-table tbody td strong {
@@ -983,10 +1009,14 @@
   font-size: 16px;
   color: var(--elg-ink-2);
   font-weight: 400;
+  line-height: 24px;
 }
 
 .elg-metric-icon {
   color: var(--elg-ink-3);
+}
+.elg-metric-icon img{
+  width: 18px;
 }
 
 .elg-metric-value {
@@ -1000,9 +1030,10 @@
 
 .elg-metric-sub {
   font-size: 12px;
-  color: var(--elg-ink-grey);
+  color: #5C5C5C;
   margin-top: auto;
   line-height: 17px;
+  font-weight: 500;
 }
 
 .elg-hint-line {
@@ -1027,7 +1058,7 @@
 
 .elg-section-title {
   font-family: var(--elg-font-serif);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 400;
   color: var(--elg-ink);
 }
@@ -1286,7 +1317,7 @@
   width: 64px;
   height: 60px;
   border-radius: 14px;
-  margin: 0 auto 16px;
+  margin: 0 auto 20px;
   position: relative;
   display: flex;
   align-items: center;
@@ -1309,6 +1340,7 @@
   font-size: 16px;
   color: var(--elg-ink-4);
   margin-top: 8px;
+  line-height: 24px;
 }
 
 .elg-modal-head-plain {
@@ -1367,6 +1399,7 @@
   display: block;
   font-size: 16px;
   font-weight: 400;
+  line-height: 24px;
   color: var(--elg-ink-2);
   margin-bottom: 8px;
 }
@@ -1376,7 +1409,7 @@
   width: 100%;
   padding: 10px 14px;
   border: 1px solid var(--elg-line-strong);
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 16px;
   line-height: 24px;
   font-family: var(--elg-font-sans);
@@ -1537,6 +1570,14 @@
   padding: 18px 24px !important;
   border-top: 1px solid var(--elg-line);
 }
+.elg-modal:has(.addaccount) .elg-modal-foot,
+.elg-modal:has(.addemail) .elg-modal-foot {
+  padding-top: 0 !important;
+  border: 0;
+}
+.elg-modal:has(.addemail) .addemail{
+  padding-bottom: 24px;
+}
 
 .elg-modal-foot.plain {
   padding-left: 24px;
@@ -1551,6 +1592,7 @@
 .elg-modal-foot .elg-btn {
   font-size: 16px;
   width: 50% !important;
+  font-weight: 500;
 }
 
 .elg-modal-foot.buttons3 .elg-btn {
@@ -2071,7 +2113,7 @@
 
 /* ---------- Settings page ---------- */
 .edit-currency-modal-foot {
-  padding: 16px 24px !important;
+  padding: 18px 24px !important;
 }
 
 .elg-modal-foot.edit-currency-modal-foot .elg-btn {
@@ -2096,22 +2138,23 @@
 
 .elg-settings-nav {
   background: var(--elg-surface);
-  border: 1px solid var(--elg-line);
+  border: 1px solid #E8E8E8;
   border-radius: 12px;
-  padding: 10px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .elg-settings-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
+  gap: 12px;
+  line-height: 24px;
+  padding: 8px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--elg-ink);
   border: 1px solid transparent;
 }
@@ -2121,7 +2164,7 @@
 }
 
 .elg-settings-nav-item.active {
-  border-color: var(--elg-line-strong);
+  border-color: #EBEBEB;
   color: var(--elg-primary);
   font-weight: 500;
 }
@@ -2143,20 +2186,22 @@
 .elg-settings-main {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   min-width: 0;
 }
 
 .elg-settings-main .elg-btn {
   line-height: 21px;
-  padding: 4.5px 10px;
+  padding: 7.5px 13px;
 }
-
+.elg-settings-main .elg-btn.editaccount{
+padding: 4.5px 13px;
+}
 .elg-settings-card {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
   border-radius: 12px;
-  padding: 28px;
+  padding: 26px;
 }
 
 .elg-settings-card-title {
@@ -2178,7 +2223,7 @@
 .elg-account-card {
   border: 1px solid var(--elg-line);
   border-radius: 12px;
-  padding: 22px 18px;
+  padding: 18px;
   margin-bottom: 16px;
 }
 
@@ -2191,7 +2236,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .elg-account-card-title {
@@ -2205,7 +2250,7 @@
 
 .elg-ccy-tag {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--elg-primary);
   border: 1px solid #E8E8E8;
   padding: 3px 6px;
@@ -2215,7 +2260,7 @@
 
 .elg-settings-rate-toggle {
   display: flex;
-  gap: 28px;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
@@ -2223,14 +2268,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  width: 50%;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--elg-ink);
   cursor: pointer;
 }
 
 .elg-settings-radio input[type="radio"] {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--elg-primary);
   cursor: pointer;
   margin: 0;

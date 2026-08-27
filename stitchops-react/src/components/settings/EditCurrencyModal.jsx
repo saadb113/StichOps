@@ -59,7 +59,7 @@ export default function EditCurrencyModal({ rate }) {
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 480 }}>
+    <div className="elg-modal" style={{ maxWidth: 540 }}>
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ fontSize: 20, fontFamily: 'var(--elg-font-serif)', color: 'var(--elg-ink)' }}>Edit Currency — {rate.currency}</div>
         <button className="elg-btn elg-btn-ghost" style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeModal}>
@@ -67,7 +67,7 @@ export default function EditCurrencyModal({ rate }) {
         </button>
       </div>
 
-      <div className="elg-modal-body" style={{ padding: 24 }}>
+      <div className="elg-modal-body" style={{ padding: "30px 24px" }}>
         <div className="elg-settings-rate-toggle">
           <label className="elg-settings-radio">
             <input type="radio" name="rateMode" checked={mode === 'market'} onChange={() => setMode('market')} />

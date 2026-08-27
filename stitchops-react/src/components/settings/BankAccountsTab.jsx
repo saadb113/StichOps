@@ -72,7 +72,7 @@ function BankAccountCard({ account }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {!editing && (
-            <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6 }} onClick={startEdit}>
+            <button className="editaccount elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6 }} onClick={startEdit}>
               <img src='/images/edit.svg' /> Edit
             </button>
           )}

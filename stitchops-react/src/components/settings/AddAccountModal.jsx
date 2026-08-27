@@ -33,7 +33,7 @@ export default function AddAccountModal() {
         <div className="elg-modal-sub">Add new bank account details and use it in invoice.</div>
       </div>
 
-      <div className="elg-modal-body">
+      <div className="elg-modal-body addaccount">
         <div className="elg-field">
           <label>Account Name</label>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Add Name" />

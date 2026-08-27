@@ -132,9 +132,9 @@ export default function Reports() {
         })}
       </div>
 
-      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 20 }}>
+      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 8 }}>
         <div >
-          <div className="elg-section-title" style={{ marginBottom: 14 }}>Production Cost by Designer</div>
+          <div className="elg-section-title" style={{ marginBottom: 18 }}>Production Cost by Designer</div>
         </div>
         <table className="elg-table">
           <thead><tr><th>Designer</th><th>Total Production Cost</th></tr></thead>
@@ -151,12 +151,12 @@ export default function Reports() {
             })}
           </tbody>
         </table>
-        <div style={{ padding: '12px 20px', fontSize: 12, color: 'var(--elg-ink-3)', borderTop: '1px solid var(--elg-line)' }}>
+      </div>
+        <div style={{marginBottom: 16,lineHeight : "21px", fontSize: 14, color: '#5C5C5C', borderTop: '1px solid var(--elg-line)' }}>
           All totals are converted and displayed in the selected default currency.
         </div>
-      </div>
 
-      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 20 }}>
+      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 16 }}>
         <div>
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Salesperson Invoice/Commission Summary</div>
         </div>

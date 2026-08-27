@@ -38,7 +38,7 @@ export default function EditEmailModal({ email, employeeId }) {
         </button>
       </div>
 
-      <div className="elg-modal-body" style={{ padding: 24 }}>
+      <div className="elg-modal-body" style={{ padding: "30px 24px" }}>
         <div className="elg-field">
           <label>Email</label>
           <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="e.g. you@company.com" />

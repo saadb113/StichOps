@@ -83,11 +83,11 @@ export default function CompanyDetailsTab() {
           </div>
         </div>
         <div className="elg-field-row">
-          <div className="elg-field">
+          <div className="elg-field" style={{marginBottom : 0}}>
             <label>Company Email</label>
             <input value={email} onChange={(e) => setEmail(e.target.value)} onBlur={handleBlurEmail} />
           </div>
-          <div className="elg-field">
+          <div className="elg-field" style={{marginBottom : 0}}>
             <label>Contact Number</label>
             <div className='elg-price-field' style={{ display: 'flex', gap: 8 }}>
               <select className="elg-select"  value={phoneCode} onChange={(e) => { setPhoneCode(e.target.value); setTimeout(handleBlurContact, 0); }}>
@@ -118,7 +118,7 @@ export default function CompanyDetailsTab() {
                   <td>Rs. {r.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td style={{ textAlign: 'right' }}>
                     <button className="elg-icon-sq" title="Edit" style={{marginLeft : "auto"}} onClick={() => openModal(<EditCurrencyModal rate={r} />, { variant: 'elegant' })}>
-                      <PencilIcon width={14} height={14} />
+                      <img src='/images/edit.svg' width="14px" height="14px" />
                     </button>
                   </td>
                 </tr>
@@ -138,8 +138,8 @@ export default function CompanyDetailsTab() {
               {showCurrent ? <img src="/images/showpwd.svg" alt="" /> : <img src="/images/hidepwd.svg" alt="" />}
             </button>
           </div>
-          <div style={{ textAlign: 'right', marginTop: 8 }}>
-            <a href="#" style={{ fontSize: 12.5, color: 'var(--elg-primary)', textDecoration: 'underline' }} onClick={(e) => e.preventDefault()}>Forgot password?</a>
+          <div style={{ textAlign: 'right', marginTop: 16 }}>
+            <a href="#" style={{ fontSize: 14, lineHeight : "21px", color: 'var(--elg-primary)', textDecoration: 'underline' }} onClick={(e) => e.preventDefault()}>Forgot password?</a>
           </div>
         </div>
         <div className="elg-field">

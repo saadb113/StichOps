@@ -642,7 +642,7 @@
       line-height: 21px;
   font-size: 14px;
   color: #5C5C5C;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .elg-panel {
@@ -658,6 +658,7 @@
 
 .elg-profile-sidebar .elg-panel {
   padding: 16px;
+  padding-top: 12px;
 }
 
 .elg-profile-sidebar .elg-panel .elg-panel-body {
@@ -669,7 +670,7 @@
 }
 
 .elg-panel-foot {
-  font-weight: 400;
+  font-weight: 500;
   font-size: 14px;
   line-height: 21px;
   letter-spacing: 0px;
@@ -677,7 +678,11 @@
   margin-top: 16px;
   color: var(--elg-ink-light-grey)
 }
-
+.elg-page:has(.employeesList) .elg-page-head .elg-btn{
+  font-size: 16px;
+  padding: 8px 16px;
+  font-weight: 500;
+}
 
 .elg-panel-foot span {
   color: var(--elg-primary);
@@ -734,8 +739,8 @@
 
 .elg-modal:has(.assignmentEmailModal) .elg-icon-sq {
   padding: 10px;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
 }
 
 .assignmentEmailModal .elg-select {
@@ -815,7 +820,7 @@
   gap: 10px;
   border: 1px solid var(--elg-line-strong);
   border-radius: 10px;
-  padding: 9.5px 12px;
+  padding: 9.5px 13px;
   background: var(--elg-surface);
 }
 
@@ -866,6 +871,9 @@
   font-family: var(--elg-font-sans);
 }
 
+.elg-table thead{
+  margin-bottom: 8px;
+}
 .elg-table thead th {
   text-align: left;
   padding: 9.5px 16px;
@@ -888,6 +896,9 @@
   border-top: none;
   line-height: 21px;
   border: none;
+}
+.employeeList  .elg-table tbody td{
+  height: 47px;
 }
 .elg-settings-card .elg-table tbody td {
   padding: 8.5px 12px;
@@ -1227,14 +1238,16 @@
   position: relative;
 }
 
-.elg-modal:has(.credentials),
+
 .elg-modal:has(.assignedEmails),
 .elg-modal:has(.addCustomer),
 .elg-modal:has(.invoicesModal),
 .elg-modal:has(.orderName) {
   max-width: 560px;
 }
-
+.elg-modal:has(.credentials){
+  max-width: 540px;
+}
 .elg-modal:has(.orderName) .elg-modal-body {
   padding-bottom: 24px;
 }
@@ -1270,6 +1283,7 @@
   padding: 7.5px 12px;
   font-size: 14px;
   font-weight: 400;
+  line-height: 21px;
 }
 
 .elg-modal:has(.invoicesModal) .elg-modal-body .elg-table thead td {
@@ -1299,8 +1313,8 @@
 
 .elg-icon-sq {
   padding: 10px;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
 }
 
 .elg-modal-close:hover {
@@ -1361,7 +1375,7 @@
 .elg-modal-head-plain h3 {
   font-family: var(--elg-font-serif);
   font-weight: 300;
-  font-size: 19px;
+  font-size: 20px;
   color: var(--elg-ink);
   margin: 0;
 }
@@ -1375,6 +1389,7 @@
   color: #5C5C5C;
   margin: 0;
   margin-top: 8px;
+  line-height: 24px;
 }
 
 .elg-modal-body {
@@ -1382,11 +1397,68 @@
   max-height: 62vh;
   overflow: auto;
 }
+.elg-modal .credentials .credentialModal{
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.elg-modal .credentials .elg-btn{
+  font-size: 16px;
+}
+.elg-modal .credentials .elg-modal-foot{
+  padding: 18px 24px;
+  border-top: 1px solid var(--elg-line);
+  display: flex;
+  justify-content: flex-end;
+}
+.elg-modal .credentials .elg-modal-foot button{
+  width: max-content !important;
+}
+.elg-modal .credentials .sharetext{
+  font-size: 16px;
+  color: rgb(92, 92, 92);
+  margin: 0px;
+  line-height: 24px;
+}
+.elg-modal .credentials .sharetext strong{
+  font-weight: 500;
+}
+.elg-modal .credentials .generatedCredentials{
+  border: 1px solid var(--elg-line);
+  border-radius: 10px;
+  padding: 11.7px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.elg-modal .credentials .generatedCredentials > div{
+  font-size: 14px;
+      display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 .elg-modal-head-plain+.elg-modal-body {
   padding-top: 22px;
 }
-
+.elg-modal-body.assignmentEmailModal{
+  padding-top: 30px;
+}
+.deleteEmployeeModal .elg-modal-body{
+  padding: 30px 24px;
+}
+.deleteEmployeeModal .elg-modal-body p{
+  font-size: 16px;
+}
+.deleteEmployeeModal .elg-modal-body p b{
+  font-weight: 500;
+}
+.deleteEmployeeModal .elg-modal-foot button{
+width: max-content !important;
+padding: 8px 16px;
+border-radius: 8px;
+}
 .elg-field {
   margin-bottom: 16px;
 }
@@ -1459,7 +1531,8 @@
   border-radius: 0;
   height: 20px;
   padding: 0;
-  padding-left: 14px;
+  padding-left: 12px;
+  padding-right: 12px;
   color: #191919;
   width: auto;
   background: transparent;
@@ -1567,8 +1640,24 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 24px !important;
+  padding: 24px 34px ;
   border-top: 1px solid var(--elg-line);
+}
+.elg-modal:has(.invoicesModal) .elg-modal-foot{
+  justify-content: flex-end;
+}
+.elg-modal:has(.invoicesModal) .elg-modal-foot button{
+width: max-content !important;
+}
+.elg-modal:has(.assignmentEmailModal) .elg-modal-foot{
+padding: 18px 24px;
+}
+.elg-modal.elg-modal:has(.addemail) .elg-modal-foot{
+  padding: 34px;
+  padding-top: 0;
+}
+.elg-modal.elg-modal:has(.editemail) .elg-modal-foot{
+  padding: 18px 24px;
 }
 .elg-modal:has(.addaccount) .elg-modal-foot,
 .elg-modal:has(.addemail) .elg-modal-foot {
@@ -1675,7 +1764,7 @@
 .elg-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background: #fff;
   border: 1px solid #E8E8E8;
   border-radius: 8px;
@@ -1683,6 +1772,9 @@
   margin-bottom: 18px;
 }
 
+.employeesList .elg-filterbar {
+  margin-bottom: 24px;
+}
 .elg-tab {
   display: flex;
   align-items: center;
@@ -1690,7 +1782,7 @@
   padding: 5.5px 14px;
   border-radius: 6px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--elg-ink-light-grey);
   cursor: pointer;
   white-space: nowrap;
@@ -1703,6 +1795,7 @@
 
 .elg-tab.active {
   background: var(--elg-primary);
+  font-weight: 500;
   color: #fff;
 }
 
@@ -1763,7 +1856,6 @@
 .elg-kv {
   display: flex;
   flex-direction: column;
-  gap: 3px;
 }
 
 .elg-kv-row {
@@ -1775,13 +1867,16 @@
   border-bottom: 1px solid var(--elg-line);
   font-size: 14px;
 }
+.elg-profile-sidebar .elg-panel{
+  border-radius: 12px;
+}
 
 .elg-kv-row:last-child {
   border-bottom: none;
 }
 
 .elg-kv-row .k {
-  color: var(--elg-ink-2);
+  color: #5C5C5C;
   font-size: 12px;
   font-weight: 400;
 }

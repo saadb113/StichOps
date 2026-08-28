@@ -21,7 +21,7 @@ function ConfirmDeleteEmployeeModal({ employeeId, name }) {
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 560 }}>
+    <div className="elg-modal deleteEmployeeModal" style={{ maxWidth: 560 }}>
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ fontSize: 20, fontWeight: 300, color: 'var(--elg-ink)', fontFamily : 'var(--elg-font-serif)' }}>Are you sure?</div>
@@ -35,8 +35,8 @@ function ConfirmDeleteEmployeeModal({ employeeId, name }) {
         </button>
       </div>
 
-      <div className="elg-modal-body" style={{ padding: 24 }}>
-        <p style={{ fontSize: 14, color: '#5C5C5C', margin: 0, lineHeight: 1.5 }}>
+      <div className="elg-modal-body">
+        <p style={{ color: '#5C5C5C', margin: 0, lineHeight: 1.5 }}>
           You're deleting the employee <b style={{fontWeight : 500, color : "var(--elg-ink)"}}>"Shaheer Baig."</b> This action can't be undone. Their salary slip history will remain on record, but they'll no longer appear in the Employees list.
         </p>
       </div>

@@ -146,7 +146,7 @@ export default function EmployeeProfile() {
           </div>
 
           {e.role === 'Salesperson' && (
-            <div className="elg-panel" style={{ padding: 20 }}>
+            <div className="elg-panel">
               <div className="elg-panel-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h3>Assigned Emails</h3>
                 <button
@@ -155,14 +155,14 @@ export default function EmployeeProfile() {
                   onClick={() => openModal(<AssignedEmailsModal employee={e} />, { variant: 'elegant' })}
                   title="Edit assigned emails"
                 >
-                  <img src="/icons/pencil-icon.svg" alt="" width={13} height={13} />
+                  <img src="/icons/pencil-icon.svg" alt="" width={18} height={18} />
                 </button>
               </div>
               <div className="elg-panel-body">
                 {emailList.length ? (
                   <>
                     {visibleEmails.map((em) => (
-                      <div className="elg-kv-row" key={em} style={{ fontSize: 12, fontWeight: 500 }}>
+                      <div className="elg-kv-row" key={em} style={{color : "#191919", fontSize: 12, fontWeight: 500 }}>
                         {em}
                       </div>
                     ))}

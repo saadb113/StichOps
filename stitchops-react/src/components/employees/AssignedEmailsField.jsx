@@ -52,7 +52,7 @@ export default function AssignedEmailsField({ employeeId = null, value, onChange
       <button
         type="button"
         className="elg-btn elg-btn-ghost"
-        style={{ width: 'auto', whiteSpace: 'nowrap', display: 'inline-flex', gap: 4 }}
+        style={{fontWeight : "400", width: 'auto', whiteSpace: 'nowrap', display: 'inline-flex', gap: 4 }}
         onClick={addRow}
       >
         <PlusIcon width={15} height={15} /> Add Email

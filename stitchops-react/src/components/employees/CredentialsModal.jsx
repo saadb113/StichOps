@@ -8,11 +8,11 @@ export default function CredentialsModal({request, title, name, email, tempPw })
 
   return (
     <div className="credentials" style={{ width : "100%"}}>
-      <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="elg-modal-head-plain">
+        
 
-          <div style={{ fontSize: 20, fontWeight: 400, color: 'var(--elg-ink)', fontFamily :  'var(--elg-font-serif)', textTransform : "capitalize"}}>{title}</div>
-        </div>
+          <h3 >{title}</h3>
+       
         <button className='elg-modal-close' style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
@@ -20,19 +20,19 @@ export default function CredentialsModal({request, title, name, email, tempPw })
         </button>
       </div>
 
-      <div className="elg-modal-body" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="elg-modal-body credentialModal">
         {
           request ?
-          <p style={{ fontSize: 16, color: '#5C5C5C', margin: 0 }}>
+          <p className='sharetext'>
             Share these temporary login credentials with <strong style={{color : "var(--elg-ink)"}}>{name}</strong> so he can sign in and reset his password.
-        </p> :
-        <p style={{ fontSize: 16, color: '#5C5C5C', margin: 0 }}>
-            Share these credentials with <strong style={{color : "var(--elg-ink)"}}>{name}</strong> He'll be asked to set his password on first login..
-        </p>
+          </p> :
+          <p className='sharetext'>
+              Share these credentials with <strong style={{color : "var(--elg-ink)"}}>{name}</strong> He'll be asked to set his password on first login..
+          </p>
         }
 
-        <div style={{ border: '1px solid var(--elg-line)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13.5 }}>
+        <div className="generatedCredentials">
+          <div>
             <span style={{ color: '#5C5C5C' }}>Email</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <strong style={{ fontWeight : 500,color: 'var(--elg-ink)' }}>{email}</strong>
@@ -74,7 +74,7 @@ export default function CredentialsModal({request, title, name, email, tempPw })
         </button>
       </div>
 
-      <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end' }}>
+      <div className="elg-modal-foot">
         <button className="elg-btn elg-btn-primary" style={{ width: 'max-content !important' }} onClick={closeModal}>
           Done
         </button>

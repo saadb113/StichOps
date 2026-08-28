@@ -63,7 +63,7 @@ export default function EditSlipOrdersModal({ ctx }) {
           </tbody>
         </table>
       </div>
-      <div className="elg-modal-foot">
+      <div className="elg-modal-foot" >
         <span className="spacer" />
         <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={closeModal}>Done</button>

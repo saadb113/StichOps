@@ -14,3 +14,11 @@ Customer:
 
 Employees:
     -> in employee options, clicking on regenrate login credentials gives this error "Something went wrong on our end. Please try again."
+
+
+
+Settings:
+    ->company details: add upload image option
+
+EMployees:
+    employee more button shold be dropdown which should contain 2 options, edit and delete like the attached screenshot

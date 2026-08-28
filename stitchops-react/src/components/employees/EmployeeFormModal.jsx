@@ -195,7 +195,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       </div>
 
       {/* Modal Footer */}
-      <div className="elg-modal-foot right-btns-fixed" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+      <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
         <button className="elg-btn elg-btn-ghost" style={{ width: 'auto' }} onClick={closeModal}>
           Cancel
         </button>

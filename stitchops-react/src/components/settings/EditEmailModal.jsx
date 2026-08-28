@@ -38,7 +38,7 @@ export default function EditEmailModal({ email, employeeId }) {
         </button>
       </div>
 
-      <div className="elg-modal-body" style={{ padding: "30px 24px" }}>
+      <div className="elg-modal-body editemail" style={{ padding: "30px 24px" }}>
         <div className="elg-field">
           <label>Email</label>
           <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="e.g. you@company.com" />
@@ -52,7 +52,7 @@ export default function EditEmailModal({ email, employeeId }) {
         </div>
       </div>
 
-      <div className="elg-modal-foot buttons3" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+      <div className="elg-modal-foot buttons3" style={{ borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'space-between', gap: 10 }}>
         <button className="elg-btn elg-btn-ghost" style={{ width: 'max-content', color: 'var(--elg-delete-red)' }} onClick={handleDelete}>Delete Email</button>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>

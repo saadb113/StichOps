@@ -46,7 +46,7 @@ export default function AddCategoryModal({ onAdded }) {
         </div>
       </div>
 
-      <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div className="elg-modal-foot" style={{ borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="elg-btn elg-btn-ghost" style={{ width: 'auto' }} onClick={closeModal}>
           Cancel
         </button>

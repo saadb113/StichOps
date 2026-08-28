@@ -88,7 +88,7 @@ export default function EmployeesList() {
   }
 
   return (
-    <div className="elg-page">
+    <div className="elg-page employeesList">
       <div className="elg-crumbs">
         <span className="elg-crumb-pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Dashboard</span>
         <span className="elg-crumb-sep">/</span>
@@ -103,7 +103,7 @@ export default function EmployeesList() {
       </div>
 
       {passwordResetRequests.length > 0 && (
-        <div className="elg-panel" style={{ marginBottom: 20, padding: 20 }}>
+        <div className="elg-panel" style={{ marginBottom: 24, padding: 20 }}>
           <div className="elg-card-head" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
             
             <div>
@@ -234,7 +234,7 @@ export default function EmployeesList() {
                   <td style={{ textAlign: 'right' }}>
                     <button
                       className="elg-btn elg-btn-ghost elg-btn-sm"
-                      style={{ width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ width: 30, height: 30, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       onClick={(ev) => {
                         ev.stopPropagation();
                         openModal(<EmployeeSettingsMenuModal employeeId={e.id} />, { variant: 'elegant' });

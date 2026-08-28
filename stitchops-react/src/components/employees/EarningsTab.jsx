@@ -34,7 +34,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
 
   return (
     <>
-      <div className="elg-panel elg-table-wrap">
+      <div className="elg-panel employeeList  elg-table-wrap">
         <table className="elg-table">
           <thead>
             <tr>

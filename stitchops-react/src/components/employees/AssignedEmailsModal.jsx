@@ -28,7 +28,7 @@ export default function AssignedEmailsModal({ employee }) {
         <h3>Assigned Emails</h3>
       </div>
       <div className="elg-modal-body assignmentEmailModal">
-        <div className="elg-field">
+        <div className="elg-field" style={{marginBottom : 0}}>
 
           <AssignedEmailsField employeeId={employee.id} value={emails} onChange={setEmails} />
         </div>

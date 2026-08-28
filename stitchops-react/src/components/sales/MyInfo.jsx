@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { fmt } from '../../lib/helpers';
 import { PersonIcon, MailIcon } from '../icons/Icon';
+import ImageUploadBox from '../common/ImageUploadBox';
 
 function YourDetails(){
   return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -21,7 +22,7 @@ const TABS = [
 ];
 
 export default function MyInfo() {
-  const { currentEmployee: emp } = useAppState();
+  const { currentEmployee: emp, uploadEmployeePhoto, deleteEmployeePhoto } = useAppState();
   const [tab, setTab] = useState('details');
 
   return (
@@ -51,6 +52,12 @@ export default function MyInfo() {
         </div>
 
         <div className="elg-settings-main ">
+          {tab === 'details' ? (
+            <div className="elg-settings-card">
+              <div className="elg-settings-card-title "><h2>Your Photo</h2></div>
+              <ImageUploadBox imageUrl={emp.photo} onUpload={(file) => uploadEmployeePhoto(emp.id, file)} onDelete={emp.photo ? () => deleteEmployeePhoto(emp.id) : null} />
+            </div>
+          ) : null}
           {tab === 'details' ? (
             <div className="elg-settings-card">
               <div className="elg-settings-card-title "><h2>Your Details</h2></div>

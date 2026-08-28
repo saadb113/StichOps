@@ -6,6 +6,7 @@ const { validateBody } = require('../middleware/validate');
 const { serializeCustomer } = require('../lib/serialize');
 const { customerInclude } = require('../lib/includes');
 const { createCustomerSchema, updateCustomerSchema } = require('../schemas/customer');
+const { broadcastNotification } = require('../lib/sse');
 
 const router = express.Router();
 
@@ -52,7 +53,7 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
     if (clash) return res.status(409).json({ error: 'That Customer ID is already in use — pick a different one.' });
   }
 
-  const customer = await prisma.$transaction(async (tx) => {
+  const { customer, notification } = await prisma.$transaction(async (tx) => {
     const created = await tx.customer.create({
       data: {
         customerCode,
@@ -76,8 +77,22 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
     if (customerCode) {
       await tx.counter.update({ where: { id: 1 }, data: { nextCustomerCode: { increment: 1 } } });
     }
-    return created;
+    let createdNotification = null;
+    if (isSales) {
+      createdNotification = await tx.notification.create({
+        data: {
+          type: 'new_customer',
+          message: `${salesperson.name} added a new customer — ${created.company}.`,
+          link: `/customers/${created.id}`
+        }
+      });
+    }
+    return { customer: created, notification: createdNotification };
   });
+
+  // Broadcast only after the transaction has actually committed, so a
+  // rolled-back write never announces a notification that didn't happen.
+  if (notification) broadcastNotification(notification);
 
   res.status(201).json(serializeCustomer(customer));
 }));

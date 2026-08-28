@@ -64,7 +64,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
                   <td>{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</td>
                   <td><span>{totalStr}</span></td>
                   
-                  <td style={{ whiteSpace: 'nowrap' , textAlign: 'center', display: 'flex', justifyContent: 'center'}}>
+                  <td>
                     
                     <button
                       className="elg-btn elg-btn-sm earnings-action-btn"

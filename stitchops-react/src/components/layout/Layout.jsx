@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileTopbar from './MobileTopbar';
 import TopBar from './TopBar';
+import GlobalSearch from './GlobalSearch';
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +22,7 @@ export default function Layout() {
           <Outlet />
         </div>
       </div>
+      <GlobalSearch />
     </div>
   );
 }

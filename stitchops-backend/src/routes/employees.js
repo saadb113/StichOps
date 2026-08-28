@@ -10,6 +10,7 @@ const { hashPassword, genTempPassword } = require('../lib/password');
 const { commissionAmt } = require('../lib/business');
 const { parseDateOnly, today } = require('../lib/date');
 const { isForeignKeyViolation } = require('../lib/prismaErrors');
+const { upload, deleteUploadedFile } = require('../lib/upload');
 
 const router = express.Router();
 
@@ -216,6 +217,43 @@ router.patch('/:id/earnings/:customerId/toggle-paid', requireAuth, requireAdmin,
     await prisma.order.updateMany({ where: { id: { in: orders.map((o) => o.id) } }, data: { [paidField]: !allPaid } });
   }
   res.json({ ok: true });
+}));
+
+router.post('/:id/photo', requireAuth, upload.single('file'), asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const isSelf = req.user.employeeId === id;
+  if (req.user.role !== 'ADMIN' && !isSelf) {
+    if (req.file) deleteUploadedFile(`/uploads/${req.file.filename}`);
+    return res.status(403).json({ error: 'You can only update your own photo.' });
+  }
+  if (!req.file) return res.status(400).json({ error: 'No image was uploaded.' });
+
+  const existing = await prisma.employee.findUnique({ where: { id } });
+  if (!existing) return res.status(404).json({ error: 'Employee not found.' });
+
+  const photo = `/uploads/${req.file.filename}`;
+  await prisma.employee.update({ where: { id }, data: { photo } });
+  if (existing.photo) deleteUploadedFile(existing.photo);
+
+  const updated = await prisma.employee.findUnique({ where: { id }, include: employeeInclude });
+  res.json(serializeEmployee(updated));
+}));
+
+router.delete('/:id/photo', requireAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const isSelf = req.user.employeeId === id;
+  if (req.user.role !== 'ADMIN' && !isSelf) {
+    return res.status(403).json({ error: 'You can only remove your own photo.' });
+  }
+
+  const existing = await prisma.employee.findUnique({ where: { id } });
+  if (!existing) return res.status(404).json({ error: 'Employee not found.' });
+
+  await prisma.employee.update({ where: { id }, data: { photo: null } });
+  if (existing.photo) deleteUploadedFile(existing.photo);
+
+  const updated = await prisma.employee.findUnique({ where: { id }, include: employeeInclude });
+  res.json(serializeEmployee(updated));
 }));
 
 module.exports = router;

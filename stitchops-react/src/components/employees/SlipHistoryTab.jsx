@@ -37,7 +37,7 @@ export default function SlipHistoryTab({ employee: e }) {
             <th>Total Amount</th>
             <th>Status</th>
             <th>Payment</th>
-            <th style={{ textAlign: 'right' }}>Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -59,7 +59,7 @@ export default function SlipHistoryTab({ employee: e }) {
                   {s.paymentStatus === 'Completed' ? 'Paid' : 'Pending'}
                 </span>
               </td>
-              <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+              <td>
                 <button
                   className="elg-btn elg-btn-sm"
                   style={{padding : "4.5px 10px", width: 'auto', display: 'inline-flex', marginRight: 6 }}

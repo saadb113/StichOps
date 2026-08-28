@@ -38,7 +38,7 @@ export default function EmployeeProfile() {
       <div className="elg-page-head">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div className="elg-avatar-lg">{initials}</div>
+            {e.photo ? <img className="elg-avatar-lg" src={e.photo} alt="" /> : <div className="elg-avatar-lg">{initials}</div>}
             <div>
               <div className="elg-profile-name">{e.name}</div>
               <div className="elg-page-sub">

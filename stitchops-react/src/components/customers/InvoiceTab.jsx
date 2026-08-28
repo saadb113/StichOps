@@ -3,6 +3,7 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt } from '../../lib/helpers';
 import { PencilIcon } from '../icons/Icon';
+import OrderFormModal from '../orders/OrderFormModal';
 
 function InvoiceTabSales({ customer, orders }) {
   const completed = orders.filter((o) => o.status === 'Completed');
@@ -48,12 +49,10 @@ function InvoiceTabSales({ customer, orders }) {
   );
 }
 
-export default function InvoiceTab({ customer, orders, onApproved, onEditOrders }) {
-  const { isAdmin, company, bankAccounts, approveInvoice, updateOrder } = useAppState();
-  const { toast } = useUi();
-  const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState('');
-  const [editPrice, setEditPrice] = useState('');
+export default function InvoiceTab({ customer, orders, onApproved }) {
+  const { isAdmin, company, bankAccounts, approveInvoice } = useAppState();
+  const { toast, openModal } = useUi();
+  const [editMode, setEditMode] = useState(false);
 
   if (!isAdmin) return <InvoiceTabSales customer={customer} orders={orders} />;
 
@@ -65,19 +64,8 @@ export default function InvoiceTab({ customer, orders, onApproved, onEditOrders 
   const commTotal = draft.reduce((s, o) => s + commissionAmt(o), 0);
   const bankAccount = bankAccounts.find((a) => a.currency === customer.currency);
 
-  function startEdit(o) { setEditingId(o.id); setEditName(o.name); setEditPrice(o.price); }
-  function cancelEdit() { setEditingId(null); }
-  async function saveEdit(o) {
-    const name = editName.trim();
-    const price = Number(editPrice);
-    if (!name || !price) { toast('Order name and price are required.'); return; }
-    try {
-      await updateOrder(o.id, { name, price });
-      setEditingId(null);
-      toast('Order updated — reflected on the Orders screen too.');
-    } catch (e) {
-      toast(e.message);
-    }
+  function editOrder(o) {
+    openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' });
   }
   async function handleApprove() {
     try {
@@ -96,10 +84,12 @@ export default function InvoiceTab({ customer, orders, onApproved, onEditOrders 
       <div className="elg-badge elg-badge-pending-pay" style={{ marginBottom: 14 }}>Pending review &middot; draft, not yet finalized</div>
       <div className="elg-invoice-doc">
         <div className="idr">
-          <div><h2>{company.name}</h2><div className="meta">{company.address}</div></div>
+          <div>
+            <img src="/images/elegant-design-icon.png" width="34" height="36" style={{ marginBottom: '8px' }} />
+            <div style={{ maxWidth: '150px' }} className="meta">{company.address}</div></div>
           <div style={{ textAlign: 'right' }}>
             <div className="meta">Bill to: {customer.customerCode || '—'}</div>
-            <div style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>{customer.company}</div>
+            <div className="company-name">{customer.company}</div>
             {customer.address && <div className="meta">{customer.address}</div>}
             {(customer.zip || customer.country) && (
               <div className="meta">{[customer.zip, customer.country].filter(Boolean).join(', ')}</div>
@@ -107,25 +97,17 @@ export default function InvoiceTab({ customer, orders, onApproved, onEditOrders 
           </div>
         </div>
         <table className="elg-table">
-          <thead><tr><th>Order</th><th>Date</th><th style={{ textAlign: 'right' }}>Price</th><th></th></tr></thead>
+          <thead><tr><th>Order</th><th>Date</th><th style={{ textAlign: 'right' }}>Price</th>{editMode && <th></th>}</tr></thead>
           <tbody>
-            {draft.map((o) => (editingId === o.id ? (
-              <tr key={o.id}>
-                <td><input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--elg-primary)', borderRadius: 8, fontSize: 12.5, fontFamily: 'var(--elg-font-sans)' }} /></td>
-                <td>{o.date}</td>
-                <td style={{ textAlign: 'right' }}><input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: 90, padding: '6px 8px', border: '1px solid var(--elg-primary)', borderRadius: 8, fontSize: 12.5, fontFamily: 'var(--elg-font-sans)', textAlign: 'right' }} /></td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  <button className="elg-btn elg-btn-primary elg-btn-sm" style={{ width: 'auto' }} onClick={() => saveEdit(o)}>Save</button>
-                  <button className="elg-btn elg-btn-ghost elg-btn-sm" style={{ width: 'auto' }} onClick={cancelEdit}>Cancel</button>
-                </td>
-              </tr>
-            ) : (
+            {draft.map((o) => (
               <tr key={o.id}>
                 <td>{o.name}</td><td>{o.date}</td><td style={{ textAlign: 'right' }}>{fmt(o.price, o.currency)}</td>
-                <td><button className="elg-icon-sq" onClick={() => startEdit(o)} title="Edit"><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button></td>
+                {editMode && (
+                  <td className="elg-edit-btn"><button className="elg-icon-sq" onClick={() => editOrder(o)} title="Edit"><img src="/images/edit.svg" alt="Edit Icon" width={14} height={14} /></button></td>
+                )}
               </tr>
-            )))}
-            <tr className="elg-invoice-total-row"><td colSpan={2}>Total</td><td style={{ textAlign: 'right' }}>{fmt(total, customer.currency)}</td><td></td></tr>
+            ))}
+            <tr className="elg-invoice-total-row"><td colSpan={2}>Total</td><td style={{ textAlign: 'right' }}>{fmt(total, customer.currency)}</td>{editMode && <td></td>}</tr>
           </tbody>
         </table>
         <div className="elg-bank-box">
@@ -143,12 +125,19 @@ export default function InvoiceTab({ customer, orders, onApproved, onEditOrders 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ fontSize: 14, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)', fontWeight: 500 }}>{fmt(commTotal, customer.currency)}</strong></div>
         <div style={{ display: 'flex', gap: 10 }}>
-          {onEditOrders && (
-            <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={onEditOrders}>
-              <PencilIcon width={13} height={13} /> Edit Orders
-            </button>
+          {editMode ? (
+            <>
+              <button className="elg-btn" style={{ width: 'auto' }} onClick={() => setEditMode(false)}>Cancel</button>
+              <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={() => setEditMode(false)}>Save Changes</button>
+            </>
+          ) : (
+            <>
+              <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setEditMode(true)}>
+                <PencilIcon width={13} height={13} /> Edit Orders
+              </button>
+              <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
+            </>
           )}
-          <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
         </div>
       </div>
     </>

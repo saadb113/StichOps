@@ -3,10 +3,11 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { PHONE_CODES, splitContact, CCY_NAMES } from '../../lib/constants';
 import { EyeIcon, EyeOffIcon, PencilIcon } from '../icons/Icon';
+import ImageUploadBox from '../common/ImageUploadBox';
 import EditCurrencyModal from './EditCurrencyModal';
 
 export default function CompanyDetailsTab() {
-  const { company, currencyRates, updateCompany, changePassword } = useAppState();
+  const { company, currencyRates, updateCompany, uploadCompanyLogo, deleteCompanyLogo, changePassword } = useAppState();
   const { openModal, toast } = useUi();
 
   const [name, setName] = useState(company?.name || '');
@@ -70,6 +71,11 @@ export default function CompanyDetailsTab() {
 
   return (
     <>
+      <div className="elg-settings-card upload-image-card">
+        <div className="elg-settings-card-title"><h2>Upload Image</h2></div>
+        <ImageUploadBox imageUrl={company.logo} onUpload={(file) => uploadCompanyLogo(file)} onDelete={company.logo ? deleteCompanyLogo : null} />
+      </div>
+
       <div className="elg-settings-card">
         <div className="elg-settings-card-title"><h2>Company Details</h2></div>
         <div className="elg-field-row">

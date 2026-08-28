@@ -113,6 +113,11 @@ tr.clickable:hover{background:var(--surface-2);cursor:pointer;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:200;display:none;}
 .toast.show{display:block;}
 
+.global-spinner{position:fixed;top:18px;right:18px;z-index:300;opacity:0;transform:scale(0.85);pointer-events:none;transition:opacity 0.2s ease,transform 0.2s ease;}
+.global-spinner.show{opacity:1;transform:scale(1);}
+.global-spinner-ring{width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(51,78,172,0.18);border-top-color:#334EAC;animation:global-spinner-spin 0.7s linear infinite;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:#fff;}
+@keyframes global-spinner-spin{to{transform:rotate(360deg);}}
+
 .invoice-doc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px;font-size:13px;}
 .invoice-doc .idr{display:flex;justify-content:space-between;margin-bottom:22px;}
 .invoice-doc h2{margin:0 0 4px;font-size:18px;}

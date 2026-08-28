@@ -8,6 +8,7 @@ const { COOKIE_NAME, signToken, cookieOptions } = require('../lib/jwt');
 const { serializeUser, serializeEmployee } = require('../lib/serialize');
 const { employeeInclude } = require('../lib/includes');
 const { loginSchema, changePasswordSchema, forgotPasswordSchema } = require('../schemas/auth');
+const { broadcastNotification } = require('../lib/sse');
 
 const router = express.Router();
 
@@ -65,6 +66,15 @@ router.post('/forgot-password', validateBody(forgotPasswordSchema), asyncHandler
     await prisma.passwordResetRequest.create({
       data: { email, employeeId: user.employeeId, requestedAt: new Date() }
     });
+    const employee = user.employeeId ? await prisma.employee.findUnique({ where: { id: user.employeeId } }) : null;
+    const notification = await prisma.notification.create({
+      data: {
+        type: 'password_reset_request',
+        message: `${employee ? employee.name : email} requested a password reset.`,
+        link: '/employees'
+      }
+    });
+    broadcastNotification(notification);
   }
   res.json({ ok: true });
 }));

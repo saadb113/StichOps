@@ -22,6 +22,7 @@ function serializeEmployee(employee) {
     payoutDay: employee.payoutDay,
     email: employee.email || '',
     contact: employee.contact || '',
+    photo: employee.photo || null,
     emails: (employee.companyEmails || []).map((ce) => ce.email),
     hasLogin: !!employee.user
   };
@@ -127,7 +128,8 @@ function serializeCompany(company) {
     address: company.address,
     email: company.email || '',
     contact: company.contact || '',
-    defaultCurrency: company.defaultCurrency
+    defaultCurrency: company.defaultCurrency,
+    logo: company.logo || null
   };
 }
 

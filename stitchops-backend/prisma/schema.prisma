@@ -29,6 +29,7 @@ model Company {
   email           String @default("")
   contact         String @default("")
   defaultCurrency String @default("PKR")
+  logo            String?
 }
 
 model BankAccount {
@@ -64,6 +65,7 @@ model Employee {
   payoutDay   Int
   email       String?
   contact     String?
+  photo       String?
 
   user                  User?
   companyEmails         CompanyEmail[]
@@ -207,4 +209,16 @@ model PasswordResetRequest {
   employeeId  Int
   employee    Employee @relation(fields: [employeeId], references: [id])
   requestedAt DateTime @default(now())
+}
+
+// Admin-facing activity feed — e.g. a salesperson adding a customer or
+// requesting a password reset. Read status is tracked so the topbar bell
+// can show an unread count.
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

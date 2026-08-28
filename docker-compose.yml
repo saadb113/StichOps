@@ -28,6 +28,8 @@ services:
       CLIENT_ORIGIN: ${CLIENT_ORIGIN}
       COOKIE_SECURE: "true"
       EXCHANGE_RATE_API_KEY: "08f68d0db829fc75606bc491"
+    volumes:
+      - uploads_data:/app/uploads
     expose:
       - "4000"
 
@@ -51,3 +53,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

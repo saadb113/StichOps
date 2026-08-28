@@ -19,6 +19,7 @@ export function AppStateProvider({ children }) {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [currencyRates, setCurrencyRates] = useState([]);
   const [passwordResetRequests, setPasswordResetRequests] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [nextInvoiceNo, setNextInvoiceNo] = useState(null);
   const [nextCustomerCode, setNextCustomerCode] = useState(null);
 
@@ -36,6 +37,7 @@ export function AppStateProvider({ children }) {
   const refreshBankAccounts = async () => setBankAccounts(await api.get('/bank-accounts'));
   const refreshCurrencyRates = async () => setCurrencyRates(await api.get('/currency-rates'));
   const refreshPasswordResetRequests = async () => setPasswordResetRequests(await api.get('/password-reset-requests'));
+  const refreshNotifications = async () => setNotifications(await api.get('/notifications'));
   const refreshMeta = async () => {
     const m = await api.get('/meta');
     setNextInvoiceNo(m.nextInvoiceNo);
@@ -54,6 +56,7 @@ export function AppStateProvider({ children }) {
         refreshBankAccounts(),
         refreshCurrencyRates(),
         refreshPasswordResetRequests(),
+        refreshNotifications(),
         refreshMeta()
       );
     }
@@ -66,7 +69,7 @@ export function AppStateProvider({ children }) {
     setCustomers([]); setOrders([]); setInvoices([]); setPayslips([]);
     setEmployees([]); setEmployeeCategories([]); setCompanyEmails([]);
     setCompany(null); setBankAccounts([]); setCurrencyRates([]);
-    setPasswordResetRequests([]);
+    setPasswordResetRequests([]); setNotifications([]);
     setNextInvoiceNo(null); setNextCustomerCode(null);
   }
 
@@ -86,6 +89,22 @@ export function AppStateProvider({ children }) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live push channel for notifications — the bell updates the instant
+  // something happens (e.g. a salesperson adds a customer), no polling.
+  useEffect(() => {
+    if (!isAdmin) return;
+    const es = new EventSource('/api/notifications/stream', { withCredentials: true });
+    es.addEventListener('notification', (e) => {
+      let notification;
+      try { notification = JSON.parse(e.data); } catch { return; }
+      setNotifications((list) => (list.some((n) => n.id === notification.id) ? list : [notification, ...list]));
+      if (notification.type === 'password_reset_request') refreshPasswordResetRequests();
+      if (notification.type === 'new_customer') refreshCustomers();
+    });
+    return () => es.close();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   // ---------- lookups ----------
   const getCustomer = (id) => customers.find((c) => c.id === id);
@@ -177,6 +196,18 @@ export function AppStateProvider({ children }) {
     await api.delete(`/employees/${id}`);
     await Promise.all([refreshEmployees(), refreshCompanyEmails()]);
   }
+  async function uploadEmployeePhoto(id, file) {
+    const updated = await api.upload(`/employees/${id}/photo`, file);
+    await refreshEmployees();
+    if (currentEmployee && currentEmployee.id === id) setCurrentEmployee(updated);
+    return updated;
+  }
+  async function deleteEmployeePhoto(id) {
+    const updated = await api.delete(`/employees/${id}/photo`);
+    await refreshEmployees();
+    if (currentEmployee && currentEmployee.id === id) setCurrentEmployee(updated);
+    return updated;
+  }
   async function regenerateCredentials(employeeId) {
     try {
       return await api.post(`/employees/${employeeId}/regenerate-credentials`);
@@ -211,9 +242,29 @@ export function AppStateProvider({ children }) {
     return { ok: true };
   }
 
+  // ---------- notifications ----------
+  async function markNotificationRead(id) {
+    const updated = await api.patch(`/notifications/${id}/read`);
+    setNotifications((list) => list.map((n) => (n.id === id ? updated : n)));
+  }
+  async function markAllNotificationsRead() {
+    await api.post('/notifications/read-all');
+    setNotifications((list) => list.map((n) => ({ ...n, read: true })));
+  }
+
   // ---------- company settings ----------
   async function updateCompany(data) {
     const updated = await api.patch('/company', data);
+    setCompany(updated);
+    return updated;
+  }
+  async function uploadCompanyLogo(file) {
+    const updated = await api.upload('/company/logo', file);
+    setCompany(updated);
+    return updated;
+  }
+  async function deleteCompanyLogo() {
+    const updated = await api.delete('/company/logo');
     setCompany(updated);
     return updated;
   }
@@ -335,18 +386,21 @@ export function AppStateProvider({ children }) {
     // data
     customers, orders, invoices, payslips, employees, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,
+    notifications,
     currentUser, isAdmin, isSalesperson, currentEmployee,
     // lookups
-    getCustomer, getEmployee,
+    getCustomer, getEmployee, refreshCustomers,
     // mutators
     addCustomer, updateCustomer, setCustomerStatus,
     addOrder, updateOrder, deleteOrder, setOrderStatus, addComment,
     approveInvoice, togglePaymentStatus,
     approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, approvePasswordReset, rejectPasswordReset,
-    updateCompany, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
+    uploadEmployeePhoto, deleteEmployeePhoto,
+    updateCompany, uploadCompanyLogo, deleteCompanyLogo, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
+    markNotificationRead, markAllNotificationsRead,
     attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, changePassword
   };
 

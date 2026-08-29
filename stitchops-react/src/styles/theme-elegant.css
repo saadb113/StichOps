@@ -334,7 +334,24 @@
   background: #FAFAFA;
   border-radius: 0px 0px 16px 16px;
 }
-
+#sidebar .elg-sidebar-actions .elg-btn{
+  font-size: 16px;
+}
+#sidebar .elg-sidebar-actions .elg-customer-btn{
+  font-weight: 500;
+  font-size: 16px;
+}
+#sidebar .elg-nav-item{
+  font-weight: 400;
+  line-height: 24px;
+  padding: 8px 10px;
+}
+#sidebar .elg-nav-badge{
+  font-size: 14px;
+}
+#sidebar .elg-nav-divider{
+  margin: 32px 0;
+}
 .elg-nav {
   display: flex;
   flex-direction: column;
@@ -441,6 +458,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 32px;
+  padding-right: 24px;
   background: var(--elg-surface);
   border-bottom: 1px solid var(--elg-line);
   font-family: var(--elg-font-sans);
@@ -461,7 +479,22 @@
   padding-left: 12px;
 
 }
-
+.elg-topbar .elg-search{
+  background: #F2F2F280;
+}
+.elg-topbar .elg-account{
+  padding: 4px;
+  gap: 10px;
+}
+.elg-topbar .elg-account .elg-avatar{
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+}
+.elg-topbar .elg-account .elg-account-name{
+  font-size: 14px;
+  font-weight: 500;
+}
 .elg-search input {
   border: none;
   outline: none;

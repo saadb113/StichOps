@@ -30,22 +30,22 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
 
   return (
     <>
-      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="elg-pill elg-pill-review" style={{ fontSize: 12, padding: '2px 8px', lineHeight: "21px", borderRadius: "8px" }}>
+      <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span className="elg-pill elg-pill-review" style={{ fontSize: 14, padding: '2px 8px', lineHeight: "21px", borderRadius: "8px" }}>
           Pending review &middot; draft, not yet finalized
         </span>
       </div>
 
       <div className="elg-panel elg-salary-slip" style={{ padding: 24, marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--elg-line)', paddingBottom: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between',  marginBottom: 20 }}>
           <div>
             <img src="/images/elegant-design-icon.png" width="34" height="36" style={{ marginBottom: '8px' }} />
             <div className="meta">{company.address}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 16, fontWeight: 300, fontFamily: "var(--elg-font-serif)" }}>Draft Salary Slip</div>
-            <div style={{ fontSize: 14, color: '#5C5C5C', marginTop: 2 }}>Pay to: {e.name}</div>
-            <div style={{ fontSize: 14, color: '#5C5C5C' }}>Payout day: {e.payoutDay}{nth(e.payoutDay)}</div>
+            <div style={{ fontSize: 14,lineHeight : "21px", color: '#5C5C5C', marginTop: 2 }}>Pay to: {e.name}</div>
+            <div style={{ fontSize: 14,lineHeight : "21px", color: '#5C5C5C' }}>Payout day: {e.payoutDay}{nth(e.payoutDay)}</div>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
         </div>
       </div >
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div className='salaryslipsButtons' style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         {editMode ? (
           <>
             <button className="elg-btn" style={{ width: 'auto' }} onClick={() => setEditMode(false)}>Cancel</button>
@@ -114,14 +114,14 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
               style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
               onClick={() => setEditMode(true)}
             >
-              <PencilIcon width={13} height={13} /> Edit Orders
+              <img src="/icons/pencil-icon.svg" alt="" /> Edit Orders
             </button>
             <button
               className="elg-btn elg-btn-primary"
               style={{ width: 'auto', display: 'inline-flex' }}
               onClick={handleApprove}
             >
-              <CheckIcon /> Approve Slip
+               Approve Slip
             </button>
           </>
         )}

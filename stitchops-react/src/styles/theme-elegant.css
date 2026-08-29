@@ -1842,7 +1842,11 @@
   background: var(--elg-primary-soft);
   color: var(--elg-primary);
 }
-
+.slipHistory .elg-pill{
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-weight: 500;
+}
 .elg-pill-approved {
   background: var(--elg-green);
   color: #fff;
@@ -2264,7 +2268,10 @@
 .elg-password-field input {
   padding-right: 42px;
 }
-
+.salaryslipsButtons .elg-btn{
+  font-size: 16px;
+  font-weight: 500;
+}
 .elg-password-toggle {
   position: absolute;
   right: 10px;

@@ -28,7 +28,7 @@ export default function SlipHistoryTab({ employee: e }) {
   }
 
   return (
-    <div className="elg-panel elg-table-wrap">
+    <div className="elg-panel elg-table-wrap slipHistory">
       <table className="elg-table">
         <thead>
           <tr>

@@ -63,8 +63,12 @@ export default function TopBar() {
         {isAdmin && (
           <div className="elg-notif" ref={notifRef}>
             <button className="elg-icon-btn" title="Notifications" onClick={() => setNotifOpen((v) => !v)}>
-              <img src="/icons/notifications-icon.svg" alt="Notifications" />
-              {unreadCount > 0 && <span className="elg-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+              {unreadCount == 0 && (
+                <img src="/icons/notifications-icon.svg" alt="Notifications" />
+              )}
+              {unreadCount > 0 && (
+                <img src="/icons/notifications-icon-active.svg" alt="Notifications" />
+              )}
             </button>
             {notifOpen && (
               <div className="elg-notif-panel">

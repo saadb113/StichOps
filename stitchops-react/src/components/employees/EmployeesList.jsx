@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, unpaidAmountFor } from '../../lib/helpers';
 import EmployeeFormModal from './EmployeeFormModal';
-import EmployeeSettingsMenuModal from './EmployeeSettingsMenuModal';
+import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
 import CredentialsModal from './CredentialsModal';
-import { SearchIcon, UserPlusIcon, PlusIcon, KebabIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon } from '../icons/Icon';
+import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon } from '../icons/Icon';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
   const { rejectPasswordReset } = useAppState();
@@ -61,15 +61,22 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
 }
 
 export default function EmployeesList() {
-  const { employees, employeeCategories, orders, customers, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
+  const { employees, employeeCategories, orders, customers, passwordResetRequests, getEmployee, approvePasswordReset, regenerateCredentials } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
   const [activeCategory, setActiveCategory] = useState(employeeCategories[0] || 'Salesperson');
   const [search, setSearch] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const category = employeeCategories.includes(activeCategory) ? activeCategory : (employeeCategories[0] || 'Salesperson');
-  
+
   const q = search.toLowerCase().trim();
   const baseList = employees.filter((e) => e.role === category);
   const list = q
@@ -85,6 +92,24 @@ export default function EmployeesList() {
       return;
     }
     if (res) openModal(<CredentialsModal request={true} title="Password reset approved" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
+  }
+
+  async function handleRegenerate(id) {
+    setOpenMenuId(null);
+    let res;
+    try {
+      res = await regenerateCredentials(id);
+    } catch (e) {
+      toast(e.message);
+      return;
+    }
+    if (!res) { toast('This employee has no login yet.'); return; }
+    openModal(<CredentialsModal request={false} title="Login credentials regenerated" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
+  }
+
+  function handleDelete(e) {
+    setOpenMenuId(null);
+    openModal(<ConfirmDeleteEmployeeModal employeeId={e.id} name={e.name} />, { variant: 'elegant' });
   }
 
   return (
@@ -232,17 +257,31 @@ export default function EmployeesList() {
                   <td>The {e.payoutDay}th of each month</td>
                   <td><strong>{unpaidStr}</strong></td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="elg-btn elg-btn-ghost elg-btn-sm"
-                      style={{ width: 30, height: 30, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        openModal(<EmployeeSettingsMenuModal employeeId={e.id} />, { variant: 'elegant' });
-                      }}
-                      title="Options"
-                    >
-                      <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
-                    </button>
+                    <div className="elg-row-actions">
+                      <button
+                        className="elg-btn elg-btn-ghost elg-btn-sm"
+                        style={{ width: 30, height: 30, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setOpenMenuId(openMenuId === e.id ? null : e.id);
+                        }}
+                        title="Options"
+                      >
+                        <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+                      </button>
+                      {openMenuId === e.id && (
+                        <div className="elg-row-menu" onClick={(ev) => ev.stopPropagation()}>
+                          {e.hasLogin && (
+                            <button onClick={() => handleRegenerate(e.id)}>
+                              <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Regenerate Credentials
+                            </button>
+                          )}
+                          <button className="elg-btn-danger-text" onClick={() => handleDelete(e)}>
+                            <img src="/icons/delete-red-icon.svg" width={12} height={12} alt="Delete" /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

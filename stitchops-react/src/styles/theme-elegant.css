@@ -249,6 +249,10 @@
   color: var(--elg-ink);
 }
 
+.elg-btn-danger-text{
+  color: #D85658 !important;
+}
+
 .elg-download-btn {
   padding: 4.5px 10px !important;
   color: #191919;
@@ -334,24 +338,30 @@
   background: #FAFAFA;
   border-radius: 0px 0px 16px 16px;
 }
-#sidebar .elg-sidebar-actions .elg-btn{
+
+#sidebar .elg-sidebar-actions .elg-btn {
   font-size: 16px;
 }
-#sidebar .elg-sidebar-actions .elg-customer-btn{
+
+#sidebar .elg-sidebar-actions .elg-customer-btn {
   font-weight: 500;
   font-size: 16px;
 }
-#sidebar .elg-nav-item{
+
+#sidebar .elg-nav-item {
   font-weight: 400;
   line-height: 24px;
   padding: 8px 10px;
 }
-#sidebar .elg-nav-badge{
+
+#sidebar .elg-nav-badge {
   font-size: 14px;
 }
-#sidebar .elg-nav-divider{
+
+#sidebar .elg-nav-divider {
   margin: 32px 0;
 }
+
 .elg-nav {
   display: flex;
   flex-direction: column;
@@ -479,22 +489,27 @@
   padding-left: 12px;
 
 }
-.elg-topbar .elg-search{
+
+.elg-topbar .elg-search {
   background: #F2F2F280;
 }
-.elg-topbar .elg-account{
+
+.elg-topbar .elg-account {
   padding: 4px;
   gap: 10px;
 }
-.elg-topbar .elg-account .elg-avatar{
+
+.elg-topbar .elg-account .elg-avatar {
   border-radius: 6px;
   width: 32px;
   height: 32px;
 }
-.elg-topbar .elg-account .elg-account-name{
+
+.elg-topbar .elg-account .elg-account-name {
   font-size: 14px;
   font-weight: 500;
 }
+
 .elg-search input {
   border: none;
   outline: none;
@@ -1188,7 +1203,7 @@
 }
 
 .elg-row-actions {
-  display: flex;
+  display: inline-flex;
   gap: 6px;
   position: relative;
 }
@@ -1221,11 +1236,20 @@
   overflow: hidden;
   z-index: 15;
   white-space: nowrap;
-
+  border: 1px solid #E8E8E8;
+  box-shadow: 0px 2px 12px 0px #0000001A;
+  border-radius: 5px;
+  line-height: 17px;
 }
+
+.elg-row-menu button:nth-child(2){
+  border-top: 1px solid #E8E8E8;
+}
+
 
 .elg-row-menu button {
   width: 100%;
+  min-width: 74px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -1236,8 +1260,6 @@
   font-family: var(--elg-font-sans);
   color: var(--elg-ink);
   cursor: pointer;
-  border: 1px solid #E8E8E8;
-  border-radius: 5px;
 
   background: #FFFFFF;
 }
@@ -1875,11 +1897,13 @@
   background: var(--elg-primary-soft);
   color: var(--elg-primary);
 }
-.slipHistory .elg-pill{
+
+.slipHistory .elg-pill {
   border-radius: 6px;
   padding: 3px 6px;
   font-weight: 500;
 }
+
 .elg-pill-approved {
   background: var(--elg-green);
   color: #fff;
@@ -1911,7 +1935,7 @@
   border-bottom: 1px solid var(--elg-line);
 }
 
-.elg-panel-head .elg-btn{
+.elg-panel-head .elg-btn {
   border: none;
 }
 
@@ -2301,10 +2325,12 @@
 .elg-password-field input {
   padding-right: 42px;
 }
-.salaryslipsButtons .elg-btn{
+
+.salaryslipsButtons .elg-btn {
   font-size: 16px;
   font-weight: 500;
 }
+
 .elg-password-toggle {
   position: absolute;
   right: 10px;
@@ -2417,7 +2443,7 @@
   padding: 26px;
 }
 
-.elg-settings-card.upload-image-card{
+.elg-settings-card.upload-image-card {
   max-width: 274px;
 }
 
@@ -2517,6 +2543,7 @@
     padding: 32px 24px 28px;
   }
 }
+
 /* ---------- Global command-K search ---------- */
 .elg-search-overlay {
   position: fixed;
@@ -2687,7 +2714,7 @@
 .elg-upload-title {
   font-size: 14px;
   font-weight: 400;
-  color:#191919;
+  color: #191919;
   margin-bottom: 4px;
 }
 

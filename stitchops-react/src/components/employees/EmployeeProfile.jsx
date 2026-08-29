@@ -1,27 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, ordersForEmployee, nth } from '../../lib/helpers';
 import EmployeeFormModal from './EmployeeFormModal';
-import EmployeeSettingsMenuModal from './EmployeeSettingsMenuModal';
+import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AssignedEmailsModal from './AssignedEmailsModal';
+import CredentialsModal from './CredentialsModal';
 import EarningsTab from './EarningsTab';
 import SlipDraftTab from './SlipDraftTab';
 import SlipHistoryTab from './SlipHistoryTab';
-import { ArrowLeftIcon } from '../icons/Icon';
+import { ArrowLeftIcon, KeyIcon, TrashIcon } from '../icons/Icon';
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams();
   const id = Number(employeeId);
-  const { getEmployee, orders, customers } = useAppState();
-  const { openModal } = useUi();
+  const { getEmployee, orders, customers, regenerateCredentials } = useAppState();
+  const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('earnings');
   const [showAllEmails, setShowAllEmails] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    function onDocClick(ev) { if (!ev.target.closest('.elg-row-actions')) setMenuOpen(false); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const e = getEmployee(id);
   if (!e) return <div className="elg-page"><div className="elg-empty">Employee not found.</div></div>;
+
+  async function handleRegenerate() {
+    setMenuOpen(false);
+    let res;
+    try {
+      res = await regenerateCredentials(e.id);
+    } catch (err) {
+      toast(err.message);
+      return;
+    }
+    if (!res) { toast('This employee has no login yet.'); return; }
+    openModal(<CredentialsModal request={false} title="Login credentials regenerated" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
+  }
+
+  function handleDelete() {
+    setMenuOpen(false);
+    openModal(<ConfirmDeleteEmployeeModal employeeId={e.id} name={e.name} />, { variant: 'elegant' });
+  }
 
   const os = ordersForEmployee(orders, customers, e).filter((o) => o.status === 'Completed').sort((a, b) => b.date.localeCompare(a.date));
   const initials = e.name.split(' ').map((w) => w[0]).join('').toUpperCase();
@@ -57,15 +83,29 @@ export default function EmployeeProfile() {
               <img src="/icons/pencil-icon.svg" alt="" />
               Edit Profile
             </button>
-            <button
-              className="elg-btn transparent"
-              style={{ width: 40, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-              onClick={() => openModal(<EmployeeSettingsMenuModal employeeId={e.id} />, { variant: 'elegant' })}
-              title="Settings"
-              aria-label="Settings"
-            >
-              <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
-            </button>
+            <div className="elg-row-actions">
+              <button
+                className="elg-btn transparent"
+                style={{ width: 40, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={() => setMenuOpen((v) => !v)}
+                title="Settings"
+                aria-label="Settings"
+              >
+                <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+              </button>
+              {menuOpen && (
+                <div className="elg-row-menu">
+                  {e.hasLogin && (
+                    <button onClick={handleRegenerate}>
+                      <KeyIcon width={14} height={14} /> Regenerate Credentials
+                    </button>
+                  )}
+                  <button className="elg-btn-danger-text" onClick={handleDelete}>
+                    <TrashIcon width={14} height={14} /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

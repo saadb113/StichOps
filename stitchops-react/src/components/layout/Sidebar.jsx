@@ -71,6 +71,7 @@ export default function Sidebar({ open, onNavigate }) {
   const { isAdmin, orders, passwordResetRequests } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
+  const pendingOrderCount = orders.filter((o) => o.status === 'Pending').length;
 
   function renderNavItem([path, label, Icon, ActiveIcon]) {
     return (
@@ -86,7 +87,7 @@ export default function Sidebar({ open, onNavigate }) {
             <>
               <NavIcon icon={displayIcon} width={17} height={17} />
               {label}
-              {path === '/orders' && orders.length > 0 && <span className="elg-nav-badge">{orders.length}</span>}
+              {path === '/orders' && pendingOrderCount > 0 && <span className="elg-nav-badge">{pendingOrderCount}</span>}
             </>
           );
         }}

@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt } from '../../lib/helpers';
+import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
 import { ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import { PencilIcon, KebabIcon, MessageIcon } from '../icons/Icon';
@@ -25,8 +25,9 @@ function elgStatusClass(status) {
 }
 
 export default function OrdersTab({ customer, orders }) {
-  const { isAdmin, setOrderStatus, addComment, deleteOrder } = useAppState();
+  const { isAdmin, company, currencyRates, setOrderStatus, addComment, deleteOrder } = useAppState();
   const { openModal, toast } = useUi();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
   const [openCommentId, setOpenCommentId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [commentDrafts, setCommentDrafts] = useState({});
@@ -71,6 +72,8 @@ export default function OrdersTab({ customer, orders }) {
           {orders.map((o) => {
             const commentOpen = openCommentId === o.id;
             const count = o.comments.length;
+            const prodCostConverted = convertToDefault(o.productionCost, o.productionCostCurrency || o.currency, currencyRates, defaultCurrency);
+            const commissionConverted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
             return (
               <Fragment key={o.id}>
                 <tr>
@@ -78,8 +81,8 @@ export default function OrdersTab({ customer, orders }) {
                   <td>{o.date}</td>
                   <td>{fmt(o.price, o.currency)} {o.currency !== customer.currency && <span style={{ color: 'var(--elg-ink-3)', fontSize: 11 }}>· overridden</span>}</td>
                   <td>{o.designer}</td>
-                  <td>{fmt(o.productionCost, o.currency)}</td>
-                  <td>{fmt(commissionAmt(o), o.currency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
+                  <td>{prodCostConverted == null ? '—' : fmt(prodCostConverted, defaultCurrency)}</td>
+                  <td>{commissionConverted == null ? '—' : fmt(commissionConverted, defaultCurrency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <span className={`elg-badge ${elgStatusClass(o.status)}`}>
                       {o.status}

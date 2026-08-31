@@ -1,6 +1,6 @@
 export const CCY = { "United Kingdom": "GBP", "United States": "USD", Germany: "EUR", France: "EUR", Australia: "AUD" };
-export const SYM = { GBP: "£", USD: "$", EUR: "€", AUD: "A$", PKR: "₨" };
-export const SYMIcon = { GBP: "/images/gbp.svg", USD: "/images/dollar.svg", EUR: "/images/euro.svg", AUD: "/images/dollar.svg", PKR: "₨" };
+export const SYM = { GBP: "£", USD: "$", EUR: "€", AUD: "A$", PKR: "Rs." };
+export const SYMIcon = { GBP: "/images/gbp.svg", USD: "/images/dollar.svg", EUR: "/images/euro.svg", AUD: "/images/dollar.svg", PKR: "Rs." };
 export const CCY_NAMES = {
   PKR: "Pakistani Rupees (PKR)",
   USD: "US Dollar (USD)",

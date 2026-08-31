@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, nth, commissionAmt } from '../../lib/helpers';
+import { fmt, nth, commissionAmt, convertToDefault } from '../../lib/helpers';
 import EditSlipOrdersModal from './EditSlipOrdersModal';
 import { CheckIcon, PencilIcon } from '../icons/Icon';
 
 export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
-  const { company, getCustomer, approveSlip } = useAppState();
+  const { company, currencyRates, getCustomer, approveSlip } = useAppState();
   const { openModal, toast } = useUi();
   const [editMode, setEditMode] = useState(false);
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
-  const variableTotal = unpaidReady.reduce((s, o) => s + (e.role === 'Salesperson' ? commissionAmt(o) : o.productionCost), 0);
+  let variableTotal = 0;
+  let hasUnknownRate = false;
+  unpaidReady.forEach((o) => {
+    const amt = e.role === 'Salesperson' ? commissionAmt(o) : o.productionCost;
+    const cc = e.role === 'Salesperson' ? o.currency : (o.productionCostCurrency || o.currency);
+    const converted = convertToDefault(amt, cc, currencyRates, defaultCurrency);
+    if (converted == null) hasUnknownRate = true;
+    else variableTotal += converted;
+  });
   const grandTotal = e.baseSalary + variableTotal;
   const byCust = {};
   unpaidReady.forEach((o) => {
@@ -61,19 +70,26 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
             <tbody>
               <tr>
                 <td><strong>Base Salary</strong></td>
-                <td style={{ textAlign: 'right' }}>{fmt(e.baseSalary, e.currency)}</td>
+                <td style={{ textAlign: 'right' }}>{fmt(e.baseSalary, defaultCurrency)}</td>
                 {editMode && <td></td>}
               </tr>
               {Object.entries(byCust).map(([custId, cOrders]) => {
                 const cust = getCustomer(Number(custId));
-                const sum = cOrders.reduce((s, o) => s + (e.role === 'Salesperson' ? commissionAmt(o) : o.productionCost), 0);
-                const ccy = cOrders[0].currency;
+                let sum = 0;
+                let unknown = false;
+                cOrders.forEach((o) => {
+                  const amt = e.role === 'Salesperson' ? commissionAmt(o) : o.productionCost;
+                  const cc = e.role === 'Salesperson' ? o.currency : (o.productionCostCurrency || o.currency);
+                  const converted = convertToDefault(amt, cc, currencyRates, defaultCurrency);
+                  if (converted == null) unknown = true;
+                  else sum += converted;
+                });
                 return (
                   <tr key={custId}>
                     <td>
                       <span>{e.role === 'Salesperson' ? 'Commission' : 'Production'} — <strong>{cust ? cust.company : 'Unknown'}</strong> ({cOrders.length} order{cOrders.length === 1 ? '' : 's'})</span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>{fmt(sum, ccy)}</td>
+                    <td style={{ textAlign: 'right' }}>{unknown ? '—' : fmt(sum, defaultCurrency)}</td>
                     {editMode && (
                       <td className="elg-edit-btn">
                         <button
@@ -93,7 +109,7 @@ export default function SlipDraftTab({ employee: e, unpaidReady, onApproved }) {
               })}
               <tr className="elg-invoice-total-row" style={{ fontWeight: 500 }}>
                 <td>Total</td>
-                <td style={{ textAlign: 'right' }}>{fmt(grandTotal, e.currency)}</td>
+                <td style={{ textAlign: 'right' }}>{hasUnknownRate ? '—' : fmt(grandTotal, defaultCurrency)}</td>
                 {editMode && <td></td>}
               </tr>
             </tbody>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, unpaidAmountFor } from '../../lib/helpers';
+import { fmt, unpaidAmountFor, sumConvertedToDefault } from '../../lib/helpers';
 import EmployeeFormModal from './EmployeeFormModal';
 import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -61,7 +61,8 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
 }
 
 export default function EmployeesList() {
-  const { employees, employeeCategories, orders, customers, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
+  const { employees, employeeCategories, orders, customers, company, currencyRates, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -238,15 +239,16 @@ export default function EmployeesList() {
             )}
             {list.map((e) => {
               const unpaid = unpaidAmountFor(orders, customers, e);
-              const unpaidStr = fmt(Object.values(unpaid).reduce((s, v) => s + v, 0), e.currency);
+              const unpaidTotal = sumConvertedToDefault(unpaid, currencyRates, defaultCurrency);
+              const unpaidStr = unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
               return (
                 <tr className="clickable" key={e.id}>
                   <td onClick={() => navigate(`/employees/${e.id}`)}>
                     <span>{e.name}</span>
                   </td>
                   <td>{e.designation || '—'}</td>
-                  <td><span className="elg-currency">{e.currency}</span></td>
-                  {category === 'Salesperson' && <td>{fmt(e.baseSalary, e.currency)}</td>}
+                  <td><span className="elg-currency">{defaultCurrency}</span></td>
+                  {category === 'Salesperson' && <td>{fmt(e.baseSalary, defaultCurrency)}</td>}
                   <td>The {e.payoutDay}th of each month</td>
                   <td><strong>{unpaidStr}</strong></td>
                   <td style={{ textAlign: 'right' }}>

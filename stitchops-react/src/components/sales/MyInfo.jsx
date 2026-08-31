@@ -22,8 +22,9 @@ const TABS = [
 ];
 
 export default function MyInfo() {
-  const { currentEmployee: emp, uploadEmployeePhoto, deleteEmployeePhoto } = useAppState();
+  const { currentEmployee: emp, company, uploadEmployeePhoto, deleteEmployeePhoto } = useAppState();
   const [tab, setTab] = useState('details');
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   return (
     <div className="elg-page">
@@ -65,8 +66,8 @@ export default function MyInfo() {
                 <div className="elg-kv-row"><span className="k">Name</span><span className="v">{emp.name}</span></div>
                 <div className="elg-kv-row"><span className="k">Designation</span><span className="v">{emp.designation || emp.role}</span></div>
                 <div className="elg-kv-row"><span className="k">Email</span><span className="v">{emp.email || '—'}</span></div>
-                <div className="elg-kv-row"><span className="k">Paid in</span><span className="v">{emp.currency}</span></div>
-                <div className="elg-kv-row"><span className="k">Base salary</span><span className="v">{fmt(emp.baseSalary, emp.currency)}</span></div>
+                <div className="elg-kv-row"><span className="k">Paid in</span><span className="v">{defaultCurrency}</span></div>
+                <div className="elg-kv-row"><span className="k">Base salary</span><span className="v">{fmt(emp.baseSalary, defaultCurrency)}</span></div>
                 <div className="elg-kv-row"><span className="k">Payout day</span><span className="v">{emp.payoutDay} of each month</span></div>
               </div>
             </div>

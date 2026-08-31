@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUi } from '../../store/UiContext';
 
 function ImageStackIcon() {
@@ -27,7 +27,10 @@ export default function ImageUploadBox({ imageUrl, onUpload, onDelete, hint = 'S
   const { toast } = useUi();
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [broken, setBroken] = useState(false);
   const inputRef = useRef(null);
+
+  useEffect(() => { setBroken(false); }, [imageUrl]);
 
   async function handleFile(file) {
     if (!file) return;
@@ -85,9 +88,9 @@ export default function ImageUploadBox({ imageUrl, onUpload, onDelete, hint = 'S
         style={{ display: 'none' }}
         onChange={(e) => { handleFile(e.target.files[0]); e.target.value = ''; }}
       />
-      {imageUrl ? (
+      {imageUrl && !broken ? (
         <div className="elg-upload-preview">
-          <img src={imageUrl} alt="" />
+          <img src={imageUrl} alt="" onError={() => setBroken(true)} />
           {onDelete && (
             <button className="elg-upload-delete" title="Remove image" onClick={handleDelete} disabled={busy}>
               <TrashIcon />

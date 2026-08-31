@@ -7,6 +7,7 @@ const { serializeOrder, serializeCustomer } = require('../lib/serialize');
 const { orderInclude, customerInclude } = require('../lib/includes');
 const { createOrderSchema, updateOrderSchema, commentSchema } = require('../schemas/order');
 const { parseDateOnly, today } = require('../lib/date');
+const { getDefaultCurrency } = require('../lib/currency');
 
 const router = express.Router();
 
@@ -37,6 +38,9 @@ router.post('/', requireAuth, requireAdmin, validateBody(createOrderSchema), asy
   const designer = await resolveDesigner(body.designer);
   const customer = await prisma.customer.findUnique({ where: { id: body.customerId } });
   if (!customer) return res.status(404).json({ error: 'Customer not found.' });
+  // Production cost is an in-house figure — always the company default
+  // currency, never the customer's order currency.
+  const defaultCurrency = await getDefaultCurrency(prisma);
 
   const result = await prisma.$transaction(async (tx) => {
     const order = await tx.order.create({
@@ -48,7 +52,7 @@ router.post('/', requireAuth, requireAdmin, validateBody(createOrderSchema), asy
         currency: body.currency,
         designerId: designer.id,
         productionCost: body.productionCost,
-        productionCostCurrency: body.productionCostCurrency,
+        productionCostCurrency: defaultCurrency,
         commissionRate: body.commissionRate,
         status: body.status
       },
@@ -84,8 +88,10 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateOrderSchema),
   if (body.date !== undefined) data.date = parseDateOnly(body.date);
   if (body.price !== undefined) data.price = body.price;
   if (body.currency !== undefined) data.currency = body.currency;
-  if (body.productionCost !== undefined) data.productionCost = body.productionCost;
-  if (body.productionCostCurrency !== undefined) data.productionCostCurrency = body.productionCostCurrency;
+  if (body.productionCost !== undefined) {
+    data.productionCost = body.productionCost;
+    data.productionCostCurrency = await getDefaultCurrency(prisma);
+  }
   if (body.commissionRate !== undefined) data.commissionRate = body.commissionRate;
   if (body.status !== undefined) data.status = body.status;
   if (body.designer !== undefined) {

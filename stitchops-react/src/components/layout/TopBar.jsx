@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
+import Avatar from '../common/Avatar';
 
 function NotificationAvatar({ employee }) {
   if (!employee) {
     return <span className="elg-notif-avatar elg-notif-avatar-fallback" />;
   }
   const initials = employee.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-  return employee.photo ? (
-    <img className="elg-notif-avatar" src={employee.photo} alt="" />
-  ) : (
-    <span className="elg-notif-avatar elg-notif-avatar-initials">{initials}</span>
+  return (
+    <Avatar
+      className="elg-notif-avatar elg-notif-avatar-initials"
+      src={employee.photo}
+      fallback={initials}
+    />
   );
 }
 
@@ -100,7 +103,7 @@ export default function TopBar() {
                       className={`elg-notif-row ${n.read ? '' : 'unread'}`}
                       onClick={() => handleNotifClick(n)}
                     >
-                      <span className="elg-notif-dot" />
+                      {!n.read && <span className="elg-notif-dot" />}
                       <NotificationAvatar employee={n.employeeId ? getEmployee(n.employeeId) : null} />
                       <span className="elg-notif-text">
                         <span className="elg-notif-message">{n.message}</span>
@@ -114,11 +117,7 @@ export default function TopBar() {
           </div>
         )}
         <div className="elg-account" ref={accountRef} onClick={() => setMenuOpen((v) => !v)}>
-          {photoUrl ? (
-            <img className="elg-avatar" src={photoUrl} alt="" />
-          ) : (
-            <div className="elg-avatar">{initials}</div>
-          )}
+          <Avatar className="elg-avatar" src={photoUrl} fallback={initials} />
           <span className="elg-account-name">{displayName}</span>
           <img src="/icons/down-icon.svg" alt="dropdown icon" />
           {menuOpen && (

@@ -1,11 +1,12 @@
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt } from '../../lib/helpers';
+import { fmt, commissionAmt, sumConvertedToDefault } from '../../lib/helpers';
 import EditSlipOrdersModal from './EditSlipOrdersModal';
 
 export default function EarningsTab({ employee: e, orders: os }) {
-  const { getCustomer, toggleCustomerEarningsPaid } = useAppState();
+  const { getCustomer, company, currencyRates, toggleCustomerEarningsPaid } = useAppState();
   const { openModal, toast } = useUi();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   if (!os.length) {
     return (
@@ -57,7 +58,8 @@ export default function EarningsTab({ employee: e, orders: os }) {
                 const paid = e.role === 'Salesperson' ? o.commissionPaid : o.productionPaid;
                 if (!paid) allPaid = false;
               });
-              const totalStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
+              const converted = sumConvertedToDefault(totals, currencyRates, defaultCurrency);
+              const totalStr = converted == null ? '—' : fmt(converted, defaultCurrency);
               return (
                 <tr key={custId}>
                   <td><span>{cust?.company || 'Unknown Customer'}</span></td>

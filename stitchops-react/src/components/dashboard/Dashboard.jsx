@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt, isActive, paymentBadge } from '../../lib/helpers';
+import { fmt, commissionAmt, isActive, paymentBadge, convertToDefault } from '../../lib/helpers';
 import { TODAY } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon } from '../icons/Icon';
@@ -23,7 +23,7 @@ function elgStatusClass(status) {
 }
 
 export default function Dashboard() {
-  const { customers, orders, employees, invoices, passwordResetRequests, getCustomer } = useAppState();
+  const { customers, orders, employees, invoices, passwordResetRequests, company, currencyRates, getCustomer } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [refDate, setRefDate] = useState(TODAY);
@@ -42,11 +42,17 @@ export default function Dashboard() {
   const monthPrefix = refDate.slice(0, 7); // 'YYYY-MM' of the selected day
   const monthName = new Date(monthPrefix + '-01').toLocaleDateString('en-US', { month: 'long' });
 
+  const defaultCcy = company?.defaultCurrency || 'PKR';
   const monthTotals = {};
   orders.filter((o) => o.date.slice(0, 7) === monthPrefix).forEach((o) => { monthTotals[o.currency] = (monthTotals[o.currency] || 0) + o.price; });
-  const monthRevenueStr = Object.keys(monthTotals).length
-    ? Object.entries(monthTotals).map(([cc, v]) => fmt(v, cc)).join(' + ')
-    : fmt(0, customers[0]?.currency || 'GBP');
+  let monthRevenueConverted = 0;
+  let monthRevenueUnknown = false;
+  Object.entries(monthTotals).forEach(([cc, v]) => {
+    const converted = convertToDefault(v, cc, currencyRates, defaultCcy);
+    if (converted == null) monthRevenueUnknown = true;
+    else monthRevenueConverted += converted;
+  });
+  const monthRevenueStr = monthRevenueUnknown ? '—' : fmt(monthRevenueConverted, defaultCcy);
 
   const dueSoon = customers.filter((c) => {
     if (!c.invoiceDay) return false;

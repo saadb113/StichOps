@@ -4,8 +4,9 @@ import { useAppState } from '../../store/AppStateContext';
 import { fmt } from '../../lib/helpers';
 
 export default function Welcome() {
-  const { currentEmployee, markWelcomed } = useAppState();
+  const { currentEmployee, company, markWelcomed } = useAppState();
   const navigate = useNavigate();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   useEffect(() => {
     if (!currentEmployee) {
@@ -31,8 +32,8 @@ export default function Welcome() {
           <div className="elg-kv-row"><span className="k">Name</span><span className="v">{e.name}</span></div>
           <div className="elg-kv-row"><span className="k">Designation</span><span className="v">{e.designation || '—'}</span></div>
           <div className="elg-kv-row"><span className="k">Email</span><span className="v">{e.email}</span></div>
-          <div className="elg-kv-row"><span className="k">Paid in</span><span className="v">{e.currency}</span></div>
-          <div className="elg-kv-row"><span className="k">Base salary</span><span className="v">{fmt(e.baseSalary, e.currency)}</span></div>
+          <div className="elg-kv-row"><span className="k">Paid in</span><span className="v">{defaultCurrency}</span></div>
+          <div className="elg-kv-row"><span className="k">Base salary</span><span className="v">{fmt(e.baseSalary, defaultCurrency)}</span></div>
           <div className="elg-kv-row"><span className="k">Payout day</span><span className="v">{e.payoutDay} of each month</span></div>
         </div>
         <button className="elg-btn elg-btn-primary" style={{ marginTop: 40 }} onClick={handleContinue}>Continue to My Dashboard</button>

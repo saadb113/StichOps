@@ -1617,6 +1617,17 @@
   outline: 2px solid var(--elg-primary-soft-2);
 }
 
+.elg-price-field-fixed-ccy {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 12px;
+  border-left: 1px solid var(--elg-line);
+  color: var(--elg-ink-3);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .elg-info-panel {
   border: 1px solid var(--elg-line);
   border-radius: 12px;
@@ -2879,11 +2890,6 @@
   margin-top: 5px;
   background: var(--elg-primary);
   flex-shrink: 0;
-  visibility: hidden;
-}
-
-.elg-notif-row.unread .elg-notif-dot {
-  visibility: visible;
 }
 
 .elg-notif-text {

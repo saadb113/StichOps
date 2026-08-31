@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
-import { fmt, ordersForEmployee, commissionAmt } from '../../lib/helpers';
+import { fmt, ordersForEmployee, commissionAmt, convertToDefault } from '../../lib/helpers';
 
 function EarningsIcon({ active }) {
   const c = active ? '#fff' : '#737373';
@@ -23,9 +23,17 @@ function HistoryIcon({ active }) {
 }
 
 function CurrentEarningsPanel({ emp, os }) {
-  const { getCustomer } = useAppState();
+  const { getCustomer, company, currencyRates } = useAppState();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
   const unpaidReady = os.filter((o) => !o.commissionPaid);
-  const unpaidTotalCombined = unpaidReady.reduce((s, o) => s + commissionAmt(o), 0);
+
+  let unpaidTotalCombined = 0;
+  let hasUnknownRate = false;
+  unpaidReady.forEach((o) => {
+    const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
+    if (converted == null) hasUnknownRate = true;
+    else unpaidTotalCombined += converted;
+  });
 
   const byCust = {};
   os.forEach((o) => { if (!byCust[o.customerId]) byCust[o.customerId] = []; byCust[o.customerId].push(o); });
@@ -39,14 +47,20 @@ function CurrentEarningsPanel({ emp, os }) {
             {Object.keys(byCust).length === 0 && <tr><td colSpan={4} className="elg-empty">No completed orders in this view.</td></tr>}
             {Object.entries(byCust).map(([custId, cOrders]) => {
               const cust = getCustomer(Number(custId));
-              const totals = {}; const commTotals = {}; let rate = cOrders[0]?.commissionRate;
-              cOrders.forEach((o) => { totals[o.currency] = (totals[o.currency] || 0) + o.price; commTotals[o.currency] = (commTotals[o.currency] || 0) + commissionAmt(o); });
+              const totals = {}; let rate = cOrders[0]?.commissionRate;
+              let commTotal = 0; let commUnknown = false;
+              cOrders.forEach((o) => {
+                totals[o.currency] = (totals[o.currency] || 0) + o.price;
+                const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
+                if (converted == null) commUnknown = true;
+                else commTotal += converted;
+              });
               return (
                 <tr key={custId}>
                   <td>{cust ? cust.company : '—'}</td>
                   <td>{cOrders.length}</td>
                   <td>{Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ')}</td>
-                  <td>{Object.entries(commTotals).map(([cc, v]) => fmt(v, cc)).join(' + ')} <span className="elg-comm-pct">({rate}%)</span></td>
+                  <td>{commUnknown ? '—' : fmt(commTotal, defaultCurrency)} <span className="elg-comm-pct">({rate}%)</span></td>
                 </tr>
               );
             })}
@@ -61,9 +75,9 @@ function CurrentEarningsPanel({ emp, os }) {
         <table className="elg-table">
           <thead><tr><th>Order</th><th style={{ textAlign: 'right' }}>Amount</th></tr></thead>
           <tbody>
-            <tr><td>Base Salary</td><td style={{ textAlign: 'right' }}>{fmt(emp.baseSalary, emp.currency)}</td></tr>
-            <tr><td>Total Commission</td><td style={{ textAlign: 'right' }}>{fmt(unpaidTotalCombined, emp.currency)}</td></tr>
-            <tr><td style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>Total</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(emp.baseSalary + unpaidTotalCombined, emp.currency)}</td></tr>
+            <tr><td>Base Salary</td><td style={{ textAlign: 'right' }}>{fmt(emp.baseSalary, defaultCurrency)}</td></tr>
+            <tr><td>Total Commission</td><td style={{ textAlign: 'right' }}>{hasUnknownRate ? '—' : fmt(unpaidTotalCombined, defaultCurrency)}</td></tr>
+            <tr><td style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>Total</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{hasUnknownRate ? '—' : fmt(emp.baseSalary + unpaidTotalCombined, defaultCurrency)}</td></tr>
           </tbody>
         </table>
         <div style={{ padding: '14px 20px', fontSize: 12.5, color: 'var(--elg-ink-3)' }}>

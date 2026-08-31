@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, ordersFor, isActive, commissionAmt, customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
+import { fmt, ordersFor, isActive, commissionAmt, customerOverdueInvoices, paymentBadge, convertToDefault } from '../../lib/helpers';
 import OrderFormModal from '../orders/OrderFormModal';
 import CustomerFormModal from './CustomerFormModal';
 import OrdersTab from './OrdersTab';
@@ -19,10 +19,11 @@ function elgStatusClass(status) {
 export default function CustomerProfile() {
   const { customerId } = useParams();
   const id = Number(customerId);
-  const { getCustomer, orders, invoices, isAdmin, setCustomerStatus } = useAppState();
+  const { getCustomer, orders, invoices, isAdmin, company, currencyRates, setCustomerStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('orders');
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const c = getCustomer(id);
   if (!c) return <div className="elg-page"><div className="elg-empty">Customer not found.</div></div>;
@@ -151,7 +152,15 @@ export default function CustomerProfile() {
             <div className="elg-panel-body">
               <div className="elg-kv">
                 <div className="elg-kv-row"><span className="k">Name</span><span className="v">{c.salesperson}</span></div>
-                <div className="elg-kv-row"><span className="k">Commission</span><span className="v">{fmt(os.reduce((s, o) => s + commissionAmt(o), 0), c.currency)}</span></div>
+                <div className="elg-kv-row"><span className="k">Commission</span><span className="v">{(() => {
+                  let total = 0; let unknown = false;
+                  os.forEach((o) => {
+                    const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
+                    if (converted == null) unknown = true;
+                    else total += converted;
+                  });
+                  return unknown ? '—' : fmt(total, defaultCurrency);
+                })()}</span></div>
               </div>
             </div>
           </div>

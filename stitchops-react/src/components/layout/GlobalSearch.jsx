@@ -60,7 +60,7 @@ export default function GlobalSearch() {
     if (!query) return [];
 
     const customerHits = customers
-      .filter((c) => matches(query, c.name, c.company, c.customerCode, c.email))
+      .filter((c) => matches(query, c.company))
       .slice(0, MAX_PER_GROUP)
       .map((c) => ({
         key: `customer-${c.id}`,
@@ -99,7 +99,7 @@ export default function GlobalSearch() {
 
     const employeeHits = isAdmin
       ? employees
-        .filter((e) => matches(query, e.name, e.email, e.designation))
+        .filter((e) => matches(query, e.name))
         .slice(0, MAX_PER_GROUP)
         .map((e) => ({
           key: `employee-${e.id}`,

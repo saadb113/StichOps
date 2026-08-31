@@ -11,6 +11,7 @@ const { commissionAmt } = require('../lib/business');
 const { parseDateOnly, today } = require('../lib/date');
 const { isForeignKeyViolation } = require('../lib/prismaErrors');
 const { upload, deleteUploadedFile } = require('../lib/upload');
+const { convertToDefaultCurrency, getDefaultCurrency } = require('../lib/currency');
 
 const router = express.Router();
 
@@ -21,6 +22,9 @@ router.get('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
 
 router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), asyncHandler(async (req, res) => {
   const body = req.body;
+  // Base salary is always reported in the company's default currency —
+  // employees don't get an independent currency choice.
+  const defaultCurrency = await getDefaultCurrency(prisma);
 
   const result = await prisma.$transaction(async (tx) => {
     const employee = await tx.employee.create({
@@ -30,7 +34,7 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
         designation: body.designation || null,
         email: body.email || null,
         contact: body.contact || null,
-        currency: body.currency,
+        currency: defaultCurrency,
         baseSalary: body.baseSalary,
         payoutDay: body.payoutDay,
         commissionRate: body.commissionRate
@@ -88,7 +92,7 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateEmployeeSchem
   if (body.designation !== undefined) data.designation = body.designation;
   if (body.email !== undefined) data.email = body.email || null;
   if (body.contact !== undefined) data.contact = body.contact || null;
-  if (body.currency !== undefined) data.currency = body.currency;
+  // currency is never client-settable — it always tracks the company default.
   if (body.baseSalary !== undefined) data.baseSalary = body.baseSalary;
   if (body.payoutDay !== undefined) data.payoutDay = body.payoutDay;
   if (body.commissionRate !== undefined) data.commissionRate = body.commissionRate;
@@ -163,7 +167,16 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
       ? await prisma.order.findMany({ where: { designerId: id, status: 'Completed', productionPaid: false } })
       : [];
 
-  const variableTotal = eligible.reduce((s, o) => s + (isSales ? commissionAmt(o) : o.productionCost), 0);
+  const defaultCurrency = await getDefaultCurrency(prisma);
+  // Commission is a % of the order price, which is in the customer's own
+  // currency (GBP/USD/EUR/AUD) — convert each order's share into the
+  // default currency before summing so mixed-currency orders add up
+  // correctly. Production cost is already entered in the default currency.
+  let variableTotal = 0;
+  for (const o of eligible) {
+    if (isSales) variableTotal += await convertToDefaultCurrency(prisma, commissionAmt(o), o.currency, defaultCurrency);
+    else variableTotal += o.productionCost;
+  }
   const total = employee.baseSalary + variableTotal;
   const todayDate = parseDateOnly(today());
 
@@ -175,7 +188,7 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
         employeeId: id,
         slipNo,
         total,
-        currency: employee.currency,
+        currency: defaultCurrency,
         baseSalary: employee.baseSalary,
         commission: variableTotal,
         approvedDate: todayDate

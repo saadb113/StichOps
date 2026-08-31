@@ -7,9 +7,10 @@ import { CloseIcon } from '../icons/Icon';
 import AssignedEmailsField from './AssignedEmailsField';
 
 export default function EmployeeFormModal({ employee = null, defaultCategory }) {
-  const { employeeCategories, addEmployee, updateEmployee } = useAppState();
+  const { employeeCategories, company, addEmployee, updateEmployee } = useAppState();
   const { closeModal, openModal, toast } = useUi();
   const e = employee;
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const initialContact = splitContact(e ? e.contact : '');
 
@@ -19,7 +20,6 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   const [email, setEmail] = useState(e ? (e.email || '') : '');
   const [phoneCode, setPhoneCode] = useState(initialContact.code);
   const [phone, setPhone] = useState(initialContact.num);
-  const [currency, setCurrency] = useState(e ? e.currency : 'GBP');
   const [salary, setSalary] = useState(e ? e.baseSalary : '');
   const [payoutDay, setPayoutDay] = useState(e ? e.payoutDay : 28);
   const [commissionRate, setCommissionRate] = useState(e ? e.commissionRate : 10);
@@ -41,7 +41,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       email: trimmedEmail,
       contact: trimmedPhone ? `${phoneCode} ${trimmedPhone}` : '',
       emails: emailsList,
-      currency,
+      currency: defaultCurrency,
       baseSalary: Number(salary) || 0,
       payoutDay: Number(payoutDay) || 28,
       commissionRate: Number(commissionRate) || 0
@@ -151,10 +151,10 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
           </div>
         </div>
 
-        {/* Row 4: Base Salary (with Currency select) & Payout Day */}
+        {/* Row 4: Base Salary (always in the company's default currency) & Payout Day */}
         <div className="elg-field">
-          <label className="elg-label">Base Salary</label>
-          <div className='elg-price-field' style={{ display: 'flex', gap: 8 }}>
+          <label className="elg-label">Base Salary ({defaultCurrency})</label>
+          <div className='elg-price-field'>
             <input
               className="elg-input"
               type="number"
@@ -163,15 +163,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               onChange={(ev) => setSalary(ev.target.value)}
               placeholder="0.00"
             />
-            <select
-              style={{outline : "none" }}
-              value={currency}
-              onChange={(ev) => setCurrency(ev.target.value)}
-            >
-              {Object.keys(SYM).map((cc) => (
-                <option key={cc} value={cc}>{cc}</option>
-              ))}
-            </select>
+            <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
           </div>
         </div>
         <div className="elg-field">

@@ -1,12 +1,13 @@
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, ordersForEmployee, commissionAmt } from '../../lib/helpers';
+import { fmt, ordersForEmployee, commissionAmt, convertToDefault } from '../../lib/helpers';
 import OrderFormModal from '../orders/OrderFormModal';
 import { CloseIcon, PencilIcon } from '../icons/Icon';
 
 export default function EditSlipOrdersModal({ ctx }) {
-  const { orders, customers, payslips, getEmployee, getCustomer } = useAppState();
+  const { orders, customers, payslips, company, currencyRates, getEmployee, getCustomer } = useAppState();
   const { closeModal, openModal } = useUi();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   let e; let rows; let showCustomer; let title; let bodyText;
   if (ctx.type === 'earnings') {
@@ -47,19 +48,23 @@ export default function EditSlipOrdersModal({ ctx }) {
             </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td colSpan={showCustomer ? 3 : 2} className="elg-empty">No linked orders.</td></tr>}
-            {rows.map((o) => (
+            {rows.map((o) => {
+              const amt = isSales ? commissionAmt(o) : o.productionCost;
+              const cc = isSales ? o.currency : (o.productionCostCurrency || o.currency);
+              const converted = convertToDefault(amt, cc, currencyRates, defaultCurrency);
+              return (
               <tr key={o.id}>
-                {console.log(o)}
                 <td>{o.name}</td>
                 {showCustomer && <td>{getCustomer(o.customerId).company}</td>}
-                <td>{fmt(isSales ? commissionAmt(o) : o.productionCost, isSales ? o.currency : (o.productionCostCurrency || o.currency))}</td>
+                <td>{converted == null ? '—' : fmt(converted, defaultCurrency)}</td>
                 <td>
                   <button style={{marginLeft : "auto"}} className="elg-icon-sq" title="Edit order" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
                     <img src="/icons/pencil-icon.svg" alt="" />
                   </button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

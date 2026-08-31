@@ -1,7 +1,7 @@
 import { SYM, TODAY } from './constants';
 
 export function fmt(amount, ccy) {
-  return SYM[ccy] + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return SYM[ccy] + ' ' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function findCustomer(customers, id) {
@@ -103,7 +103,8 @@ export function unpaidAmountFor(orders, customers, emp) {
     const paid = emp.role === 'Salesperson' ? o.commissionPaid : o.productionPaid;
     if (paid || o.status !== 'Completed') return;
     const amt = emp.role === 'Salesperson' ? commissionAmt(o) : o.productionCost;
-    byCcy[o.currency] = (byCcy[o.currency] || 0) + amt;
+    const cc = emp.role === 'Salesperson' ? o.currency : (o.productionCostCurrency || o.currency);
+    byCcy[cc] = (byCcy[cc] || 0) + amt;
   });
   return byCcy;
 }
@@ -120,4 +121,19 @@ export function convertToDefault(amount, ccy, rates, defaultCcy) {
   if (ccy === defaultCcy) return amount;
   const r = rates.find((x) => x.currency === ccy);
   return r ? amount * r.rate : null;
+}
+
+// Converts a {currency: amount} breakdown (e.g. from unpaidAmountFor) into a
+// single total in the default currency. In-house figures — production cost,
+// salaries, commissions, payslips — are always reported this way; only
+// customer-facing order prices and invoices keep their own currency.
+// Returns null if any bucket's currency has no stored rate to convert with.
+export function sumConvertedToDefault(byCcy, rates, defaultCcy) {
+  let total = 0;
+  for (const [cc, amt] of Object.entries(byCcy)) {
+    const converted = convertToDefault(amt, cc, rates, defaultCcy);
+    if (converted == null) return null;
+    total += converted;
+  }
+  return total;
 }

@@ -21,7 +21,7 @@ function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
 
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? customers.filter((c) => c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || (c.customerCode || '').toLowerCase().includes(q))
+    ? customers.filter((c) => c.company.toLowerCase().startsWith(q))
     : customers;
 
   function pick(c) {
@@ -74,10 +74,11 @@ function statusPillStyle(status) {
 }
 
 export default function OrderFormModal({ customerId = null, order = null, allowCompanyPicker = false }) {
-  const { customers, employees, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
+  const { customers, employees, company, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
   const { closeModal, toast } = useUi();
 
   const designers = employees.filter((e) => e.role === 'Designer');
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const [selectedCustomerId, setSelectedCustomerId] = useState(customerId || '');
   const cust = selectedCustomerId ? getCustomer(Number(selectedCustomerId)) : null;
@@ -87,8 +88,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   const [price, setPrice] = useState(order ? order.price : '');
   const [currency, setCurrency] = useState(order ? order.currency : (cust ? cust.currency : ''));
   const [designer, setDesigner] = useState(order ? order.designer : (designers[0]?.name || ''));
-  const [cost, setCost] = useState(order ? order.productionCost : '');
-  const [costCurrency, setCostCurrency] = useState(order ? order.productionCostCurrency : 'PKR');
+  const [cost, setCost] = useState(order ? order.productionCost : 300);
   const [commission, setCommission] = useState(order ? order.commissionRate : 10);
   const [status, setStatus] = useState(order ? order.status : 'Pending');
 
@@ -98,12 +98,6 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
     setSelectedCustomerId(id);
     const c = getCustomer(Number(id));
     if (c) setCurrency(c.currency);
-  }
-
-  function handleDesignerChange(name) {
-    setDesigner(name);
-    const d = designers.find((x) => x.name === name);
-    if (d) setCostCurrency(d.currency);
   }
 
   const overdue = cust ? customerOverdueInvoices(invoices, cust.id) : [];
@@ -116,7 +110,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
     const data = {
       customerId: Number(selectedCustomerId), name: trimmedName, date: date || TODAY,
       price: priceNum, currency, designer, productionCost: Number(cost) || 0,
-      productionCostCurrency: costCurrency,
+      productionCostCurrency: defaultCurrency,
       commissionRate: Number(commission) || 10, status
     };
     try {
@@ -218,15 +212,13 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
             <div className="elg-field-row">
               <div className="elg-field">
                 <label>Designer</label>
-                <select value={designer} onChange={(e) => handleDesignerChange(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
+                <select value={designer} onChange={(e) => setDesigner(e.target.value)}>{designers.map((d) => <option key={d.id}>{d.name}</option>)}</select>
               </div>
               <div className="elg-field">
-                <label>Production Cost</label>
+                <label>Production Cost ({defaultCurrency})</label>
                 <div className="elg-price-field">
                   <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="300" />
-                  <select value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)}>
-                    {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-                  </select>
+                  <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
                 </div>
               </div>
             </div>

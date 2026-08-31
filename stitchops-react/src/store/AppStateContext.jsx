@@ -45,16 +45,17 @@ export function AppStateProvider({ children }) {
   };
 
   async function loadCollectionsFor(role) {
-    const tasks = [refreshCustomers(), refreshOrders(), refreshPayslips()];
+    // company + currency rates are needed by both roles — salespeople rely
+    // on defaultCurrency to display their own pay/commission figures the
+    // same way the admin side does.
+    const tasks = [refreshCustomers(), refreshOrders(), refreshPayslips(), api.get('/company').then(setCompany), refreshCurrencyRates()];
     if (role === 'admin') {
       tasks.push(
         refreshInvoices(),
         refreshEmployees(),
         refreshEmployeeCategories(),
         refreshCompanyEmails(),
-        api.get('/company').then(setCompany),
         refreshBankAccounts(),
-        refreshCurrencyRates(),
         refreshPasswordResetRequests(),
         refreshNotifications(),
         refreshMeta()

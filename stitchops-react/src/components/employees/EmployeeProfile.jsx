@@ -10,12 +10,14 @@ import CredentialsModal from './CredentialsModal';
 import EarningsTab from './EarningsTab';
 import SlipDraftTab from './SlipDraftTab';
 import SlipHistoryTab from './SlipHistoryTab';
+import Avatar from '../common/Avatar';
 import { ArrowLeftIcon, KeyIcon, TrashIcon } from '../icons/Icon';
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams();
   const id = Number(employeeId);
-  const { getEmployee, orders, customers, regenerateCredentials } = useAppState();
+  const { getEmployee, orders, customers, company, regenerateCredentials } = useAppState();
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('earnings');
@@ -64,11 +66,11 @@ export default function EmployeeProfile() {
       <div className="elg-page-head">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {e.photo ? <img className="elg-avatar-lg" src={e.photo} alt="" /> : <div className="elg-avatar-lg">{initials}</div>}
+            <Avatar className="elg-avatar-lg" src={e.photo} fallback={initials} />
             <div>
               <div className="elg-profile-name">{e.name}</div>
               <div className="elg-page-sub">
-                {e.role} &middot; Paid in {e.currency}
+                {e.role} &middot; Paid in {defaultCurrency}
                 &middot; Payout on the {e.payoutDay}{nth(e.payoutDay)} of each month
               </div>
             </div>
@@ -171,11 +173,11 @@ Earnings
               <div className="elg-kv">
                 <div className="elg-kv-row">
                   <span className="k">Base Salary</span>
-                  <strong className="v">{fmt(e.baseSalary, e.currency)}</strong>
+                  <strong className="v">{fmt(e.baseSalary, defaultCurrency)}</strong>
                 </div>
                 <div className="elg-kv-row">
                   <span className="k">Currency</span>
-                  <span className="v">{e.currency}</span>
+                  <span className="v">{defaultCurrency}</span>
                 </div>
                 <div className="elg-kv-row">
                   <span className="k">Payout Day</span>

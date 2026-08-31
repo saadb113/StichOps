@@ -9,7 +9,10 @@ const { upload, deleteUploadedFile } = require('../lib/upload');
 
 const router = express.Router();
 
-router.get('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+// Readable by any authenticated user (not just admins) — salespeople need
+// company.defaultCurrency to display their own pay/commission figures
+// consistently with the admin side.
+router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const company = await prisma.company.findUnique({ where: { id: 1 } });
   res.json(serializeCompany(company));
 }));

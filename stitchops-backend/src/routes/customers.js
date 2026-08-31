@@ -83,7 +83,8 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
         data: {
           type: 'new_customer',
           message: `${salesperson.name} added a new customer — ${created.company}.`,
-          link: `/customers/${created.id}`
+          link: `/customers/${created.id}`,
+          employeeId: salesperson.id
         }
       });
     }

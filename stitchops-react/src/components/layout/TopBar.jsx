@@ -2,6 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 
+function NotificationAvatar({ employee }) {
+  if (!employee) {
+    return <span className="elg-notif-avatar elg-notif-avatar-fallback" />;
+  }
+  const initials = employee.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return employee.photo ? (
+    <img className="elg-notif-avatar" src={employee.photo} alt="" />
+  ) : (
+    <span className="elg-notif-avatar elg-notif-avatar-initials">{initials}</span>
+  );
+}
+
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs / 60000);
@@ -14,7 +26,7 @@ function timeAgo(iso) {
 }
 
 export default function TopBar() {
-  const { currentUser, currentEmployee, company, isAdmin, notifications, markNotificationRead, markAllNotificationsRead, refreshCustomers, logout } = useAppState();
+  const { currentUser, currentEmployee, company, isAdmin, notifications, markNotificationRead, markAllNotificationsRead, refreshCustomers, getEmployee, logout } = useAppState();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -89,6 +101,7 @@ export default function TopBar() {
                       onClick={() => handleNotifClick(n)}
                     >
                       <span className="elg-notif-dot" />
+                      <NotificationAvatar employee={n.employeeId ? getEmployee(n.employeeId) : null} />
                       <span className="elg-notif-text">
                         <span className="elg-notif-message">{n.message}</span>
                         <span className="elg-notif-time">{timeAgo(n.createdAt)}</span>

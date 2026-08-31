@@ -91,7 +91,7 @@ export default function CustomerFormModal({ customer = null }) {
         <div className="elg-modal-head-plain"><h3>Edit Profile</h3></div>
       ) : (
         <div className="elg-modal-hero">
-          <div className="elg-modal-hero-icon"><img src="/images/addCustomer.png" alt="" /></div>
+          <div className="elg-modal-hero-icon"><img src="/images/addCustomer.svg" alt="" /></div>
           <div className="elg-modal-title">Add Customer</div>
           <div className="elg-modal-sub">Add your customer details to add customer profile.</div>
         </div>

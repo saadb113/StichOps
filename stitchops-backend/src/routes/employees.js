@@ -32,7 +32,8 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
         contact: body.contact || null,
         currency: body.currency,
         baseSalary: body.baseSalary,
-        payoutDay: body.payoutDay
+        payoutDay: body.payoutDay,
+        commissionRate: body.commissionRate
       }
     });
 
@@ -90,6 +91,7 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateEmployeeSchem
   if (body.currency !== undefined) data.currency = body.currency;
   if (body.baseSalary !== undefined) data.baseSalary = body.baseSalary;
   if (body.payoutDay !== undefined) data.payoutDay = body.payoutDay;
+  if (body.commissionRate !== undefined) data.commissionRate = body.commissionRate;
 
   await prisma.$transaction(async (tx) => {
     await tx.employee.update({ where: { id }, data });

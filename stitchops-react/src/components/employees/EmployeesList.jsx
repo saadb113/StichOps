@@ -27,11 +27,11 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
     <div className="elg-modal" style={{ maxWidth: 560 }}>
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 18, fontWeight: 300, color: 'var(--elg-ink)', fontFamily : "var(--elg-font-serif)" }}>Are you sure?</div>
+          <div style={{ fontSize: 18, fontWeight: 300, color: 'var(--elg-ink)', fontFamily: "var(--elg-font-serif)" }}>Are you sure?</div>
         </div>
         <button
           className="elg-btn elg-btn-ghost"
-          style={{border : 0,outline : "none",background : "none", width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ border: 0, outline: "none", background: "none", width: 32, height: 32, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={closeModal}
         >
           <CloseIcon />
@@ -61,7 +61,7 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
 }
 
 export default function EmployeesList() {
-  const { employees, employeeCategories, orders, customers, passwordResetRequests, getEmployee, approvePasswordReset, regenerateCredentials } = useAppState();
+  const { employees, employeeCategories, orders, customers, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -94,17 +94,9 @@ export default function EmployeesList() {
     if (res) openModal(<CredentialsModal request={true} title="Password reset approved" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
   }
 
-  async function handleRegenerate(id) {
+  function handleEdit(e) {
     setOpenMenuId(null);
-    let res;
-    try {
-      res = await regenerateCredentials(id);
-    } catch (e) {
-      toast(e.message);
-      return;
-    }
-    if (!res) { toast('This employee has no login yet.'); return; }
-    openModal(<CredentialsModal request={false} title="Login credentials regenerated" name={res.name} email={res.email} tempPw={res.tempPw} />, { variant: 'elegant', dismissible: false });
+    openModal(<EmployeeFormModal employee={e} />, { variant: 'elegant' });
   }
 
   function handleDelete(e) {
@@ -130,10 +122,10 @@ export default function EmployeesList() {
       {passwordResetRequests.length > 0 && (
         <div className="elg-panel" style={{ marginBottom: 24, padding: 20 }}>
           <div className="elg-card-head" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-            
+
             <div>
-              <div style={{fontFamily : 'var(--elg-font-serif)', fontSize: 18, fontWeight: 300, color: 'var(--elg-ink)' }}>Password reset requests</div>
-              
+              <div style={{ fontFamily: 'var(--elg-font-serif)', fontSize: 18, fontWeight: 300, color: 'var(--elg-ink)' }}>Password reset requests</div>
+
             </div>
           </div>
           <div className="elg-table-wrap">
@@ -195,7 +187,8 @@ export default function EmployeesList() {
           style={{ width: 'auto', whiteSpace: 'nowrap' }}
           onClick={() => openModal(<EmployeeFormModal defaultCategory={category} />, { variant: 'elegant' })}
         >
-          <UserPlusIcon /> Add Employee
+          <img src="/icons/add-employee.svg" alt="Add Employee" />
+          Add Employee
         </button>
       </div>
 
@@ -248,7 +241,7 @@ export default function EmployeesList() {
               const unpaidStr = fmt(Object.values(unpaid).reduce((s, v) => s + v, 0), e.currency);
               return (
                 <tr className="clickable" key={e.id}>
-                  <td  onClick={() => navigate(`/employees/${e.id}`)}>
+                  <td onClick={() => navigate(`/employees/${e.id}`)}>
                     <span>{e.name}</span>
                   </td>
                   <td>{e.designation || '—'}</td>
@@ -271,11 +264,9 @@ export default function EmployeesList() {
                       </button>
                       {openMenuId === e.id && (
                         <div className="elg-row-menu" onClick={(ev) => ev.stopPropagation()}>
-                          {e.hasLogin && (
-                            <button onClick={() => handleRegenerate(e.id)}>
-                              <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Regenerate Credentials
-                            </button>
-                          )}
+                          <button onClick={() => handleEdit(e)}>
+                            <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit Profile
+                          </button>
                           <button className="elg-btn-danger-text" onClick={() => handleDelete(e)}>
                             <img src="/icons/delete-red-icon.svg" width={12} height={12} alt="Delete" /> Delete
                           </button>

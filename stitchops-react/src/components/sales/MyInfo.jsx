@@ -53,7 +53,7 @@ export default function MyInfo() {
 
         <div className="elg-settings-main ">
           {tab === 'details' ? (
-            <div className="elg-settings-card">
+            <div className="elg-settings-card upload-image-card">
               <div className="elg-settings-card-title "><h2>Your Photo</h2></div>
               <ImageUploadBox imageUrl={emp.photo} onUpload={(file) => uploadEmployeePhoto(emp.id, file)} onDelete={emp.photo ? () => deleteEmployeePhoto(emp.id) : null} />
             </div>

@@ -14,7 +14,7 @@ const GROUP_ICONS = {
 };
 
 function matches(q, ...fields) {
-  return fields.some((f) => f && String(f).toLowerCase().includes(q));
+  return fields.some((f) => f && String(f).toLowerCase().startsWith(q));
 }
 
 export default function GlobalSearch() {
@@ -111,9 +111,9 @@ export default function GlobalSearch() {
 
     return [
       { label: 'Customers', items: customerHits },
+      { label: 'Employees', items: employeeHits },
       { label: 'Orders', items: orderHits },
-      { label: 'Invoices', items: invoiceHits },
-      { label: 'Employees', items: employeeHits }
+      { label: 'Invoices', items: invoiceHits }
     ].filter((g) => g.items.length);
   }, [q, customers, orders, invoices, employees, isAdmin, basePath, navigate, getCustomer]);
 

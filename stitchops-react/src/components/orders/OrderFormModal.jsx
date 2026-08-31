@@ -1,10 +1,65 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { SYM, ORDER_STATUSES, TODAY } from '../../lib/constants';
 import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
 import { BagIcon, CloseIcon, WarningIcon, ChevronDownIcon } from '../icons/Icon';
-const addOrderImg = '/images/addOrder.png';
+const addOrderImg = '/images/addOrder.svg';
+
+function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef(null);
+
+  const selected = customers.find((c) => c.id === Number(selectedCustomerId));
+
+  useEffect(() => {
+    function onDocClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? customers.filter((c) => c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || (c.customerCode || '').toLowerCase().includes(q))
+    : customers;
+
+  function pick(c) {
+    onSelect(c.id);
+    setQuery('');
+    setOpen(false);
+  }
+
+  return (
+    <div className="elg-customer-picker" ref={ref}>
+      <div className={`elg-customer-picker-input ${danger ? 'elg-select-danger' : ''}`} onClick={() => setOpen(true)}>
+        <img src="/icons/nav-search-icon.svg" alt="Search" />
+        <input
+          value={open ? query : (selected ? selected.company : '')}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search or select a customer"
+        />
+        <ChevronDownIcon />
+      </div>
+      {open && (
+        <div className="elg-customer-picker-list">
+          {filtered.length === 0 && <div className="elg-customer-picker-empty">No customers match "{query}".</div>}
+          {filtered.map((c) => (
+            <div
+              key={c.id}
+              className={`elg-customer-picker-item ${c.id === Number(selectedCustomerId) ? 'active' : ''}`}
+              onClick={() => pick(c)}
+            >
+              <span className="elg-customer-picker-item-name">{c.company}</span>
+              <span className="elg-customer-picker-item-sub">{c.customerCode ? `${c.customerCode} · ` : ''}{c.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function statusPillStyle(status) {
   const map = {
@@ -33,9 +88,9 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   const [currency, setCurrency] = useState(order ? order.currency : (cust ? cust.currency : ''));
   const [designer, setDesigner] = useState(order ? order.designer : (designers[0]?.name || ''));
   const [cost, setCost] = useState(order ? order.productionCost : '');
-  const [costCurrency, setCostCurrency] = useState(order ? order.productionCostCurrency : (designers[0]?.currency || 'PKR'));
+  const [costCurrency, setCostCurrency] = useState(order ? order.productionCostCurrency : 'PKR');
   const [commission, setCommission] = useState(order ? order.commissionRate : 10);
-  const [status, setStatus] = useState(order ? order.status : 'Completed');
+  const [status, setStatus] = useState(order ? order.status : 'Pending');
 
   const showPicker = allowCompanyPicker && !order;
 
@@ -109,10 +164,12 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
         {showPicker && (
           <div className="elg-field">
             <label>Company Name</label>
-            <select className={overdue.length > 0 ? 'elg-select-danger' : ''} value={selectedCustomerId} onChange={(e) => handleCompanyChange(e.target.value)}>
-              <option value="">Select a customer</option>
-              {customers.map((c) => <option key={c.id} value={c.id}>{c.company}</option>)}
-            </select>
+            <CustomerPicker
+              customers={customers}
+              selectedCustomerId={selectedCustomerId}
+              onSelect={handleCompanyChange}
+              danger={overdue.length > 0}
+            />
           </div>
         )}
 
@@ -166,7 +223,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
               <div className="elg-field">
                 <label>Production Cost</label>
                 <div className="elg-price-field">
-                  <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
+                  <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="300" />
                   <select value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)}>
                     {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
                   </select>
@@ -175,7 +232,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
             </div>
 
             <div className="elg-field-row">
-              <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} /></div>
+              <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} disabled={!order} title={!order ? 'Default commission — adjust it after the order is created' : undefined} /></div>
               <div className="elg-field">
                 <label>Status</label>
                 <div className="elg-status-box">

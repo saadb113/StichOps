@@ -97,11 +97,13 @@ export default function EmployeeProfile() {
                 <div className="elg-row-menu">
                   {e.hasLogin && (
                     <button onClick={handleRegenerate}>
-                      <KeyIcon width={14} height={14} /> Regenerate Credentials
+                      <img src="/icons/reload-icon.svg" width={12} alt="Regenerate Icon" />
+                      Regenerate Credentials
                     </button>
                   )}
                   <button className="elg-btn-danger-text" onClick={handleDelete}>
-                    <TrashIcon width={14} height={14} /> Delete
+                    <img src="/icons/delete-red-icon.svg" width={12} alt="Delete Icon" />
+                    Delete
                   </button>
                 </div>
               )}

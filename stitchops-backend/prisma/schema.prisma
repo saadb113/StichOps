@@ -66,6 +66,7 @@ model Employee {
   email       String?
   contact     String?
   photo       String?
+  commissionRate Float @default(10)
 
   user                  User?
   companyEmails         CompanyEmail[]
@@ -73,6 +74,7 @@ model Employee {
   designedOrders        Order[]                 @relation("OrderDesigner")
   payslips              Payslip[]
   passwordResetRequests PasswordResetRequest[]
+  notifications         Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -215,10 +217,12 @@ model PasswordResetRequest {
 // requesting a password reset. Read status is tracked so the topbar bell
 // can show an unread count.
 model Notification {
-  id        Int      @id @default(autoincrement())
-  type      String
-  message   String
-  link      String?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  type       String
+  message    String
+  link       String?
+  employeeId Int?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  read       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
 }

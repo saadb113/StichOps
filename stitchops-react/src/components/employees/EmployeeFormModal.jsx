@@ -22,6 +22,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   const [currency, setCurrency] = useState(e ? e.currency : 'GBP');
   const [salary, setSalary] = useState(e ? e.baseSalary : '');
   const [payoutDay, setPayoutDay] = useState(e ? e.payoutDay : 28);
+  const [commissionRate, setCommissionRate] = useState(e ? e.commissionRate : 10);
 
   const [emails, setEmails] = useState(e && e.emails && e.emails.length ? e.emails : ['']);
 
@@ -42,7 +43,8 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       emails: emailsList,
       currency,
       baseSalary: Number(salary) || 0,
-      payoutDay: Number(payoutDay) || 28
+      payoutDay: Number(payoutDay) || 28,
+      commissionRate: Number(commissionRate) || 0
     };
     try {
       if (e) {
@@ -70,7 +72,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       {!e ? 
       <div className="elg-modal-head-plain addemployee">
-        <img src="/images/addEmployee.png" alt="" />
+        <img src="/images/addEmployee.svg" alt="" />
         <h3>Add Employee</h3>
         <p>Add employee details to add employee profile.</p>
       </div> :
@@ -184,6 +186,22 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
             placeholder="5"
           />
         </div>
+
+        {showEmailPool && (
+          <div className="elg-field">
+            <label className="elg-label">Commission Rate (%)</label>
+            <input
+              className="elg-input"
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={commissionRate}
+              onChange={(ev) => setCommissionRate(ev.target.value)}
+              placeholder="10"
+            />
+          </div>
+        )}
 
         {/* Row 5: Assigned Client-Facing Emails (If Salesperson) */}
         {showEmailPool && (

@@ -95,10 +95,12 @@ export default function OrdersTab({ customer, orders }) {
                       )}
                       {openMenuId === o.id && (
                         <div className="elg-row-menu">
-                          <button className="elg-btn-danger-text" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                          <button className="" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                            <img src="/icons/pencil-icon.svg" width={12} alt="Edit Icon" />
                             Edit order
                           </button>
                           <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>
+                            <img src="/icons/delete-red-icon.svg" alt="Delete Icon" />
                             Delete order
                           </button>
                         </div>

@@ -20,6 +20,7 @@ function serializeEmployee(employee) {
     currency: employee.currency,
     baseSalary: employee.baseSalary,
     payoutDay: employee.payoutDay,
+    commissionRate: employee.commissionRate,
     email: employee.email || '',
     contact: employee.contact || '',
     photo: employee.photo || null,

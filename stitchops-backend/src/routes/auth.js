@@ -71,7 +71,8 @@ router.post('/forgot-password', validateBody(forgotPasswordSchema), asyncHandler
       data: {
         type: 'password_reset_request',
         message: `${employee ? employee.name : email} requested a password reset.`,
-        link: '/employees'
+        link: '/employees',
+        employeeId: user.employeeId
       }
     });
     broadcastNotification(notification);

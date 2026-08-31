@@ -27,7 +27,7 @@ router.get('/stream', requireAuth, requireAdmin, (req, res) => {
 });
 
 router.get('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
-  const notifications = await prisma.notification.findMany({ orderBy: { id: 'desc' }, take: 50 });
+  const notifications = await prisma.notification.findMany({ orderBy: { id: 'desc' }, take: 10 });
   res.json(notifications);
 }));
 

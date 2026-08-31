@@ -98,9 +98,12 @@ export function AppStateProvider({ children }) {
     es.addEventListener('notification', (e) => {
       let notification;
       try { notification = JSON.parse(e.data); } catch { return; }
-      setNotifications((list) => (list.some((n) => n.id === notification.id) ? list : [notification, ...list]));
+      setNotifications((list) => (list.some((n) => n.id === notification.id) ? list : [notification, ...list].slice(0, 10)));
       if (notification.type === 'password_reset_request') refreshPasswordResetRequests();
       if (notification.type === 'new_customer') refreshCustomers();
+      // The employee behind this notification (their photo, most likely)
+      // may be newer than whatever this admin tab last fetched.
+      if (notification.employeeId) refreshEmployees();
     });
     return () => es.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,14 +201,16 @@ export function AppStateProvider({ children }) {
   }
   async function uploadEmployeePhoto(id, file) {
     const updated = await api.upload(`/employees/${id}/photo`, file);
-    await refreshEmployees();
     if (currentEmployee && currentEmployee.id === id) setCurrentEmployee(updated);
+    // The employees list is an admin-only endpoint — a salesperson uploading
+    // their own photo can't (and doesn't need to) refresh it.
+    if (isAdmin) await refreshEmployees();
     return updated;
   }
   async function deleteEmployeePhoto(id) {
     const updated = await api.delete(`/employees/${id}/photo`);
-    await refreshEmployees();
     if (currentEmployee && currentEmployee.id === id) setCurrentEmployee(updated);
+    if (isAdmin) await refreshEmployees();
     return updated;
   }
   async function regenerateCredentials(employeeId) {

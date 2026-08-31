@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Employee" ADD COLUMN     "commissionRate" DOUBLE PRECISION NOT NULL DEFAULT 10;

@@ -9,9 +9,17 @@ const createEmployeeSchema = z.object({
   currency: z.string().min(1),
   baseSalary: z.number().nonnegative(),
   payoutDay: z.number().int().min(1).max(28),
+  commissionRate: z.number().min(0).max(100).optional().default(10),
   emails: z.array(z.string()).optional().default([])
 });
 
-const updateEmployeeSchema = createEmployeeSchema.partial();
+// .partial() alone would still apply createEmployeeSchema's .default(...)
+// values (commissionRate, designation, email, contact) to any field missing
+// from a PATCH body, silently overwriting them — re-declare commissionRate
+// here without a default so a partial update (e.g. editing assigned emails
+// only) can't reset it back to 10.
+const updateEmployeeSchema = createEmployeeSchema.partial().extend({
+  commissionRate: z.number().min(0).max(100).optional()
+});
 
 module.exports = { createEmployeeSchema, updateEmployeeSchema };

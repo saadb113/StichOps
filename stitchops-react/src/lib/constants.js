@@ -8,6 +8,10 @@ export const CCY_NAMES = {
   EUR: "Euro (EUR)",
   AUD: "Australian Dollar (AUD)"
 };
+// Orders, customers and invoices are always priced in a foreign currency —
+// PKR (or whatever the company's default currency is) is reserved for
+// in-house figures like salaries, commission and production cost.
+export const CUSTOMER_CURRENCIES = Object.keys(SYM).filter((cc) => cc !== 'PKR');
 export const PHONE_CODES = ["+92", "+44", "+1", "+971", "+61"];
 export function splitContact(contact) {
   const trimmed = (contact || "").trim();

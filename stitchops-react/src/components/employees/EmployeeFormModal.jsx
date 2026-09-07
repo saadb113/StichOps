@@ -21,7 +21,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   const [phoneCode, setPhoneCode] = useState(initialContact.code);
   const [phone, setPhone] = useState(initialContact.num);
   const [salary, setSalary] = useState(e ? e.baseSalary : '');
-  const [payoutDay, setPayoutDay] = useState(e ? e.payoutDay : 28);
+  const [payoutDay, setPayoutDay] = useState(e ? e.payoutDay : 5);
   const [commissionRate, setCommissionRate] = useState(e ? e.commissionRate : 10);
 
   const [emails, setEmails] = useState(e && e.emails && e.emails.length ? e.emails : ['']);
@@ -67,7 +67,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
   }
 
   return (
-    <div className="elg-modal employeesModal">
+    <div className="elg-modal employeesModal" style={{maxWidth : "100%"}}>
       {/* Modal Header */}
       <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       {!e ? 
@@ -91,7 +91,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               className="elg-input"
               value={name}
               onChange={(ev) => setName(ev.target.value)}
-              placeholder="e.g. Carla Montero"
+              placeholder="e.g. Zain Ahmed"
             />
           </div>
           <div className="elg-field">
@@ -127,15 +127,15 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               className="elg-input"
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
-              placeholder="e.g. carla@abcdigitizing.com"
+              placeholder="e.g. abc123@gmail.com"
             />
           </div>
           <div className="elg-field">
             <label className="elg-label">Contact Number</label>
-            <div className='elg-price-field' style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <select
                 className="elg-select"
-                
+                style={{ width: 85, flexShrink: 0 }}
                 value={phoneCode}
                 onChange={(ev) => setPhoneCode(ev.target.value)}
               >
@@ -145,53 +145,58 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
                 className="elg-input"
                 value={phone}
                 onChange={(ev) => setPhone(ev.target.value)}
-                placeholder="000 000000"
+                placeholder="300 1234567"
               />
             </div>
           </div>
         </div>
 
         {/* Row 4: Base Salary (always in the company's default currency) & Payout Day */}
-        <div className="elg-field">
-          <label className="elg-label">Base Salary ({defaultCurrency})</label>
-          <div className='elg-price-field'>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="elg-field">
+            <label className="elg-label">Base Salary ({defaultCurrency})</label>
+            <div className='elg-price-field'>
+              <input
+                className="elg-input"
+                type="number"
+                step="0.01"
+                value={salary}
+                onChange={(ev) => setSalary(ev.target.value)}
+                placeholder="0.00"
+              />
+              <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
+            </div>
+          </div>
+          <div className="elg-field">
+            <label className="elg-label">Payout Day</label>
             <input
               className="elg-input"
               type="number"
-              step="0.01"
-              value={salary}
-              onChange={(ev) => setSalary(ev.target.value)}
-              placeholder="0.00"
+              min="1"
+              max="28"
+              value={payoutDay}
+              onChange={(ev) => setPayoutDay(ev.target.value)}
+              placeholder="5"
             />
-            <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
           </div>
-        </div>
-        <div className="elg-field">
-          <label className="elg-label">Payout Day</label>
-          <input
-            className="elg-input"
-            type="number"
-            min="1"
-            max="28"
-            value={payoutDay}
-            onChange={(ev) => setPayoutDay(ev.target.value)}
-            placeholder="5"
-          />
         </div>
 
         {showEmailPool && (
           <div className="elg-field">
-            <label className="elg-label">Commission Rate (%)</label>
-            <input
-              className="elg-input"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={commissionRate}
-              onChange={(ev) => setCommissionRate(ev.target.value)}
-              placeholder="10"
-            />
+            <label className="elg-label">Commission Rate</label>
+            <div className="elg-price-field">
+              <input
+                className="elg-input"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={commissionRate}
+                onChange={(ev) => setCommissionRate(ev.target.value)}
+                placeholder="10"
+              />
+              <span className="elg-price-field-fixed-ccy">%</span>
+            </div>
           </div>
         )}
 

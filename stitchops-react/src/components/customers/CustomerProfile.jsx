@@ -116,10 +116,10 @@ export default function CustomerProfile() {
                 <div className="elg-kv-row"><span className="k">Country</span><span className="v">{c.country}</span></div>
                 <div className="elg-kv-row"><span className="k">Default Currency</span><span className="v">{c.currency}</span></div>
                 <div className="elg-kv-row"><span className="k">Contact</span><span className="v">{c.contact || '—'}</span></div>
-                <div className="elg-kv-row"><span className="k">Client's Email</span><span className="v" style={{ fontWeight: 600 }}>{c.email || '—'}</span></div>
-                {c.receivedEmail && <div className="elg-kv-row"><span className="k">Received Via</span><span className="v" style={{ fontSize: 12 }}>{c.receivedEmail}</span></div>}
+                <div className="elg-kv-row"><span className="k">Client's Email</span><span className="v">{c.email || '—'}</span></div>
+                {c.receivedEmail && <div className="elg-kv-row"><span className="k">Received Via</span><span className="v">{c.receivedEmail}</span></div>}
                 <div className="elg-kv-row">
-                  <span className="k">Status</span>
+                  <span className="k">Customer Type</span>
                   {/* <span className="v">
                     <select
                       className="elg-status-pill-select"

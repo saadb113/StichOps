@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt, convertToDefault } from '../../lib/helpers';
-import {SYMIcon, SYM, TODAY } from '../../lib/constants';
+import { fmt, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt, convertToDefault, paymentBadge } from '../../lib/helpers';
+import {SYMIcon, SYM, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CalendarIcon } from '../icons/Icon';
 
-const ORDER_CURRENCIES = Object.keys(SYM).filter((cc) => cc !== 'PKR');
+const ORDER_CURRENCIES = CUSTOMER_CURRENCIES;
 
 function fmtRate(v) {
   return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -47,9 +47,10 @@ export default function Reports() {
 
   const byDesigner = {};
   curr.forEach((o) => {
-    if (!byDesigner[o.designer]) byDesigner[o.designer] = {};
+    if (!byDesigner[o.designer]) byDesigner[o.designer] = { count: 0, cost: {} };
+    byDesigner[o.designer].count++;
     const cc = o.productionCostCurrency || o.currency;
-    byDesigner[o.designer][cc] = (byDesigner[o.designer][cc] || 0) + o.productionCost;
+    byDesigner[o.designer].cost[cc] = (byDesigner[o.designer].cost[cc] || 0) + o.productionCost;
   });
 
   const bySales = {};
@@ -71,6 +72,8 @@ export default function Reports() {
     });
     return hasUnknown ? null : total;
   }
+
+  const unpaidInvoices = invoices.filter((i) => i.status === 'approved' && i.paymentStatus !== 'Completed');
 
   async function handleToggle(id) {
     try {
@@ -105,12 +108,12 @@ export default function Reports() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
             <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.png" style={{right : "12px"}} alt="" />
+            <img src="/images/calender.svg" style={{right : "12px"}} alt="" />
           </span>
           <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
             <input type="date" value={to} onChange={(e) => { setTo(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-                        <img src="/images/calender.png" style={{right : "12px"}} alt="" />
+                        <img src="/images/calender.svg" style={{right : "12px"}} alt="" />
           </span>
         </div>
       </div>
@@ -137,14 +140,15 @@ export default function Reports() {
           <div className="elg-section-title" style={{ marginBottom: 18 }}>Production Cost by Designer</div>
         </div>
         <table className="elg-table">
-          <thead><tr><th>Designer</th><th>Total Production Cost</th></tr></thead>
+          <thead><tr><th>Designer</th><th>Orders</th><th>Total Production Cost</th></tr></thead>
           <tbody>
-            {Object.keys(byDesigner).length === 0 && <tr><td colSpan={2} className="elg-empty">No orders in this range.</td></tr>}
-            {Object.entries(byDesigner).map(([d, byCcy]) => {
-              const total = convertedTotal(byCcy);
+            {Object.keys(byDesigner).length === 0 && <tr><td colSpan={3} className="elg-empty">No orders in this range.</td></tr>}
+            {Object.entries(byDesigner).map(([d, data]) => {
+              const total = convertedTotal(data.cost);
               return (
                 <tr key={d}>
                   <td>{d}</td>
+                  <td>{data.count}</td>
                   <td>{total == null ? '—' : fmt(total, defaultCcy)}</td>
                 </tr>
               );
@@ -184,22 +188,22 @@ export default function Reports() {
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Client Payment Status</div>
         </div>
         <table className="elg-table">
-          <thead><tr><th>ID</th><th>Customer</th><th>Currency</th><th>Amount</th><th>Payment Status</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
+          <thead><tr><th>ID</th><th>Customer</th><th>Currency</th><th>Amount</th><th>Unpaid For</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
           <tbody>
-            {invoices.length === 0 && <tr><td colSpan={6} className="elg-empty">No approved invoices yet.</td></tr>}
-            {invoices.map((i) => {
+            {unpaidInvoices.length === 0 && <tr><td colSpan={6} className="elg-empty">No unpaid invoices — everything's settled.</td></tr>}
+            {unpaidInvoices.map((i) => {
               const c = getCustomer(i.customerId);
-              const paid = i.paymentStatus === 'Completed';
+              const pb = paymentBadge(i);
               return (
                 <tr key={i.id}>
                   <td>{i.invoiceNo}</td>
                   <td>{c ? c.company : '—'}</td>
                   <td>{i.currency} {SYM[i.currency]}</td>
                   <td>{i.total.toFixed(2)}</td>
-                  <td><span className={`elg-badge ${paid ? 'elg-badge-paid' : 'elg-badge-unpaid'}`}>{paid ? 'Paid' : 'Unpaid'}</span></td>
+                  <td><span className={`elg-badge elg-badge-unpaid`}>{pb.label}</span></td>
                   <td style={{ textAlign: 'right' }}>
                     <button className="elg-btn elg-btn-sm" style={{marginLeft : "auto", width: 'auto' }} onClick={() => handleToggle(i.id)}>
-                      Mark as {paid ? 'Unpaid' : 'Paid'}
+                      Mark as Paid
                     </button>
                   </td>
                 </tr>

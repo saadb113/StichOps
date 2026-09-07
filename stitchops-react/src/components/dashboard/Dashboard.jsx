@@ -5,6 +5,7 @@ import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt, isActive, paymentBadge, convertToDefault } from '../../lib/helpers';
 import { TODAY } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
+import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon } from '../icons/Icon';
 
 function greetingFor(date) {
@@ -12,6 +13,22 @@ function greetingFor(date) {
   if (h < 12) return 'Good Morning';
   if (h < 18) return 'Good Afternoon';
   return 'Good Evening';
+}
+
+// "Today" / "August Month" / "1 Aug - 10 Aug" — whichever describes the
+// selected range in the fewest words.
+function rangeLabel(from, to) {
+  if (from === TODAY && to === TODAY) return 'Today';
+  const fromD = new Date(from + 'T00:00:00');
+  const toD = new Date(to + 'T00:00:00');
+  const lastDayOfMonth = new Date(fromD.getFullYear(), fromD.getMonth() + 1, 0).getDate();
+  const isFullMonth = fromD.getDate() === 1
+    && fromD.getFullYear() === toD.getFullYear()
+    && fromD.getMonth() === toD.getMonth()
+    && toD.getDate() === lastDayOfMonth;
+  if (isFullMonth) return fromD.toLocaleDateString('en-US', { month: 'long' }) + ' Month';
+  const short = (d) => `${d.getDate()} ${d.toLocaleDateString('en-US', { month: 'short' })}`;
+  return `${short(fromD)} - ${short(toD)}`;
 }
 
 function elgStatusClass(status) {
@@ -26,8 +43,10 @@ export default function Dashboard() {
   const { customers, orders, employees, invoices, passwordResetRequests, company, currencyRates, getCustomer } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
-  const [refDate, setRefDate] = useState(TODAY);
+  const [from, setFrom] = useState(TODAY);
+  const [to, setTo] = useState(TODAY);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const refDate = to;
 
   useEffect(() => {
     function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
@@ -35,24 +54,24 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const todaysOrders = orders.filter((o) => o.date === refDate);
+  const todaysOrders = orders.filter((o) => o.date >= from && o.date <= to);
   const activeCount = customers.filter((c) => isActive(orders, c, refDate)).length;
   const pendingReview = orders.filter((o) => !o.invoiced && o.status === 'Completed').length;
 
-  const monthPrefix = refDate.slice(0, 7); // 'YYYY-MM' of the selected day
+  const monthPrefix = refDate.slice(0, 7); // 'YYYY-MM' of the range's end date
   const monthName = new Date(monthPrefix + '-01').toLocaleDateString('en-US', { month: 'long' });
 
   const defaultCcy = company?.defaultCurrency || 'PKR';
-  const monthTotals = {};
-  orders.filter((o) => o.date.slice(0, 7) === monthPrefix).forEach((o) => { monthTotals[o.currency] = (monthTotals[o.currency] || 0) + o.price; });
-  let monthRevenueConverted = 0;
-  let monthRevenueUnknown = false;
-  Object.entries(monthTotals).forEach(([cc, v]) => {
+  const rangeTotals = {};
+  todaysOrders.forEach((o) => { rangeTotals[o.currency] = (rangeTotals[o.currency] || 0) + o.price; });
+  let totalIncomeConverted = 0;
+  let totalIncomeUnknown = false;
+  Object.entries(rangeTotals).forEach(([cc, v]) => {
     const converted = convertToDefault(v, cc, currencyRates, defaultCcy);
-    if (converted == null) monthRevenueUnknown = true;
-    else monthRevenueConverted += converted;
+    if (converted == null) totalIncomeUnknown = true;
+    else totalIncomeConverted += converted;
   });
-  const monthRevenueStr = monthRevenueUnknown ? '—' : fmt(monthRevenueConverted, defaultCcy);
+  const totalIncomeStr = totalIncomeUnknown ? '—' : fmt(totalIncomeConverted, defaultCcy);
 
   const dueSoon = customers.filter((c) => {
     if (!c.invoiceDay) return false;
@@ -74,10 +93,15 @@ export default function Dashboard() {
   return (
     <div className="elg-page">
       <div className="elg-page-head" style={{ paddingBottom: 24, borderBottom : "1px solid #E8E8E8", marginBottom : 24}}>
-        <div className="elg-greeting">{greetingFor(refDate)} <span>👋</span></div>
-        <div className="elg-date-field">
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="date" value={refDate} onChange={(e) => setRefDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+        <div className="elg-greeting">{greetingFor(to)} <span>👋</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+            <img src="/images/calender.svg" alt="" />
+          </span>
+          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
             <img src="/images/calender.svg" alt="" />
           </span>
         </div>
@@ -120,9 +144,9 @@ export default function Dashboard() {
           <div className="elg-metric-sub">Completed, not yet invoiced</div>
         </div>
         <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Current Revenue</span><span className="elg-metric-icon"><img src="/images/revenue.svg" alt="" /></span></div>
-          <div className="elg-metric-value">{monthRevenueStr}</div>
-          <div className="elg-metric-sub">{monthName} Month</div>
+          <div className="elg-metric-head"><span className="elg-metric-label">Total Income</span><span className="elg-metric-icon"><img src="/images/revenue.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{totalIncomeStr}</div>
+          <div className="elg-metric-sub">{rangeLabel(from, to)}</div>
         </div>
       </div>
 
@@ -131,12 +155,12 @@ export default function Dashboard() {
       </div>
 
       <div className="elg-panel elg-table-wrap">
-        <div className="elg-section-head">
+        <div className="elg-section-head" style={{border : 0}}>
           <div className="elg-section-title">Recent Orders</div>
           <button className="elg-btn elg-view-all-btn" style={{ width: 'auto' }} onClick={() => navigate('/orders')}>View All</button>
         </div>
         <table className="elg-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th>Action</th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th  style={{minWidth : "150px"}}>Action</th></tr></thead>
           <tbody>
             {recent.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders yet.</td></tr>}
             {recent.map((o) => {
@@ -156,6 +180,9 @@ export default function Dashboard() {
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' }); }}>
                             <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
+                          </button>
+                          <button className="elg-btn-danger-text" onClick={() => { setOpenMenuId(null); openModal(<ConfirmDeleteOrderModal order={o} />, { variant: 'elegant' }); }}>
+                            <img src="/icons/delete-red-icon.svg" alt="Delete" width="14" height="14" /> Delete order
                           </button>
                         </div>
                       )}

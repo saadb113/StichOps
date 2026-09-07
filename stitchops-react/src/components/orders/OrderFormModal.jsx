@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { SYM, ORDER_STATUSES, TODAY } from '../../lib/constants';
+import { SYM, ORDER_STATUSES, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
 import { BagIcon, CloseIcon, WarningIcon, ChevronDownIcon } from '../icons/Icon';
 const addOrderImg = '/images/addOrder.svg';
@@ -73,6 +73,42 @@ function statusPillStyle(status) {
   return { background: s.bg, color: s.fg };
 }
 
+// Custom dropdown (not a native <select>) so every option renders as its own
+// colored capsule — a native select can't style its own option list.
+function StatusDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function onDocClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  function pick(s) {
+    onChange(s);
+    setOpen(false);
+  }
+
+  return (
+    <div className="elg-status-dropdown" ref={ref}>
+      <button type="button" className="elg-status-box elg-status-dropdown-trigger" onClick={() => setOpen((v) => !v)}>
+        <span className="elg-status-pill-select" style={statusPillStyle(value)}>{value}</span>
+        <ChevronDownIcon className="elg-status-chevron" />
+      </button>
+      {open && (
+        <div className="elg-status-dropdown-list">
+          {ORDER_STATUSES.map((s) => (
+            <div key={s} className="elg-status-dropdown-item" onClick={() => pick(s)}>
+              <span className="elg-status-pill-select" style={statusPillStyle(s)}>{s}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OrderFormModal({ customerId = null, order = null, allowCompanyPicker = false }) {
   const { customers, employees, company, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
   const { closeModal, toast } = useUi();
@@ -88,8 +124,12 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   const [price, setPrice] = useState(order ? order.price : '');
   const [currency, setCurrency] = useState(order ? order.currency : (cust ? cust.currency : ''));
   const [designer, setDesigner] = useState(order ? order.designer : (designers[0]?.name || ''));
-  const [cost, setCost] = useState(order ? order.productionCost : 300);
-  const [commission, setCommission] = useState(order ? order.commissionRate : 10);
+  const [cost, setCost] = useState(order ? order.productionCost : 400);
+  const [commission, setCommission] = useState(() => {
+    if (order) return order.commissionRate;
+    const salespersonEmp = cust ? employees.find((emp) => emp.name === cust.salesperson) : null;
+    return salespersonEmp ? salespersonEmp.commissionRate : 10;
+  });
   const [status, setStatus] = useState(order ? order.status : 'Pending');
 
   const showPicker = allowCompanyPicker && !order;
@@ -97,7 +137,13 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   function handleCompanyChange(id) {
     setSelectedCustomerId(id);
     const c = getCustomer(Number(id));
-    if (c) setCurrency(c.currency);
+    if (c) {
+      setCurrency(c.currency);
+      // Commission is the salesperson's own configured rate — never a value
+      // typed here — so a new order always locks to whatever their profile says.
+      const salespersonEmp = employees.find((emp) => emp.name === c.salesperson);
+      setCommission(salespersonEmp ? salespersonEmp.commissionRate : 10);
+    }
   }
 
   const overdue = cust ? customerOverdueInvoices(invoices, cust.id) : [];
@@ -204,7 +250,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
                 <div className="elg-price-field">
                   <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                    {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+                    {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
                   </select>
                 </div>
               </div>
@@ -217,29 +263,23 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
               <div className="elg-field">
                 <label>Production Cost ({defaultCurrency})</label>
                 <div className="elg-price-field">
-                  <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="300" />
+                  <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="400" />
                   <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
                 </div>
               </div>
             </div>
 
             <div className="elg-field-row">
-              <div className="elg-field"><label>Commission Rate (%)</label><input type="number" value={commission} onChange={(e) => setCommission(e.target.value)} disabled={!order} title={!order ? 'Default commission — adjust it after the order is created' : undefined} /></div>
+              <div className="elg-field">
+                <label>Commission Rate</label>
+                <div className="elg-price-field">
+                  <input type="number" value={commission} disabled title="Set on the salesperson's own profile — not editable here" />
+                  <span className="elg-price-field-fixed-ccy">%</span>
+                </div>
+              </div>
               <div className="elg-field">
                 <label>Status</label>
-                <div className="elg-status-box">
-                  <select
-                    className="elg-status-pill-select"
-                    style={statusPillStyle(status)}
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    {ORDER_STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="elg-status-chevron" />
-                </div>
+                <StatusDropdown value={status} onChange={setStatus} />
               </div>
 
             </div>

@@ -6,6 +6,7 @@ import { fmt, unpaidAmountFor, sumConvertedToDefault } from '../../lib/helpers';
 import EmployeeFormModal from './EmployeeFormModal';
 import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
+import EditTeamsModal from './EditTeamsModal';
 import CredentialsModal from './CredentialsModal';
 import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon } from '../icons/Icon';
 
@@ -136,7 +137,7 @@ export default function EmployeesList() {
                   <th>Employee</th>
                   <th>Email</th>
                   <th>Requested At</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
+                  <th >Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,6 +214,13 @@ export default function EmployeesList() {
         >
           <PlusIcon width={15} height={15} /> Add Team
         </div>
+        <div
+          className="elg-tab"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
+          onClick={() => openModal(<EditTeamsModal />, { variant: 'elegant' })}
+        >
+          <img src="/icons/pencil-icon.svg" alt="" width="12" height="12" /> Edit Teams
+        </div>
       </div>
 
       <div className="elg-panel elg-table-wrap">
@@ -225,7 +233,7 @@ export default function EmployeesList() {
               {category === 'Salesperson' && <th>Base Salary</th>}
               <th>Payout Day</th>
               <th>Unpaid Earnings</th>
-              <th style={{ textAlign: 'right' }}>Options</th>
+              <th style={{minWidth : "150px"}}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -242,8 +250,8 @@ export default function EmployeesList() {
               const unpaidTotal = sumConvertedToDefault(unpaid, currencyRates, defaultCurrency);
               const unpaidStr = unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
               return (
-                <tr className="clickable" key={e.id}>
-                  <td onClick={() => navigate(`/employees/${e.id}`)}>
+                <tr className="clickable" key={e.id} onClick={() => navigate(`/employees/${e.id}`)}>
+                  <td>
                     <span>{e.name}</span>
                   </td>
                   <td>{e.designation || '—'}</td>
@@ -251,7 +259,7 @@ export default function EmployeesList() {
                   {category === 'Salesperson' && <td>{fmt(e.baseSalary, defaultCurrency)}</td>}
                   <td>The {e.payoutDay}th of each month</td>
                   <td><strong>{unpaidStr}</strong></td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td>
                     <div className="elg-row-actions">
                       <button
                         className="elg-btn elg-btn-ghost elg-btn-sm"

@@ -11,7 +11,10 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
-body{font-family:var(--font);background:var(--bg);color:var(--ink);}
+/* Inter Display's own metrics run tighter than the Figma spec at body-text
+   sizes — this opens tracking back up app-wide. Headings/labels that already
+   set their own letter-spacing (theme-elegant.css) are unaffected. */
+body{font-family:var(--font);background:var(--bg);color:var(--ink);letter-spacing:0.01em;}
 #root{width:100%;min-height:100vh;}
 #app{display:flex;min-height:100vh;}
 
@@ -110,8 +113,9 @@ tr.clickable:hover{background:var(--surface-2);cursor:pointer;}
 .empty{padding:44px 20px;text-align:center;color:var(--ink-3);font-size:13px;}
 .empty i{display:block;font-size:12px;margin-bottom:6px;}
 
-.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:200;display:none;}
-.toast.show{display:block;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:200;display:none;align-items:center;gap:14px;}
+.toast.show{display:flex;}
+.toast-action{background:none;border:none;color:#fff;font-size:13px;font-weight:700;text-decoration:underline;cursor:pointer;padding:0;flex-shrink:0;}
 
 .global-spinner{position:fixed;top:18px;right:18px;z-index:300;opacity:0;transform:scale(0.85);pointer-events:none;transition:opacity 0.2s ease,transform 0.2s ease;}
 .global-spinner.show{opacity:1;transform:scale(1);}

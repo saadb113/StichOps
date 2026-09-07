@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { CCY, SYM } from '../../lib/constants';
+import { CCY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CloseIcon, UserPlusIcon } from '../icons/Icon';
 
 export default function CustomerFormModal({ customer = null }) {
@@ -120,7 +120,7 @@ export default function CustomerFormModal({ customer = null }) {
           <div className="elg-field">
             <label>Currency</label>
             <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-              {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+              {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
             </select>
           </div>
         </div>

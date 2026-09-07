@@ -37,4 +37,36 @@ async function fetchMarketRate(from, to) {
   return rate;
 }
 
-module.exports = { fetchMarketRate };
+const RATE_STALE_MS = 24 * 60 * 60 * 1000;
+let inFlightRefresh = null;
+
+// There's no cron/scheduler in this app, so non-custom currency rates are
+// refreshed reactively — whenever the rates list loads (see
+// routes/currencyRates.js) — for any row whose updatedAt is more than a day
+// old. Custom (admin-pinned) rates are left alone. The in-flight guard
+// mirrors lib/dueDates.js: concurrent callers (e.g. two tabs loading at
+// once) share one refresh instead of racing duplicate market-rate calls.
+function refreshStaleRates(prisma) {
+  if (!inFlightRefresh) inFlightRefresh = runRefresh(prisma).finally(() => { inFlightRefresh = null; });
+  return inFlightRefresh;
+}
+
+async function runRefresh(prisma) {
+  const company = await prisma.company.findUnique({ where: { id: 1 } });
+  const base = company?.defaultCurrency || 'PKR';
+  const cutoff = new Date(Date.now() - RATE_STALE_MS);
+  const stale = await prisma.currencyRate.findMany({
+    where: { isCustom: false, currency: { not: base }, updatedAt: { lt: cutoff } }
+  });
+  for (const row of stale) {
+    try {
+      const rate = await fetchMarketRate(row.currency, base);
+      await prisma.currencyRate.update({ where: { currency: row.currency }, data: { rate } });
+    } catch {
+      // Provider hiccup or missing API key — leave the existing rate in
+      // place and try again next time the list loads.
+    }
+  }
+}
+
+module.exports = { fetchMarketRate, refreshStaleRates };

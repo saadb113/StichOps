@@ -1,11 +1,12 @@
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt } from '../../lib/helpers';
+import { downloadPayslipPdf } from '../../lib/payslipPdf';
 import EditSlipOrdersModal from './EditSlipOrdersModal';
 import { DownloadIcon } from '../icons/Icon';
 
 export default function SlipHistoryTab({ employee: e }) {
-  const { payslips, togglePayslipPayment } = useAppState();
+  const { payslips, togglePayslipPayment, company } = useAppState();
   const { openModal, toast } = useUi();
 
   const slips = payslips.filter((s) => s.employeeId === e.id).sort((a, b) => b.id - a.id);
@@ -63,7 +64,7 @@ export default function SlipHistoryTab({ employee: e }) {
                 <button
                   className="elg-btn elg-btn-sm"
                   style={{padding : "4.5px 10px", width: 'auto', display: 'inline-flex', marginRight: 6 }}
-                  onClick={() => toast('Downloading ' + s.slipNo + '.pdf')}
+                  onClick={() => downloadPayslipPdf({ slip: s, employee: e, company })}
                 >
                   <img src="/images/download.svg" alt="" /> Download
                 </button>

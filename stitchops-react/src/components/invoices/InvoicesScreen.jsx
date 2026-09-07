@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { paymentBadge } from '../../lib/helpers';
-import { SYM } from '../../lib/constants';
+import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon } from '../icons/Icon';
@@ -20,11 +20,14 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, orders, company, getCustomer, togglePaymentStatus } = useAppState();
+  const { invoices, orders, customers, company, getCustomer, togglePaymentStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dueToday = searchParams.get('dueToday') === '1';
 
-  const [date, setDate] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [search, setSearch] = useState('');
   const [currency, setCurrency] = useState('');
   const [status, setStatus] = useState('');
@@ -37,7 +40,13 @@ export default function InvoicesScreen() {
   }, []);
 
   let list = invoices.filter((i) => i.status === 'approved');
-  if (date) list = list.filter((i) => i.generatedDate === date);
+  if (dueToday) {
+    const todayDate = new Date().getDate();
+    const dueCustomerIds = new Set(customers.filter((c) => c.invoiceDay === todayDate).map((c) => c.id));
+    list = list.filter((i) => dueCustomerIds.has(i.customerId));
+  }
+  if (from) list = list.filter((i) => i.generatedDate >= from);
+  if (to) list = list.filter((i) => i.generatedDate <= to);
   if (currency) list = list.filter((i) => i.currency === currency);
   if (status) {
     list = list.filter((i) => {
@@ -83,6 +92,11 @@ export default function InvoicesScreen() {
           <div className="elg-page-title">Invoices</div>
           <div className="elg-page-sub">{list.length} invoice{list.length === 1 ? '' : 's'}</div>
         </div>
+        {dueToday && (
+          <button className="elg-btn elg-btn-ghost" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => setSearchParams({})}>
+            Showing customers due today &times; Clear filter
+          </button>
+        )}
       </div>
 
       <div className="elg-panel elg-filterbar">
@@ -90,12 +104,17 @@ export default function InvoicesScreen() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search invoices or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="elg-date-field">
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
             <img src="/images/calender.svg" alt="" />
           </span>
-          {date && <button className="elg-date-clear" title="Clear date" onClick={() => setDate('')}>&times;</button>}
+          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
+          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
+            <img src="/images/calender.svg" alt="" />
+          </span>
+          {(from || to) && <button className="elg-date-clear" title="Clear dates" onClick={() => { setFrom(''); setTo(''); }}>&times;</button>}
         </div>
         <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All Status</option>
@@ -106,13 +125,13 @@ export default function InvoicesScreen() {
         </select>
         <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
           <option value="">All Currencies</option>
-          {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+          {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
         </select>
       </div>
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
-          <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Currency</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Currency</th><th>Price</th><th>Status</th><th style={{minWidth : "150px"}}>Actions</th></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
             {list.map((i) => {
@@ -120,9 +139,9 @@ export default function InvoicesScreen() {
               const bi = invoiceBadgeInfo(i);
               return (
                 <tr key={i.id}>
+                  <td>{i.generatedDate}</td>
                   <td>{i.invoiceNo}{i.version > 1 ? ` (v${i.version})` : ''}</td>
                   <td className="clickable" onClick={() => navigate(`/customers/${i.customerId}`)}>{c ? c.company : '—'}</td>
-                  <td>{i.generatedDate}</td>
                   <td>{i.currency}</td>
                   <td>{i.total.toFixed(2)}</td>
                   <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>

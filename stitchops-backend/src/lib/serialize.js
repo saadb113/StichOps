@@ -46,7 +46,8 @@ function serializeCustomer(customer) {
     receivedEmail: customer.receivedEmail,
     status: customer.status,
     invoiceDay: customer.invoiceDay,
-    notes: customer.notes
+    notes: customer.notes,
+    createdAt: customer.createdAt
   };
 }
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
@@ -6,7 +7,7 @@ import CustomerFormModal from '../customers/CustomerFormModal';
 import {
   PeopleIcon, DocIcon, PersonIcon,
   PeopleIconActive, DocIconActive, PersonIconActive,
-  PlusIcon, UserPlusIcon, ShieldIcon
+  PlusIcon, UserPlusIcon, ShieldIcon, CloseIcon
 } from '../icons/Icon';
 
 const elegantsLogo = '/images/elegants-logo-svg.svg';
@@ -67,11 +68,35 @@ function NavIcon({ icon, width, height }) {
   return <Icon width={width} height={height} />;
 }
 
+// Card key -> close icon, hides that attention card for the rest of the
+// session. There's no cron in this app, so "today" is re-derived from the
+// employee/customer list on every render rather than stored anywhere.
+function AttentionCard({ cardKey, dismissed, onDismiss, children }) {
+  if (dismissed) return null;
+  return (
+    <div className="elg-attention-card">
+      <div className="elg-attention-content">
+        <button className="elg-attention-close" title="Dismiss" onClick={() => onDismiss(cardKey)}>
+          <CloseIcon width={14} height={14} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function Sidebar({ open, onNavigate }) {
-  const { isAdmin, orders, passwordResetRequests } = useAppState();
+  const { isAdmin, orders, invoices, employees, customers, passwordResetRequests } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
-  const pendingOrderCount = orders.filter((o) => o.status === 'Pending').length;
+  const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'In progress').length;
+  const unpaidInvoiceCount = invoices.filter((i) => i.paymentStatus !== 'Completed').length;
+  const [dismissedCards, setDismissedCards] = useState({});
+  const dismissCard = (key) => setDismissedCards((d) => ({ ...d, [key]: true }));
+
+  const todayDate = new Date().getDate();
+  const payoutDueEmployees = employees.filter((e) => e.payoutDay === todayDate);
+  const invoiceDueCustomers = customers.filter((c) => c.invoiceDay === todayDate);
 
   function renderNavItem([path, label, Icon, ActiveIcon]) {
     return (
@@ -88,6 +113,7 @@ export default function Sidebar({ open, onNavigate }) {
               <NavIcon icon={displayIcon} width={17} height={17} />
               {label}
               {path === '/orders' && pendingOrderCount > 0 && <span className="elg-nav-badge">{pendingOrderCount}</span>}
+              {path === '/invoices' && unpaidInvoiceCount > 0 && <span className="elg-nav-badge">{unpaidInvoiceCount}</span>}
             </>
           );
         }}
@@ -129,17 +155,39 @@ export default function Sidebar({ open, onNavigate }) {
       </div>
 
       {isAdmin && passwordResetRequests.length > 0 && (
-        <div className="elg-attention-card">
-          <div className="elg-attention-content">
-            <div className="elg-attention-icon">
-              <img src={notificationsIcon} width={60} height={60} alt="Attention" />
-            </div>
-            <div className="elg-attention-text">
-              '{passwordResetRequests.length}' password reset request{passwordResetRequests.length > 1 ? 's' : ''} need{passwordResetRequests.length > 1 ? '' : 's'} your attention
-            </div>
-            <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
+        <AttentionCard cardKey="reset" dismissed={dismissedCards.reset} onDismiss={dismissCard}>
+          <div className="elg-attention-icon">
+            <img src={notificationsIcon} width={60} height={60} alt="Attention" />
           </div>
-        </div>
+          <div className="elg-attention-text">
+            '{passwordResetRequests.length}' password reset request{passwordResetRequests.length > 1 ? 's' : ''} need{passwordResetRequests.length > 1 ? '' : 's'} your attention
+          </div>
+          <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
+        </AttentionCard>
+      )}
+
+      {isAdmin && payoutDueEmployees.length > 0 && (
+        <AttentionCard cardKey="payout" dismissed={dismissedCards.payout} onDismiss={dismissCard}>
+          <div className="elg-attention-icon">
+            <img src={notificationsIcon} width={60} height={60} alt="Attention" />
+          </div>
+          <div className="elg-attention-text">
+            Today is the payout day for '{payoutDueEmployees.length}' employee{payoutDueEmployees.length > 1 ? 's' : ''}
+          </div>
+          <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
+        </AttentionCard>
+      )}
+
+      {isAdmin && invoiceDueCustomers.length > 0 && (
+        <AttentionCard cardKey="invoice" dismissed={dismissedCards.invoice} onDismiss={dismissCard}>
+          <div className="elg-attention-icon">
+            <img src={notificationsIcon} width={60} height={60} alt="Attention" />
+          </div>
+          <div className="elg-attention-text">
+            '{invoiceDueCustomers.length}' customer{invoiceDueCustomers.length > 1 ? 's have' : ' has'} their invoice day today
+          </div>
+          <button className="elg-attention-btn" onClick={() => { navigate('/invoices?dueToday=1'); if (onNavigate) onNavigate(); }}>Check Invoices</button>
+        </AttentionCard>
       )}
     </div>
   );

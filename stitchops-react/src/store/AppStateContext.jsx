@@ -145,6 +145,34 @@ export function AppStateProvider({ children }) {
     await api.delete(`/orders/${id}`);
     await refreshOrders();
   }
+
+  // Optimistically hides the order everywhere immediately and only actually
+  // deletes it on the server after the undo window passes — mirrors an email
+  // client's "Undo send". Returns an `undo()` you can wire to a toast action.
+  function softDeleteOrder(id, delayMs = 6000) {
+    const snapshot = orders;
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+    let settled = false;
+    const timer = setTimeout(async () => {
+      if (settled) return;
+      settled = true;
+      try {
+        await api.delete(`/orders/${id}`);
+      } catch {
+        // Couldn't actually delete it server-side — put it back rather than
+        // silently losing it from view.
+        await refreshOrders();
+      }
+    }, delayMs);
+    return {
+      undo: () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        setOrders(snapshot);
+      }
+    };
+  }
   async function setOrderStatus(orderId, status) {
     return updateOrder(orderId, { status });
   }
@@ -224,6 +252,14 @@ export function AppStateProvider({ children }) {
   }
   async function addCategory(name) {
     await api.post('/employee-categories', { name });
+    await refreshEmployeeCategories();
+  }
+  async function renameCategory(oldName, newName) {
+    await api.patch(`/employee-categories/${encodeURIComponent(oldName)}`, { name: newName });
+    await Promise.all([refreshEmployeeCategories(), refreshEmployees()]);
+  }
+  async function deleteCategory(name) {
+    await api.delete(`/employee-categories/${encodeURIComponent(name)}`);
     await refreshEmployeeCategories();
   }
   async function approvePasswordReset(requestId) {
@@ -398,10 +434,10 @@ export function AppStateProvider({ children }) {
     getCustomer, getEmployee, refreshCustomers,
     // mutators
     addCustomer, updateCustomer, setCustomerStatus,
-    addOrder, updateOrder, deleteOrder, setOrderStatus, addComment,
+    addOrder, updateOrder, deleteOrder, softDeleteOrder, setOrderStatus, addComment,
     approveInvoice, togglePaymentStatus,
     approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
-    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, approvePasswordReset, rejectPasswordReset,
+    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,
     updateCompany, uploadCompanyLogo, deleteCompanyLogo, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
     addBankAccount, updateBankAccount, deleteBankAccount,

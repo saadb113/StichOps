@@ -4,6 +4,7 @@ import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
 import { ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
+import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
 import { PencilIcon, KebabIcon, MessageIcon } from '../icons/Icon';
 
 function statusPillStyle(status) {
@@ -25,7 +26,7 @@ function elgStatusClass(status) {
 }
 
 export default function OrdersTab({ customer, orders }) {
-  const { isAdmin, company, currencyRates, setOrderStatus, addComment, deleteOrder } = useAppState();
+  const { isAdmin, company, currencyRates, setOrderStatus, addComment } = useAppState();
   const { openModal, toast } = useUi();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const [openCommentId, setOpenCommentId] = useState(null);
@@ -44,6 +45,10 @@ export default function OrdersTab({ customer, orders }) {
       toast(e.message);
     }
   }
+  function cycleStatus(o) {
+    const idx = ORDER_STATUSES.indexOf(o.status);
+    handleStatusChange(o, ORDER_STATUSES[(idx + 1) % ORDER_STATUSES.length]);
+  }
   async function handlePostComment(orderId) {
     const text = (commentDrafts[orderId] || '').trim();
     if (!text) return;
@@ -54,14 +59,9 @@ export default function OrdersTab({ customer, orders }) {
       toast(e.message);
     }
   }
-  async function handleDelete(o) {
+  function handleDelete(o) {
     setOpenMenuId(null);
-    try {
-      await deleteOrder(o.id);
-      toast('Order deleted.');
-    } catch (e) {
-      toast(e.message);
-    }
+    openModal(<ConfirmDeleteOrderModal order={o} />, { variant: 'elegant' });
   }
 
   return (
@@ -84,7 +84,11 @@ export default function OrdersTab({ customer, orders }) {
                   <td>{prodCostConverted == null ? '—' : fmt(prodCostConverted, defaultCurrency)}</td>
                   <td>{commissionConverted == null ? '—' : fmt(commissionConverted, defaultCurrency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
-                    <span className={`elg-badge ${elgStatusClass(o.status)}`}>
+                    <span
+                      className={`elg-badge ${elgStatusClass(o.status)} ${isAdmin ? 'clickable' : ''}`}
+                      onClick={isAdmin ? () => cycleStatus(o) : undefined}
+                      title={isAdmin ? 'Click to advance status' : undefined}
+                    >
                       {o.status}
                     </span>
                   </td>

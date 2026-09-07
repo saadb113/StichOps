@@ -434,6 +434,20 @@
   border: 1px solid #EBEBEB;
   border-radius: 8px;
   padding: 20px 16px;
+  position: relative;
+}
+
+.elg-attention-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  color: var(--elg-ink-3);
+  display: inline-flex;
 }
 
 .elg-attention-icon {
@@ -916,6 +930,11 @@
 
 .elg-table-wrap {
   overflow-x: auto;
+  /* Row-action dropdowns (.elg-row-menu) are absolutely positioned inside
+     this wrapper and open below/beside their trigger — letting the Y axis
+     stay visible keeps them from being clipped or needing a scroll to see,
+     while X still scrolls for wide tables. */
+  overflow-y: visible;
 }
 
 .elg-table {
@@ -938,7 +957,7 @@
   color: var(--elg-ink-grey);
   background: var(--elg-border-grey);
   white-space: nowrap;
-  border-bottom: none;
+  border: none;
   line-height: 17px;
 }
 
@@ -1142,6 +1161,14 @@
   border-bottom-right-radius: 8px;
 }
 
+/* Last column (Status/Actions across Orders, Invoices, Customers, Employees…)
+   hugs its own content instead of soaking up the table's leftover width. */
+.elg-table th:last-child,
+.elg-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
 .elg-panel {
   padding: 16px 16px 0;
   padding-bottom: 8px;
@@ -1240,6 +1267,12 @@
   box-shadow: 0px 2px 12px 0px #0000001A;
   border-radius: 5px;
   line-height: 17px;
+  animation: elg-row-menu-in 120ms ease-out;
+}
+
+@keyframes elg-row-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .elg-row-menu button:nth-child(2){
@@ -1291,6 +1324,12 @@
 .elg-overlay.open {
   display: flex;
   align-items: center;
+  animation: elg-overlay-in 160ms ease-out;
+}
+
+@keyframes elg-overlay-in {
+  from { background: rgba(20, 20, 30, 0); }
+  to { background: rgba(20, 20, 30, 0.45); }
 }
 
 .elg-modal {
@@ -1301,13 +1340,20 @@
   box-shadow: 0 30px 70px rgba(20, 20, 40, 0.22);
   font-family: var(--elg-font-sans);
   position: relative;
+  animation: elg-modal-in 180ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes elg-modal-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
 .elg-modal:has(.assignedEmails),
 .elg-modal:has(.addCustomer),
 .elg-modal:has(.invoicesModal),
-.elg-modal:has(.orderName) {
+.elg-modal:has(.orderName),
+.elg-modal:has(.employeesModal) {
   max-width: 560px;
 }
 
@@ -1720,6 +1766,41 @@
   flex-shrink: 0;
   color: var(--elg-ink-3);
   pointer-events: none;
+}
+
+.elg-status-dropdown {
+  position: relative;
+}
+
+.elg-status-dropdown-trigger {
+  width: 100%;
+  cursor: pointer;
+}
+
+.elg-status-dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--elg-surface);
+  border: 1px solid var(--elg-line);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(20, 20, 40, 0.14);
+  padding: 6px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.elg-status-dropdown-item {
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 8px;
+}
+
+.elg-status-dropdown-item:hover {
+  background: var(--elg-page-bg);
 }
 
 .elg-modal-foot {
@@ -2566,6 +2647,11 @@
   z-index: 250;
   padding: 90px 20px 40px;
   overflow: auto;
+  animation: elg-search-overlay-in 160ms ease-out;
+}
+
+.elg-search-overlay.closing {
+  animation: elg-search-overlay-out 160ms ease-in forwards;
 }
 
 .elg-search-panel {
@@ -2579,6 +2665,31 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: elg-search-panel-in 180ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.elg-search-panel.closing {
+  animation: elg-search-panel-out 160ms ease-in forwards;
+}
+
+@keyframes elg-search-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes elg-search-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes elg-search-panel-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes elg-search-panel-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-10px) scale(0.97); }
 }
 
 .elg-search-bar {
@@ -2617,6 +2728,37 @@
 .elg-search-bar-close:hover {
   background: var(--elg-page-bg);
   color: var(--elg-ink);
+}
+
+.elg-search-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 100px;
+  background: var(--elg-primary-soft);
+  color: var(--elg-primary);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.elg-search-tag-chip-remove {
+  border: none;
+  background: none;
+  color: var(--elg-primary);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.elg-search-tag-suggestion {
+  color: var(--elg-primary);
+  font-weight: 600;
 }
 
 .elg-search-results {
@@ -2883,6 +3025,10 @@
   background: var(--elg-page-bg);
 }
 
+.elg-notif-row.unread {
+  background: var(--elg-page-bg);
+}
+
 .elg-notif-dot {
   width: 7px;
   height: 7px;
@@ -3139,5 +3285,17 @@
   .elg-metric-grid{
     gap: 10px;
   }
- 
+}
+
+/* Number inputs never need the browser's built-in up/down steppers here —
+   applied app-wide, including pages not yet redesigned. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

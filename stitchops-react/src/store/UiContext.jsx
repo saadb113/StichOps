@@ -5,6 +5,7 @@ const UiContext = createContext(null);
 
 export function UiProvider({ children }) {
   const [toastMsg, setToastMsg] = useState('');
+  const [toastAction, setToastAction] = useState(null); // { label, onClick }
   const [toastShow, setToastShow] = useState(false);
   const toastTimer = useRef(null);
 
@@ -24,11 +25,16 @@ export function UiProvider({ children }) {
     }
   }), []);
 
-  const toast = useCallback((msg) => {
+  // opts: { action: { label, onClick }, duration } — action-bearing toasts
+  // (e.g. "Order deleted. Undo") default to a longer duration so there's a
+  // real window to act, like an email client's "Undo send".
+  const toast = useCallback((msg, opts) => {
     setToastMsg(msg);
+    setToastAction(opts && opts.action ? opts.action : null);
     setToastShow(true);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastShow(false), 2200);
+    const duration = (opts && opts.duration) || (opts && opts.action ? 6000 : 2200);
+    toastTimer.current = setTimeout(() => setToastShow(false), duration);
   }, []);
 
   const [modal, setModal] = useState(null); // { node, dismissible, variant }
@@ -48,7 +54,21 @@ export function UiProvider({ children }) {
       <div className={`${overlayClass} ${modal ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget && modal && modal.dismissible) closeModal(); }}>
         <div className={modalClass}>{modal ? modal.node : null}</div>
       </div>
-      <div className={`toast ${toastShow ? 'show' : ''}`}>{toastMsg}</div>
+      <div className={`toast ${toastShow ? 'show' : ''}`}>
+        {toastMsg}
+        {toastAction && (
+          <button
+            className="toast-action"
+            onClick={() => {
+              if (toastTimer.current) clearTimeout(toastTimer.current);
+              setToastShow(false);
+              toastAction.onClick();
+            }}
+          >
+            {toastAction.label}
+          </button>
+        )}
+      </div>
       <div className={`global-spinner ${loading ? 'show' : ''}`} aria-hidden={!loading}>
         <div className="global-spinner-ring" />
       </div>

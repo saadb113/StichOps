@@ -38,7 +38,7 @@ export default function AssignedEmailsField({ employeeId = null, value, onChange
               </select>
               <button
                 type="button"
-                className="elg-icon-sq"
+                className="elg-icon-sq assEmailAddEmployee" 
                 style={{ color: 'var(--elg-red-ink)', flexShrink: 0 }}
                 onClick={() => removeRow(idx)}
                 title="Remove Email"

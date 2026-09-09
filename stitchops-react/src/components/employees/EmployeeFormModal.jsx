@@ -71,7 +71,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
       {/* Modal Header */}
       <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
       {!e ? 
-      <div className="elg-modal-head-plain addemployee">
+      <div className="elg-modal-head-plain addemployee" style={{border : 0}}>
         <img src="/images/addEmployee.svg" alt="" />
         <h3>Add Employee</h3>
         <p>Add employee details to add employee profile.</p>
@@ -120,7 +120,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
         </div>
 
         {/* Row 3: Employee Email & Contact Number */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div className="elg-field">
             <label className="elg-label">Employee Email</label>
             <input
@@ -130,18 +130,18 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               placeholder="e.g. abc123@gmail.com"
             />
           </div>
-          <div className="elg-field">
+          <div className=" elg-field">
             <label className="elg-label">Contact Number</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className='elg-price-field' style={{ display: 'flex', gap: 12 }}>
               <select
                 className="elg-select"
-                style={{ width: 85, flexShrink: 0 }}
+                style={{outline : "none", width: 62, paddingRight : 0, paddingLeft : 0, marginLeft : 14, border : 0, flexShrink: 0}}
                 value={phoneCode}
                 onChange={(ev) => setPhoneCode(ev.target.value)}
               >
                 {PHONE_CODES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
-              <input
+              <input style={{paddingLeft  : 0, width : "calc(100% - 74px)"}}
                 className="elg-input"
                 value={phone}
                 onChange={(ev) => setPhone(ev.target.value)}
@@ -167,21 +167,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
               <span className="elg-price-field-fixed-ccy">{SYM[defaultCurrency]}</span>
             </div>
           </div>
-          <div className="elg-field">
-            <label className="elg-label">Payout Day</label>
-            <input
-              className="elg-input"
-              type="number"
-              min="1"
-              max="28"
-              value={payoutDay}
-              onChange={(ev) => setPayoutDay(ev.target.value)}
-              placeholder="5"
-            />
-          </div>
-        </div>
-
-        {showEmailPool && (
+          {showEmailPool && (
           <div className="elg-field">
             <label className="elg-label">Commission Rate</label>
             <div className="elg-price-field">
@@ -195,10 +181,24 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
                 onChange={(ev) => setCommissionRate(ev.target.value)}
                 placeholder="10"
               />
-              <span className="elg-price-field-fixed-ccy">%</span>
+              <span className="elg-price-field-fixed-ccy" style={{border : 0}}><img src="/icons/percent.svg" alt="" /></span>
             </div>
           </div>
         )}
+        </div>
+<div className="elg-field">
+            <label className="elg-label">Payout Day</label>
+            <input
+              className="elg-input"
+              type="number"
+              min="1"
+              max="28"
+              value={payoutDay}
+              onChange={(ev) => setPayoutDay(ev.target.value)}
+              placeholder="5"
+            />
+          </div>
+        
 
         {/* Row 5: Assigned Client-Facing Emails (If Salesperson) */}
         {showEmailPool && (

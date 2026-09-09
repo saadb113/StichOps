@@ -1669,8 +1669,8 @@
   height: 20px;
   padding: 0 12px;
   border-left: 1px solid var(--elg-line);
-  color: var(--elg-ink-3);
-  font-size: 13px;
+  color: #191919;
+  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -3122,7 +3122,27 @@
   flex-shrink: 0;
   color: var(--elg-ink-3);
 }
-
+.editTeams label{
+  font-size: 16px;
+  line-height: 24px;
+}
+.elg-modal:has(.editTeams),
+.editTeams{
+  max-width: 560px;
+}
+.editTeams input{
+  font-size: 16px;
+  padding: 10px 14px ;
+}
+.editTeams .team:nth-child(2),
+.editTeams .team:first-child {
+  opacity: .6;
+}
+.assEmailAddEmployee.elg-icon-sq,
+.editTeams .team .elg-icon-sq{
+  width: 44px;
+  height: 44px;
+}
 .elg-customer-picker-list {
   position: absolute;
   top: calc(100% + 4px);

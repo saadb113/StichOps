@@ -29,9 +29,9 @@ function Emails(){
 </svg>
 }
 const TABS = [
-  { key: 'details', label: 'Company Details', icon: <Details /> },
-  { key: 'accounts', label: 'Back Accounts', icon: <Accounts /> },
-  { key: 'emails', label: 'Assigned Emails', icon:  <Emails />}
+  { key: 'details', label: 'Company Details', icon: "./icons/compDetails.svg", activeIcon: "./icons/compDetailsFilled.svg" },
+  { key: 'accounts', label: 'Bank Accounts',icon: "./icons/bankDetails.svg", activeIcon: "./icons/bankDetailsFilled.svg" },
+  { key: 'emails', label: 'Assigned Emails',  icon: "./icons/accDetails.svg", activeIcon: "./icons/accDetailsFilled.svg"}
 ];
 export default function CompanySettings() {
   const [tab, setTab] = useState('details');
@@ -62,7 +62,7 @@ export default function CompanySettings() {
                 className={`elg-settings-nav-item ${tab === t.key ? 'active' : ''}`}
                 onClick={() => setTab(t.key)}
               >
-                {Icon}
+                <img src={`${tab === t.key ? t.activeIcon : t.icon}`} alt="" />
                 {t.label}
               </div>
             );

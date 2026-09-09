@@ -70,9 +70,13 @@ export default function EmployeesList() {
   const [activeCategory, setActiveCategory] = useState(employeeCategories[0] || 'Salesperson');
   const [search, setSearch] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [headMenuOpen, setHeadMenuOpen] = useState(false);
 
   useEffect(() => {
-    function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
+    function onDocClick(e) {
+      if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null);
+      if (!e.target.closest('.elg-employees-head-menu')) setHeadMenuOpen(false);
+    }
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
@@ -192,6 +196,23 @@ export default function EmployeesList() {
           <img src="/icons/add-employee.svg" alt="Add Employee" />
           Add Employee
         </button>
+        <div className="elg-employees-head-menu" style={{ position: 'relative' }}>
+          <button
+            className="elg-icon-sq"
+            style={{ width: 40, height: 40 }}
+            title="More"
+            onClick={() => setHeadMenuOpen((v) => !v)}
+          >
+            <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+          </button>
+          {headMenuOpen && (
+            <div className="elg-row-menu" style={{ right: 0 }}>
+              <button onClick={() => { setHeadMenuOpen(false); openModal(<EditTeamsModal />, { variant: 'elegant' }); }}>
+                <img src="/icons/pencil-icon.svg" alt="" width="14" height="14" /> Edit Teams
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="elg-tabs" style={{ marginBottom: 18 }}>
@@ -213,13 +234,6 @@ export default function EmployeesList() {
           onClick={() => openModal(<AddCategoryModal onAdded={setActiveCategory} />, { variant: 'elegant' })}
         >
           <PlusIcon width={15} height={15} /> Add Team
-        </div>
-        <div
-          className="elg-tab"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
-          onClick={() => openModal(<EditTeamsModal />, { variant: 'elegant' })}
-        >
-          <img src="/icons/pencil-icon.svg" alt="" width="12" height="12" /> Edit Teams
         </div>
       </div>
 

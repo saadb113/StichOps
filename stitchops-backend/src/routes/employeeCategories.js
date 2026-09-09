@@ -4,6 +4,7 @@ const asyncHandler = require('../lib/asyncHandler');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validate');
 const { categorySchema } = require('../schemas/misc');
+const { isForeignKeyViolation } = require('../lib/prismaErrors');
 
 const router = express.Router();
 
@@ -44,14 +45,31 @@ router.patch('/:name', requireAuth, requireAdmin, validateBody(categorySchema), 
   res.json(categories.map((c) => c.name));
 }));
 
+// Deleting a team deletes its employees too (login included) — matches the
+// confirmation copy in the Edit Teams design. An employee who still has
+// assigned customers, orders, payslips, or password reset requests can't be
+// deleted (same rule as the single-employee delete route), so the whole
+// removal is rejected with a clear reason rather than partially cascading.
 router.delete('/:name', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const name = req.params.name;
   if (PROTECTED.includes(name)) return res.status(400).json({ error: `"${name}" can't be removed.` });
   const existing = await prisma.employeeCategory.findUnique({ where: { name } });
   if (!existing) return res.status(404).json({ error: 'Tab not found.' });
-  const memberCount = await prisma.employee.count({ where: { role: name } });
-  if (memberCount > 0) return res.status(409).json({ error: `Move or remove its ${memberCount} employee${memberCount > 1 ? 's' : ''} first.` });
-  await prisma.employeeCategory.delete({ where: { name } });
+  const members = await prisma.employee.findMany({ where: { role: name } });
+  try {
+    await prisma.$transaction(async (tx) => {
+      for (const emp of members) {
+        await tx.user.deleteMany({ where: { employeeId: emp.id } });
+        await tx.employee.delete({ where: { id: emp.id } });
+      }
+      await tx.employeeCategory.delete({ where: { name } });
+    });
+  } catch (e) {
+    if (isForeignKeyViolation(e)) {
+      return res.status(409).json({ error: `Can't remove "${name}" — one or more of its employees still have assigned customers, orders, payslips, or password reset requests. Reassign or remove those first.` });
+    }
+    throw e;
+  }
   const categories = await prisma.employeeCategory.findMany({ orderBy: { id: 'asc' } });
   res.json(categories.map((c) => c.name));
 }));

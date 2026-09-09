@@ -86,7 +86,7 @@ export default function EmployeesList() {
   const q = search.toLowerCase().trim();
   const baseList = employees.filter((e) => e.role === category);
   const list = q
-    ? baseList.filter((e) => e.name.toLowerCase().includes(q) || (e.designation && e.designation.toLowerCase().includes(q)) || (e.email && e.email.toLowerCase().includes(q)))
+    ? baseList.filter((e) => e.name.toLowerCase().startsWith(q) || (e.designation && e.designation.toLowerCase().startsWith(q)) || (e.email && e.email.toLowerCase().startsWith(q)))
     : baseList;
 
   async function handleApproveReset(id) {

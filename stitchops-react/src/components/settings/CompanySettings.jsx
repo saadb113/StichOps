@@ -4,6 +4,7 @@ import { IdCardIcon, BankIcon, MailIcon } from '../icons/Icon';
 import CompanyDetailsTab from './CompanyDetailsTab';
 import BankAccountsTab from './BankAccountsTab';
 import AssignedEmailsTab from './AssignedEmailsTab';
+import SystemDataTab from './SystemDataTab';
 
 
 function Details(){
@@ -31,7 +32,8 @@ function Emails(){
 const TABS = [
   { key: 'details', label: 'Company Details', icon: "./icons/compDetails.svg", activeIcon: "./icons/compDetailsFilled.svg" },
   { key: 'accounts', label: 'Bank Accounts',icon: "./icons/bankDetails.svg", activeIcon: "./icons/bankDetailsFilled.svg" },
-  { key: 'emails', label: 'Assigned Emails',  icon: "./icons/accDetails.svg", activeIcon: "./icons/accDetailsFilled.svg"}
+  { key: 'emails', label: 'Assigned Emails',  icon: "./icons/accDetails.svg", activeIcon: "./icons/accDetailsFilled.svg"},
+  { key: 'systemData', label: 'System Data', icon: "./icons/systemData.svg", activeIcon: "./icons/systemDataFilled.svg" }
 ];
 export default function CompanySettings() {
   const [tab, setTab] = useState('details');
@@ -73,6 +75,7 @@ export default function CompanySettings() {
           {tab === 'details' && <CompanyDetailsTab />}
           {tab === 'accounts' && <BankAccountsTab />}
           {tab === 'emails' && <AssignedEmailsTab />}
+          {tab === 'systemData' && <SystemDataTab />}
         </div>
       </div>
     </div>

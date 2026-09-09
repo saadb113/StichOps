@@ -249,7 +249,7 @@
   color: var(--elg-ink);
 }
 
-.elg-btn-danger-text{
+.elg-btn-danger-text {
   color: #D85658 !important;
 }
 
@@ -857,9 +857,11 @@
 
 .elg-input:has(input[type="date"]) img {
   position: absolute;
-  right: 7px;
+  right: 11px;
   background: white;
+  top: 50%;
   pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .elg-date-field {
@@ -1271,11 +1273,18 @@
 }
 
 @keyframes elg-row-menu-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.elg-row-menu button:nth-child(2){
+.elg-row-menu button:nth-child(2) {
   border-top: 1px solid #E8E8E8;
 }
 
@@ -1328,8 +1337,13 @@
 }
 
 @keyframes elg-overlay-in {
-  from { background: rgba(20, 20, 30, 0); }
-  to { background: rgba(20, 20, 30, 0.45); }
+  from {
+    background: rgba(20, 20, 30, 0);
+  }
+
+  to {
+    background: rgba(20, 20, 30, 0.45);
+  }
 }
 
 .elg-modal {
@@ -1344,8 +1358,15 @@
 }
 
 @keyframes elg-modal-in {
-  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 
@@ -1753,13 +1774,15 @@
   border: none;
   border-radius: 100px !important;
   padding: 7px 16px !important;
-  width: auto !important;
   min-width: 0;
   flex: 0 0 auto;
   appearance: none;
   -webkit-appearance: none;
   background-image: none !important;
   cursor: pointer;
+  display: block;
+  height: auto;
+  width: max-content;
 }
 
 .elg-status-chevron {
@@ -2673,23 +2696,47 @@
 }
 
 @keyframes elg-search-overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes elg-search-overlay-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes elg-search-panel-in {
-  from { opacity: 0; transform: translateY(-14px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes elg-search-panel-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
 }
 
 .elg-search-bar {
@@ -3059,6 +3106,7 @@
   font-size: 11px;
   color: var(--elg-ink-3);
 }
+
 .elg-notif-avatar {
   width: 36px;
   height: 36px;
@@ -3113,7 +3161,8 @@
   color: var(--elg-ink);
   background: transparent;
 }
-.elg-customer-picker-input input:focus{
+
+.elg-customer-picker-input input:focus {
   outline: none;
   border: none;
 }
@@ -3122,27 +3171,33 @@
   flex-shrink: 0;
   color: var(--elg-ink-3);
 }
-.editTeams label{
+
+.editTeams label {
   font-size: 16px;
   line-height: 24px;
 }
+
 .elg-modal:has(.editTeams),
-.editTeams{
+.editTeams {
   max-width: 560px;
 }
-.editTeams input{
+
+.editTeams input {
   font-size: 16px;
-  padding: 10px 14px ;
+  padding: 10px 14px;
 }
+
 .editTeams .team:nth-child(2),
 .editTeams .team:first-child {
   opacity: .6;
 }
+
 .assEmailAddEmployee.elg-icon-sq,
-.editTeams .team .elg-icon-sq{
+.editTeams .team .elg-icon-sq {
   width: 44px;
   height: 44px;
 }
+
 .elg-customer-picker-list {
   position: absolute;
   top: calc(100% + 4px);
@@ -3208,101 +3263,117 @@
 
 
 @media screen and (max-width : 1024px) {
-  .elg-settings-grid{
+  .elg-settings-grid {
     display: flex;
     flex-direction: column;
   }
-  .elg-settings-nav{
+
+  .elg-settings-nav {
     display: flex;
     flex-direction: row;
     width: 100%;
   }
-  
-  .elg-settings-nav-item{
+
+  .elg-settings-nav-item {
     width: 33%;
     justify-content: center;
   }
-  .elg-settings-main{
-  width: 100%;
-}
-#sidebar.elg-sidebar{
-  position: fixed;
-  height: 100vh;
-  overflow: scroll;
-  left: -1000px;
-}
-}
-@media screen and (max-width : 820px) {
- 
 
+  .elg-settings-main {
+    width: 100%;
+  }
+
+  #sidebar.elg-sidebar {
+    position: fixed;
+    height: 100vh;
+    overflow: scroll;
+    left: -1000px;
+  }
 }
+
+@media screen and (max-width : 820px) {}
+
 @media screen and (max-width : 640px) {
-  .elg-settings-nav{
+  .elg-settings-nav {
     background: transparent;
     padding: 0;
   }
 
-  .elg-settings-nav-item{
+  .elg-settings-nav-item {
     font-size: 12px;
   }
-  .elg-settings-nav-item.active{
+
+  .elg-settings-nav-item.active {
     background: var(--elg-primary);
     color: white;
   }
-.elg-settings-nav-item.active svg path{
-  stroke: white !important;
-}
-.elg-settings-nav-item:nth-child(3).active svg path{
-  stroke: transparent !important;
-  fill: white;
-}
+
+  .elg-settings-nav-item.active svg path {
+    stroke: white !important;
+  }
+
+  .elg-settings-nav-item:nth-child(3).active svg path {
+    stroke: transparent !important;
+    fill: white;
+  }
 
 
 
-  #app.elg-shell #main{
+  #app.elg-shell #main {
     padding: 16px;
   }
-  .elg-crumbs{
+
+  .elg-crumbs {
     display: none;
   }
-  .elg-page-head{
+
+  .elg-page-head {
     margin-bottom: 12px;
   }
-  .elg-filterbar{
+
+  .elg-filterbar {
     margin-bottom: 24px;
     display: flex;
     flex-direction: column-reverse;
   }
-  .elg-filterbar > div:nth-child(1){
+
+  .elg-filterbar>div:nth-child(1) {
     width: 100%;
     justify-content: flex-start;
   }
-  .elg-filterbar > div:nth-child(1) .elg-btn{
+
+  .elg-filterbar>div:nth-child(1) .elg-btn {
     padding: 6px 12px;
     font-size: 12px;
     line-height: 17px;
   }
-  .elg-filterbar > div:nth-child(2){
+
+  .elg-filterbar>div:nth-child(2) {
     width: 100%;
     padding-bottom: 24px;
     border: 1px solid #E8E8E8;
     margin-bottom: 18px;
   }
-  .elg-metric-card{
+
+  .elg-metric-card {
     padding: 14px;
   }
-  .elg-metric-label{
+
+  .elg-metric-label {
     font-size: 14px;
     line-height: 21px;
   }
-  .elg-metric-value{
+
+  .elg-metric-value {
     font-size: 24px;
   }
-  .elg-metric-sub{
+
+  .elg-metric-sub {
     font-size: 10px;
     line-height: 14px;
   }
-  .elg-metric-grid{
+
+  .elg-metric-grid {
     gap: 10px;
   }
 }
@@ -3318,4 +3389,33 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* ---------- System Data (Settings > Import/Export) ---------- */
+.elg-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--elg-line-strong);
+  border-radius: 8px;
+  background: var(--elg-surface);
+}
+
+.elg-date-pill input[type="date"] {
+  border: none;
+  outline: none;
+  font-size: 12.5px;
+  font-family: var(--elg-font-sans);
+  color: var(--elg-ink);
+  background: transparent;
+  width: 92px;
+  padding: 0;
+}
+
+.elg-date-pill img {
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  flex-shrink: 0;
 }

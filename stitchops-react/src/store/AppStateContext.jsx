@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api, setUnauthorizedHandler } from '../lib/api';
+import { downloadBlob } from '../lib/helpers';
 
 const AppStateContext = createContext(null);
 
@@ -284,6 +285,38 @@ export function AppStateProvider({ children }) {
     return { ok: true };
   }
 
+  // ---------- system data (Settings > System Data) ----------
+  function buildRangeQuery(range) {
+    const params = new URLSearchParams();
+    if (range?.from) params.set('from', range.from);
+    if (range?.to) params.set('to', range.to);
+    const qs = params.toString();
+    return qs ? `?${qs}` : '';
+  }
+  async function exportSystemData(model, range) {
+    const blob = await api.download(`/system-data/export/${model}${buildRangeQuery(range)}`);
+    downloadBlob(blob, `${model}.xlsx`);
+  }
+  async function exportAllSystemData(range) {
+    const blob = await api.download(`/system-data/export-all${buildRangeQuery(range)}`);
+    downloadBlob(blob, 'stitchops-data.xlsx');
+  }
+  async function refreshAfterImport(model) {
+    if (model === 'orders') await refreshOrders();
+    else if (model === 'customers') await refreshCustomers();
+    else if (model === 'employees') await refreshEmployees();
+  }
+  async function importSystemData(model, file) {
+    const result = await api.upload(`/system-data/import/${model}`, file);
+    await refreshAfterImport(model);
+    return result;
+  }
+  async function importAllSystemData(file) {
+    const results = await api.upload('/system-data/import-all', file);
+    await Promise.all([refreshOrders(), refreshCustomers(), refreshEmployees()]);
+    return results;
+  }
+
   // ---------- notifications ----------
   async function markNotificationRead(id) {
     const updated = await api.patch(`/notifications/${id}/read`);
@@ -443,6 +476,7 @@ export function AppStateProvider({ children }) {
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
     markNotificationRead, markAllNotificationsRead,
+    exportSystemData, exportAllSystemData, importSystemData, importAllSystemData,
     attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, changePassword
   };
 

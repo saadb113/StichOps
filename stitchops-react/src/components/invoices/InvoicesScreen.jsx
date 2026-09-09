@@ -60,7 +60,7 @@ export default function InvoicesScreen() {
   }
   if (search) {
     const q = search.toLowerCase();
-    list = list.filter((i) => { const c = getCustomer(i.customerId); return c && (c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)); });
+    list = list.filter((i) => { const c = getCustomer(i.customerId); return c && (c.company.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)); });
   }
   list = list.sort((a, b) => b.id - a.id);
 

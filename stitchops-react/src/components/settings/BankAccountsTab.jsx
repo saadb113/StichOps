@@ -76,7 +76,7 @@ function BankAccountCard({ account }) {
               <img src='/images/edit.svg' /> Edit
             </button>
           )}
-          <button className="elg-icon-sq" title="Delete" style={{border : 0,background : "none"}} onClick={() => openModal(<ConfirmDeleteAccountModal account={account} />, { variant: 'elegant' })}>
+          <button className="elg-icon-sq" title="Delete" style={{ border: 0, background: "none" }} onClick={() => openModal(<ConfirmDeleteAccountModal account={account} />, { variant: 'elegant' })}>
             <img src="/images/cancel-x-mark.svg" alt="" />
           </button>
         </div>
@@ -99,8 +99,8 @@ function BankAccountCard({ account }) {
               {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc} {SYM[cc]}</option>)}
             </select>
           </div>
-          <div style={{ textAlign: 'right', marginLeft : "auto", width : "max-content"}}>
-            <button className="elg-btn elg-btn-primary" style={{padding : "7.5px 13px", width: 'auto' }} onClick={handleSave}>Save Changes</button>
+          <div style={{ textAlign: 'right', marginLeft: "auto", width: "max-content" }}>
+            <button className="elg-btn elg-btn-primary" style={{ padding: "7.5px 13px", width: 'auto' }} onClick={handleSave}>Save Changes</button>
           </div>
         </>
       )}
@@ -119,8 +119,9 @@ export default function BankAccountsTab() {
       {bankAccounts.map((a) => <BankAccountCard key={a.id} account={a} />)}
 
       <div style={{ textAlign: 'right', marginTop: bankAccounts.length ? 16 : 0 }}>
-        <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6, padding : "7.5px 13px" }} onClick={() => openModal(<AddAccountModal />, { variant: 'elegant' })}>
-          + Add Account
+        <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6, padding: "7.5px 13px" }} onClick={() => openModal(<AddAccountModal />, { variant: 'elegant' })}>
+          <img alt="Add Order" src="/icons/add-icon-black.svg" />
+          Add Account
         </button>
       </div>
     </div>

@@ -61,6 +61,30 @@ async function request(path, options = {}) {
   }
 }
 
+// Separate from request() because a successful response here is a binary
+// file (xlsx), not JSON — but it still needs the same credentials/loading/
+// error-message handling as everything else.
+async function downloadRequest(path) {
+  setActiveRequests(1);
+  try {
+    const res = await fetch(BASE + path, { credentials: 'include' });
+    if (!res.ok) {
+      let message = `Request failed (${res.status})`;
+      try {
+        const data = await res.json();
+        if (data && data.error) message = data.error;
+      } catch { /* body wasn't JSON */ }
+      if (res.status === 401 && unauthorizedHandler) unauthorizedHandler();
+      const err = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+    return res.blob();
+  } finally {
+    setActiveRequests(-1);
+  }
+}
+
 export const api = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: body ?? {} }),
@@ -70,5 +94,6 @@ export const api = {
     const form = new FormData();
     form.append('file', file);
     return request(path, { method: 'POST', body: form });
-  }
+  },
+  download: (path) => downloadRequest(path)
 };

@@ -18,6 +18,7 @@ const bankAccountRoutes = require('./routes/bankAccounts');
 const currencyRateRoutes = require('./routes/currencyRates');
 const metaRoutes = require('./routes/meta');
 const notificationRoutes = require('./routes/notifications');
+const systemDataRoutes = require('./routes/systemData');
 const { UPLOAD_DIR } = require('./lib/upload');
 
 const app = express();
@@ -43,12 +44,13 @@ app.use('/api/bank-accounts', bankAccountRoutes);
 app.use('/api/currency-rates', currencyRateRoutes);
 app.use('/api/meta', metaRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/system-data', systemDataRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err);
   if (err instanceof multer.MulterError) {
-    const message = err.code === 'LIMIT_FILE_SIZE' ? 'Image must be 5MB or smaller.' : err.message;
+    const message = err.code === 'LIMIT_FILE_SIZE' ? 'File is too large.' : err.message;
     return res.status(400).json({ error: message });
   }
   const status = err.status || 500;

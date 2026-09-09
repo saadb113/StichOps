@@ -25,7 +25,7 @@ export default function CustomersList() {
   const base = isAdmin ? customers : customers.filter((c) => c.salesperson === currentEmployee?.name);
   const countries = [...new Set(base.map((c) => c.country))].sort();
   const q = search.toLowerCase();
-  let list = q ? base.filter((c) => c.name.toLowerCase().includes(q) || c.company.toLowerCase().includes(q)) : base;
+  let list = q ? base.filter((c) => c.name.toLowerCase().startsWith(q) || c.company.toLowerCase().startsWith(q)) : base;
   if (customerType) list = list.filter((c) => c.status === customerType);
   if (status) list = list.filter((c) => (isActive(orders, c) ? 'Active' : 'Inactive') === status);
   if (country) list = list.filter((c) => c.country === country);

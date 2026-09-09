@@ -43,7 +43,7 @@ export default function OrdersScreen() {
     const q = search.toLowerCase();
     list = list.filter((o) => {
       const c = getCustomer(o.customerId);
-      return o.name.toLowerCase().startsWith(q) || (c && (c.company.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)));
+      return o.name.toLowerCase().startsWith(q) || (c && (c.company.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)));
     });
   }
   list = list.sort((a, b) => b.date.localeCompare(a.date));

@@ -7,8 +7,12 @@ import CustomerFormModal from '../customers/CustomerFormModal';
 import {
   PeopleIcon, DocIcon, PersonIcon,
   PeopleIconActive, DocIconActive, PersonIconActive,
-  PlusIcon, UserPlusIcon, ShieldIcon, CloseIcon
+  PlusIcon, UserPlusIcon, ShieldIcon, CloseIcon, ArrowLeftIcon, LogoutIcon
 } from '../icons/Icon';
+
+// These three live in the bottom tab bar on mobile, so the drawer only
+// needs to surface the rest of the nav.
+const MOBILE_HIDDEN_PATHS = ['/dashboard', '/orders', '/invoices'];
 
 const elegantsLogo = '/images/elegants-logo-svg.svg';
 
@@ -86,7 +90,7 @@ function AttentionCard({ cardKey, dismissed, onDismiss, children }) {
 }
 
 export default function Sidebar({ open, onNavigate }) {
-  const { isAdmin, orders, invoices, employees, customers, passwordResetRequests } = useAppState();
+  const { isAdmin, orders, invoices, employees, customers, passwordResetRequests, logout } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'In progress').length;
@@ -99,12 +103,13 @@ export default function Sidebar({ open, onNavigate }) {
   const invoiceDueCustomers = customers.filter((c) => c.invoiceDay === todayDate);
 
   function renderNavItem([path, label, Icon, ActiveIcon]) {
+    const mobileHide = MOBILE_HIDDEN_PATHS.includes(path);
     return (
       <NavLink
         key={path}
         to={path}
         onClick={onNavigate}
-        className={({ isActive }) => `elg-nav-item ${isActive ? 'active' : ''}`}
+        className={({ isActive }) => `elg-nav-item ${isActive ? 'active' : ''} ${mobileHide ? 'elg-nav-mobile-hide' : ''}`}
       >
         {({ isActive }) => {
           const displayIcon = isActive && ActiveIcon ? ActiveIcon : Icon;
@@ -125,6 +130,9 @@ export default function Sidebar({ open, onNavigate }) {
     <div id="sidebar" className={`elg-sidebar ${open ? 'open' : ''}`}>
       <div className="elg-logo">
         <img src={elegantsLogo} alt="StitchOps" />
+        <button className="elg-sidebar-close" onClick={onNavigate} aria-label="Close menu">
+          <ArrowLeftIcon width={18} height={18} />
+        </button>
       </div>
 
       {isAdmin && (
@@ -189,6 +197,10 @@ export default function Sidebar({ open, onNavigate }) {
           <button className="elg-attention-btn" onClick={() => { navigate('/invoices?dueToday=1'); if (onNavigate) onNavigate(); }}>Check Invoices</button>
         </AttentionCard>
       )}
+
+      <button className="elg-sidebar-logout" onClick={logout}>
+        <LogoutIcon width={16} height={16} /> Logout
+      </button>
     </div>
   );
 }

@@ -29,7 +29,40 @@ export default function SlipHistoryTab({ employee: e }) {
   }
 
   return (
-    <div className="elg-panel elg-table-wrap slipHistory">
+    <div className="elg-panel slipHistory">
+      <div className="elg-mobile-cards">
+        {slips.map((s) => (
+          <div key={s.id} className="elg-mobile-card">
+            <div className="elg-mobile-card-head">
+              <div className="elg-mobile-card-title" style={{ color: 'var(--elg-primary)' }}>{s.slipNo}</div>
+              <div className="elg-mobile-card-price">{fmt(s.total, s.currency)}</div>
+            </div>
+            <div className="elg-mobile-card-row">Approved: {s.approvedDate}</div>
+            <div className="elg-mobile-card-2col">
+              <div className="elg-mobile-card-row">Status: <span className="elg-pill elg-pill-approved">Approved</span></div>
+              <div className="elg-mobile-card-row">
+                Payment:{' '}
+                <span
+                  className={`elg-pill ${s.paymentStatus === 'Completed' ? 'elg-pill-approved' : 'elg-pill-review'}`}
+                  style={{ cursor: 'pointer', background: s.paymentStatus !== 'Completed' ? '#E9898A' : '#74C374' }}
+                  onClick={() => handleTogglePayment(s)}
+                  title="Click to toggle payment status"
+                >
+                  {s.paymentStatus === 'Completed' ? 'Paid' : 'Pending'}
+                </span>
+              </div>
+            </div>
+            <button
+              className="elg-btn elg-btn-sm"
+              style={{ width: '100%', marginTop: 8 }}
+              onClick={() => downloadPayslipPdf({ slip: s, employee: e, company })}
+            >
+              <img src="/images/download.svg" alt="" /> Download
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="elg-table-wrap">
       <table className="elg-table">
         <thead>
           <tr>
@@ -74,6 +107,7 @@ export default function SlipHistoryTab({ employee: e }) {
           ))}
         </tbody>
       </table>
+      </div>
       <div style={{ padding: '12px 18px', fontSize: '12px', color: 'var(--elg-ink-3)', borderTop: '1px solid var(--elg-line)' }}>
         Editing an order here updates the Reports commission summary and this employee's Earnings tab immediately.
       </div>

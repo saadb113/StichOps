@@ -4,7 +4,12 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { isActive } from '../../lib/helpers';
 import CustomerFormModal from './CustomerFormModal';
-import { SearchIcon, UserPlusIcon } from '../icons/Icon';
+import MobileFilterModal from '../layout/MobileFilterModal';
+import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon } from '../icons/Icon';
+
+function initialsFor(name) {
+  return name.split(' ').filter((w) => /[a-z0-9]/i.test(w[0])).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+}
 
 function customerTypeClass(status) {
   if (status === 'Paid') return 'elg-badge-completed';
@@ -83,7 +88,70 @@ export default function CustomersList() {
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
           <img src="/images/addCustomerBtn.svg" alt="" /> Add Customer
         </button>
+        <button
+          className="elg-mobile-filter-btn"
+          title="Filter"
+          onClick={() => openModal(
+            <MobileFilterModal
+              title="Filter Customers"
+              fields={[
+                { key: 'customerType', label: 'Customer Type', allLabel: 'All Customer Types', options: [{ value: 'Free Trial', label: 'Free Trial' }, { value: 'Paid', label: 'Paid' }] },
+                { key: 'status', label: 'Status', allLabel: 'All Status', options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }] },
+                { type: 'dateRange', key: 'date', label: 'Added', fromKey: 'from', toKey: 'to' }
+              ]}
+              values={{ customerType, status, from, to }}
+              onApply={(v) => { setCustomerType(v.customerType); setStatus(v.status); setFrom(v.from); setTo(v.to); }}
+            />,
+            { variant: 'elegant' }
+          )}
+        >
+          <FilterIcon />
+        </button>
       </div>
+
+      <div className="elg-mobile-country-chips">
+        <button className={`elg-mobile-country-chip ${!country ? 'active' : ''}`} onClick={() => setCountry('')}>All</button>
+        {countries.map((c) => (
+          <button key={c} className={`elg-mobile-country-chip ${country === c ? 'active' : ''}`} onClick={() => setCountry(c)}>{c}</button>
+        ))}
+      </div>
+
+      <div className="elg-mobile-filter-chips">
+        {customerType && <span className="elg-mobile-filter-chip">{customerType}<button onClick={() => setCustomerType('')}>&times;</button></span>}
+        {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
+        {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
+      </div>
+
+      <div className="elg-mobile-cards">
+        {list.length === 0 && (
+          <div className="elg-empty">
+            {search || customerType || status || country || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
+          </div>
+        )}
+        {list.map((c) => {
+          const active = isActive(orders, c);
+          return (
+            <div key={c.id} className="elg-mobile-card clickable" onClick={() => navigate(`${basePath}/${c.id}`)}>
+              <div className="elg-mobile-card-head">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="elg-mobile-avatar">{initialsFor(c.company)}</span>
+                  <div>
+                    <div className="elg-mobile-card-title">{c.company}</div>
+                    <div className="elg-mobile-card-subtitle">{c.customerCode || '—'}</div>
+                  </div>
+                </div>
+                <span className={`elg-badge ${active ? 'elg-badge-active' : 'elg-badge-inactive'}`}>{active ? 'Active' : 'Inactive'}</span>
+              </div>
+              <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c.name}</div>
+              <div className="elg-mobile-card-row"><LocationIcon />{c.country}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="elg-fab" title="Add Customer" onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
+        <PlusIcon width={22} height={22} />
+      </button>
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

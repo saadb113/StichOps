@@ -11,7 +11,7 @@ import EarningsTab from './EarningsTab';
 import SlipDraftTab from './SlipDraftTab';
 import SlipHistoryTab from './SlipHistoryTab';
 import Avatar from '../common/Avatar';
-import { ArrowLeftIcon, KeyIcon, TrashIcon } from '../icons/Icon';
+import { ArrowLeftIcon, KeyIcon, TrashIcon, DocIcon, KebabIcon, PlusIcon } from '../icons/Icon';
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams();
@@ -23,6 +23,8 @@ export default function EmployeeProfile() {
   const [tab, setTab] = useState('earnings');
   const [showAllEmails, setShowAllEmails] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileView, setMobileView] = useState('content');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     function onDocClick(ev) { if (!ev.target.closest('.elg-row-actions')) setMenuOpen(false); }
@@ -67,7 +69,37 @@ export default function EmployeeProfile() {
         <ArrowLeftIcon /> Back
       </div>
 
-      <div className="elg-page-head">
+      <div className="elg-mobile-profile-header">
+        <button className="elg-mobile-back" onClick={() => navigate('/employees')}><ArrowLeftIcon /></button>
+        <Avatar className="elg-mobile-avatar" src={e.photo} fallback={initials} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="elg-mobile-card-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.name}</div>
+          <div className="elg-mobile-card-subtitle">{e.role}</div>
+        </div>
+        <button className={`elg-icon-sq elg-customer-toggle-btn ${mobileView === 'details' ? 'active' : ''}`} title="Employee Details" onClick={() => setMobileView((v) => (v === 'details' ? 'content' : 'details'))}>
+          <DocIcon width={16} height={16} />
+        </button>
+        <div className="elg-row-actions">
+          <button className="elg-icon-sq" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><KebabIcon width={16} height={16} /></button>
+          {mobileMenuOpen && (
+            <div className="elg-row-menu">
+              <button onClick={() => { setMobileMenuOpen(false); openModal(<EmployeeFormModal employee={e} />, { variant: 'elegant' }); }}>
+                <img src="/icons/pencil-icon.svg" alt="" width={14} height={14} /> Edit Profile
+              </button>
+              {e.hasLogin && (
+                <button onClick={() => { setMobileMenuOpen(false); handleRegenerate(); }}>
+                  <img src="/icons/reload-icon.svg" width={12} alt="" /> Regenerate Credentials
+                </button>
+              )}
+              <button className="elg-btn-danger-text" onClick={() => { setMobileMenuOpen(false); handleDelete(); }}>
+                <img src="/icons/delete-red-icon.svg" width={12} alt="" /> Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="elg-page-head elg-employee-profile-head">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Avatar className="elg-avatar-lg" src={e.photo} fallback={initials} />
@@ -118,8 +150,8 @@ export default function EmployeeProfile() {
         </div>
       </div>
 
-      <div className="elg-profile-grid">
-        <div>
+      <div className={`elg-profile-grid elg-mobile-view-${mobileView}`}>
+        <div className="elg-mobile-tab-content-col">
           <div className="elg-tabs" style={{ marginBottom: 18 }}>
             {hasEarningsTab && (
               <div className={`elg-tab ${effectiveTab === 'earnings' ? 'active' : ''}`} onClick={() => setTab('earnings')}>

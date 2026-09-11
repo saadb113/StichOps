@@ -6,7 +6,8 @@ import { commissionAmt } from '../../lib/helpers';
 import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
-import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon } from '../icons/Icon';
+import MobileFilterModal from '../layout/MobileFilterModal';
+import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -111,7 +112,67 @@ export default function OrdersScreen() {
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
           <PlusIcon /> Add Order
         </button>
+        <button
+          className="elg-mobile-filter-btn"
+          title="Filter"
+          onClick={() => openModal(
+            <MobileFilterModal
+              title="Filter Orders"
+              fields={[
+                { key: 'status', label: 'Status', allLabel: 'All Status', options: ORDER_STATUSES.map((s) => ({ value: s, label: s })) },
+                { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) },
+                { type: 'dateRange', key: 'date', label: 'Date', fromKey: 'from', toKey: 'to' }
+              ]}
+              values={{ status, currency, from, to }}
+              onApply={(v) => { setStatus(v.status); setCurrency(v.currency); setFrom(v.from); setTo(v.to); }}
+            />,
+            { variant: 'elegant' }
+          )}
+        >
+          <FilterIcon />
+        </button>
       </div>
+
+      <div className="elg-mobile-filter-chips">
+        {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
+        {currency && <span className="elg-mobile-filter-chip">{currency} {SYM[currency]}<button onClick={() => setCurrency('')}>&times;</button></span>}
+        {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
+      </div>
+
+      <div className="elg-mobile-cards">
+        {list.length === 0 && <div className="elg-empty">No orders match these filters.</div>}
+        {list.map((o) => {
+          const c = getCustomer(o.customerId);
+          return (
+            <div key={o.id} className="elg-mobile-card">
+              <div className="elg-mobile-card-head" onClick={() => navigate(`/customers/${o.customerId}`)}>
+                <div className="elg-mobile-card-title">{o.name}</div>
+                <div className="elg-row-actions" onClick={(ev) => ev.stopPropagation()}>
+                  <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
+                  {openMenuId === o.id && (
+                    <div className="elg-row-menu">
+                      <button onClick={() => { setOpenMenuId(null); openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' }); }}>
+                        <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
+                      </button>
+                      <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>Delete order</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? c.company : '—'}</div>
+              <div className="elg-mobile-card-row"><CoinIcon width={14} height={14} />{SYM[o.currency]}{commissionAmt(o).toFixed(2)} Commission ({o.commissionRate}%)</div>
+              <div className="elg-mobile-card-foot">
+                <span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span>
+                <span className="elg-mobile-card-price">{SYM[o.currency]}{o.price.toFixed(2)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="elg-fab" title="Add Order" onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+        <PlusIcon width={22} height={22} />
+      </button>
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

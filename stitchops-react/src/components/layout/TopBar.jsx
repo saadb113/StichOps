@@ -17,6 +17,13 @@ function NotificationAvatar({ employee }) {
   );
 }
 
+function currentGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning';
+  if (h < 18) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs / 60000);
@@ -66,6 +73,13 @@ export default function TopBar() {
 
   return (
     <div className="elg-topbar">
+      <div className="elg-topbar-mobile-left">
+        <Avatar className="elg-avatar" src={photoUrl} fallback={initials} />
+        <div>
+          <div className="elg-topbar-mobile-greeting">{currentGreeting()} <span>👋</span></div>
+          <div className="elg-topbar-mobile-name">{displayName}</div>
+        </div>
+      </div>
       <div className="elg-search" onClick={() => window.dispatchEvent(new Event('open-global-search'))}>
         <img src="/icons/nav-search-icon.svg" alt="Search" />
         <input id="search" name="search" placeholder="Search" type="text" readOnly />
@@ -74,6 +88,9 @@ export default function TopBar() {
           <span>K</span>
         </p>
       </div>
+      <button className="elg-icon-btn elg-topbar-mobile-search" title="Search" onClick={() => window.dispatchEvent(new Event('open-global-search'))}>
+        <img src="/icons/nav-search-icon.svg" alt="Search" />
+      </button>
       <div className="elg-topbar-right">
         {isAdmin && (
           <div className="elg-notif" ref={notifRef}>

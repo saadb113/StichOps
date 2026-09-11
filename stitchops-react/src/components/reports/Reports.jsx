@@ -4,7 +4,7 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { fmt, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt, convertToDefault, paymentBadge } from '../../lib/helpers';
 import {SYMIcon, SYM, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
-import { CalendarIcon } from '../icons/Icon';
+import { CalendarIcon, BagIcon, CoinIcon } from '../icons/Icon';
 
 const ORDER_CURRENCIES = CUSTOMER_CURRENCIES;
 
@@ -99,13 +99,13 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="elg-panel elg-filterbar" style={{ justifyContent: 'space-between' }}>
+      <div className="elg-panel elg-filterbar elg-reports-filterbar" style={{ justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className={`elg-btn ${period === 'day' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('day')}>Today</button>
           <button className={`elg-btn ${period === 'month' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('month')}>This Month</button>
           <button className={`elg-btn ${period === 'year' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('year')}>This Year</button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
             <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
             <img src="/images/calender.svg" style={{right : "12px"}} alt="" />
@@ -135,10 +135,23 @@ export default function Reports() {
         })}
       </div>
 
-      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 8 }}>
+      <div className="elg-panel" style={{ marginBottom: 8 }}>
         <div >
           <div className="elg-section-title" style={{ marginBottom: 18 }}>Production Cost by Designer</div>
         </div>
+        <div className="elg-mobile-cards">
+          {Object.keys(byDesigner).length === 0 && <div className="elg-empty">No orders in this range.</div>}
+          {Object.entries(byDesigner).map(([d, data]) => {
+            const total = convertedTotal(data.cost);
+            return (
+              <div key={d} className="elg-mobile-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="elg-mobile-card-title">{d}</div>
+                <div className="elg-mobile-card-price">{total == null ? '—' : fmt(total, defaultCcy)}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="elg-table-wrap">
         <table className="elg-table">
           <thead><tr><th>Designer</th><th>Orders</th><th>Total Production Cost</th></tr></thead>
           <tbody>
@@ -155,15 +168,33 @@ export default function Reports() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
         <div style={{marginBottom: 16,lineHeight : "21px", fontSize: 14, color: '#5C5C5C', borderTop: '1px solid var(--elg-line)' }}>
           All totals are converted and displayed in the selected default currency.
         </div>
 
-      <div className="elg-panel elg-table-wrap" style={{ marginBottom: 16 }}>
+      <div className="elg-panel" style={{ marginBottom: 16 }}>
         <div>
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Salesperson Invoice/Commission Summary</div>
         </div>
+        <div className="elg-mobile-cards">
+          {Object.keys(bySales).length === 0 && <div className="elg-empty">No orders in this range.</div>}
+          {Object.entries(bySales).map(([name, d]) => {
+            const total = convertedTotal(d.commission);
+            return (
+              <div key={name} className="elg-mobile-card">
+                <div className="elg-mobile-card-head">
+                  <div className="elg-mobile-card-title">{name}</div>
+                  <div className="elg-mobile-card-price">{total == null ? '—' : fmt(total, defaultCcy)}</div>
+                </div>
+                <div className="elg-mobile-card-row"><BagIcon width={14} height={14} />{d.count}</div>
+                <div className="elg-mobile-card-row"><CoinIcon width={14} height={14} />{Object.entries(d.commission).map(([cc, v]) => fmt(v, cc)).join(' + ')}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="elg-table-wrap">
         <table className="elg-table">
           <thead><tr><th>Salesperson</th><th>Orders</th><th>Commission Earned</th><th>Commission in {defaultCcy}</th></tr></thead>
           <tbody>
@@ -181,12 +212,35 @@ export default function Reports() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
-      <div className="elg-panel elg-table-wrap">
+      <div className="elg-panel">
         <div>
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Client Payment Status</div>
         </div>
+        <div className="elg-mobile-cards">
+          {unpaidInvoices.length === 0 && <div className="elg-empty">No unpaid invoices — everything's settled.</div>}
+          {unpaidInvoices.map((i) => {
+            const c = getCustomer(i.customerId);
+            const pb = paymentBadge(i);
+            return (
+              <div key={i.id} className="elg-mobile-card">
+                <div className="elg-mobile-card-head">
+                  <div className="elg-mobile-card-title">{c ? c.company : '—'}</div>
+                  <div className="elg-mobile-card-price">{i.currency} {i.total.toFixed(2)}</div>
+                </div>
+                <div className="elg-mobile-card-subtitle" style={{ marginBottom: 6 }}>{i.invoiceNo}</div>
+                <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{i.generatedDate}</div>
+                <div className="elg-mobile-card-foot">
+                  <span className="elg-badge elg-badge-unpaid">{pb.label}</span>
+                  <button className="elg-btn elg-btn-sm" style={{ width: 'auto' }} onClick={() => handleToggle(i.id)}>Mark as Paid</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="elg-table-wrap">
         <table className="elg-table">
           <thead><tr><th>ID</th><th>Customer</th><th>Currency</th><th>Amount</th><th>Unpaid For</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
           <tbody>
@@ -211,6 +265,7 @@ export default function Reports() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

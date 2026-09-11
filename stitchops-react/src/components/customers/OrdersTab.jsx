@@ -5,7 +5,7 @@ import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
 import { ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
-import { PencilIcon, KebabIcon, MessageIcon } from '../icons/Icon';
+import { PencilIcon, KebabIcon, MessageIcon, CoinIcon, CalendarIcon, PersonIcon, DocIcon } from '../icons/Icon';
 
 function statusPillStyle(status) {
   const map = {
@@ -65,7 +65,59 @@ export default function OrdersTab({ customer, orders }) {
   }
 
   return (
-    <div className="elg-panel elg-table-wrap">
+    <div className="elg-panel">
+      <div className="elg-mobile-cards">
+        {orders.map((o) => {
+          const prodCostConverted = convertToDefault(o.productionCost, o.productionCostCurrency || o.currency, currencyRates, defaultCurrency);
+          const commissionConverted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
+          return (
+            <div key={o.id} className="elg-mobile-card">
+              <div className="elg-mobile-card-head">
+                <div className="elg-mobile-card-title">{o.name}</div>
+                {isAdmin && (
+                  <div className="elg-row-actions">
+                    <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}>
+                      <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+                    </button>
+                    {openMenuId === o.id && (
+                      <div className="elg-row-menu">
+                        <button onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}>
+                          <img src="/icons/pencil-icon.svg" width={12} alt="Edit Icon" /> Edit order
+                        </button>
+                        <button className="elg-btn-danger-text" onClick={() => handleDelete(o)}>
+                          <img src="/icons/delete-red-icon.svg" alt="Delete Icon" /> Delete order
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="elg-mobile-card-row">
+                <CoinIcon width={14} height={14} />
+                {commissionConverted == null ? '—' : fmt(commissionConverted, defaultCurrency)} Commission ({o.commissionRate}%)
+              </div>
+              <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{o.date}</div>
+              <div className="elg-mobile-card-2col">
+                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{o.designer}</div>
+                <div className="elg-mobile-card-row"><DocIcon width={14} height={14} />{prodCostConverted == null ? '—' : fmt(prodCostConverted, defaultCurrency)}</div>
+              </div>
+              <div className="elg-mobile-card-foot">
+                <span
+                  className={`elg-badge ${elgStatusClass(o.status)} ${isAdmin ? 'clickable' : ''}`}
+                  onClick={isAdmin ? () => cycleStatus(o) : undefined}
+                  title={isAdmin ? 'Click to advance status' : undefined}
+                >
+                  {o.status}
+                </span>
+                <span className="elg-mobile-card-price">
+                  {fmt(o.price, o.currency)}{o.currency !== customer.currency && <span style={{ color: 'var(--elg-ink-3)', fontSize: 11, fontWeight: 400 }}> · overridden</span>}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="elg-table-wrap">
       <table className="elg-table">
         <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. Cost</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
@@ -121,6 +173,7 @@ export default function OrdersTab({ customer, orders }) {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

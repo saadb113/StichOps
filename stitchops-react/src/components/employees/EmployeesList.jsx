@@ -8,7 +8,7 @@ import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
 import EditTeamsModal from './EditTeamsModal';
 import CredentialsModal from './CredentialsModal';
-import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon } from '../icons/Icon';
+import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
   const { rejectPasswordReset } = useAppState();
@@ -134,6 +134,34 @@ export default function EmployeesList() {
 
             </div>
           </div>
+          <div className="elg-mobile-cards">
+            {passwordResetRequests.map((r) => {
+              const emp = getEmployee(r.employeeId);
+              return (
+                <div key={r.id} className="elg-mobile-card">
+                  <div className="elg-mobile-card-title" style={{ marginBottom: 6 }}>{emp ? emp.name : '—'}</div>
+                  <div className="elg-mobile-card-row">{r.email}</div>
+                  <div className="elg-mobile-card-row">Requested: {r.requestedAt}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <button
+                      className="elg-btn elg-btn-ghost elg-btn-sm elg-btn-danger-text"
+                      style={{ width: 'auto', display: 'inline-flex', flex: 1, justifyContent: 'center' }}
+                      onClick={() => openModal(<ConfirmRejectPasswordResetModal requestId={r.id} name={emp ? emp.name : 'This employee'} />, { variant: 'elegant' })}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      className="elg-btn elg-btn-primary elg-btn-sm"
+                      style={{ width: 'auto', display: 'inline-flex', flex: 1, justifyContent: 'center' }}
+                      onClick={() => handleApproveReset(r.id)}
+                    >
+                      <CheckIcon /> Approve Reset
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           <div className="elg-table-wrap">
             <table className="elg-table">
               <thead>
@@ -236,6 +264,63 @@ export default function EmployeesList() {
           <PlusIcon width={15} height={15} /> Add Team
         </div>
       </div>
+
+      <div className="elg-mobile-cards">
+        {list.length === 0 && (
+          <div className="elg-empty" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--elg-ink)', marginBottom: 4 }}>No employees in {category} yet</div>
+            <div style={{ fontSize: 13, color: 'var(--elg-ink-3)' }}>Add an employee and assign them to this team tab.</div>
+          </div>
+        )}
+        {list.map((e) => {
+          const unpaid = unpaidAmountFor(orders, customers, e);
+          const unpaidTotal = sumConvertedToDefault(unpaid, currencyRates, defaultCurrency);
+          const unpaidStr = unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
+          return (
+            <div key={e.id} className="elg-mobile-card clickable" onClick={() => navigate(`/employees/${e.id}`)}>
+              <div className="elg-mobile-card-head">
+                <div>
+                  <div className="elg-mobile-card-title">{e.name}</div>
+                  <div className="elg-mobile-card-subtitle">{e.designation || '—'}</div>
+                </div>
+                <div className="elg-row-actions" onClick={(ev) => ev.stopPropagation()}>
+                  <button
+                    className="elg-icon-sq"
+                    onClick={() => setOpenMenuId(openMenuId === e.id ? null : e.id)}
+                    title="Options"
+                  >
+                    <img src="/icons/filter-actions-dot-icon.svg" alt="More" />
+                  </button>
+                  {openMenuId === e.id && (
+                    <div className="elg-row-menu">
+                      <button onClick={() => handleEdit(e)}>
+                        <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit Profile
+                      </button>
+                      <button className="elg-btn-danger-text" onClick={() => handleDelete(e)}>
+                        <img src="/icons/delete-red-icon.svg" width={12} height={12} alt="Delete" /> Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="elg-mobile-card-2col">
+                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{defaultCurrency}</div>
+                <div className="elg-mobile-card-row">Payout: {e.payoutDay}th</div>
+              </div>
+              <div className="elg-mobile-card-foot">
+                {category === 'Salesperson' ? (
+                  <span className="elg-mobile-card-row" style={{ marginBottom: 0 }}><CoinIcon width={14} height={14} />Base {fmt(e.baseSalary, defaultCurrency)}</span>
+                ) : <span />}
+                <span className="elg-mobile-card-price">{unpaidStr}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="elg-fab" title="Add Employee" onClick={() => openModal(<EmployeeFormModal defaultCategory={category} />, { variant: 'elegant' })}>
+        <PlusIcon width={22} height={22} />
+      </button>
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

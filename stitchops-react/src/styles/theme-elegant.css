@@ -2286,10 +2286,6 @@
     max-width: 300px;
   }
 
-  .elg-topbar {
-    display: none;
-  }
-
   .elg-page-title {
     font-size: 24px;
   }
@@ -3329,8 +3325,13 @@
 
   .elg-page-head {
     margin-bottom: 12px;
+    flex-direction: column;
+    align-items: flex-start;
   }
-
+.elg-account-card-head{
+  flex-direction: column;
+  align-items: flex-start;
+}
   .elg-filterbar {
     margin-bottom: 24px;
     display: flex;
@@ -3417,5 +3418,641 @@ input[type="number"] {
   width: 13px;
   height: 13px;
   pointer-events: none;
-  flex-shrink: 0;
+}
+
+/* ============================================================
+   MOBILE — phone-width responsive redesign (Figma mobileScreens/).
+   Mobile-only elements are declared hidden here (outside the media
+   query) and switched on inside it, so this section is the single
+   source of truth for what's mobile-only. Bottom tab bar replaces
+   Dashboard/Orders/Invoices in the drawer nav; "More" opens the same
+   drawer (Sidebar) used for the rest. Desktop tables are swapped for
+   `.elg-mobile-cards` card lists built alongside each `.elg-table-wrap`.
+   ============================================================ */
+.elg-topbar-mobile-left,
+.elg-topbar-mobile-search,
+.elg-sidebar-close,
+.elg-sidebar-logout,
+.elg-mobile-bottom-nav,
+.elg-fab,
+.elg-mobile-cards,
+.elg-mobile-filter-btn,
+.elg-mobile-filter-chips,
+.elg-mobile-country-chips,
+.elg-customer-toggle-btn {
+  display: none;
+}
+
+.elg-logo {
+  justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+  #app.elg-shell {
+    display: flex;
+  }
+
+  #main {
+    padding: 16px 16px 96px;
+  }
+
+  .elg-crumbs {
+    display: none;
+  }
+
+  .elg-page-title {
+    font-size: 22px;
+  }
+
+  /* ---------- TopBar ---------- */
+  .elg-topbar {
+    display: flex;
+    padding: 12px 16px;
+    height: auto;
+  }
+
+  .elg-search,
+  .elg-topbar .elg-account {
+    display: none;
+  }
+
+  .elg-topbar-mobile-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .elg-topbar-mobile-left .elg-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .elg-topbar-mobile-greeting {
+    font-size: 12.5px;
+    color: var(--elg-ink-3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .elg-topbar-mobile-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--elg-ink);
+  }
+
+  .elg-topbar-mobile-search {
+    display: inline-flex;
+  }
+
+  .elg-topbar-right {
+    gap: 8px;
+  }
+
+  /* ---------- Sidebar -> slide-in drawer ---------- */
+  #sidebar.elg-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 82vw;
+    max-width: 320px;
+    min-height: 0;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 210;
+    overflow-y: auto;
+    box-shadow: 12px 0 32px rgba(20, 20, 40, 0.18);
+  }
+
+  #sidebar.elg-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mob-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 30, 0.45);
+    z-index: 200;
+  }
+
+  .elg-sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--elg-line-strong);
+    background: var(--elg-surface);
+    color: var(--elg-ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .elg-nav-mobile-hide {
+    display: none;
+  }
+
+  .elg-sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 20px 20px;
+    padding: 12px 14px;
+    border: 1px solid var(--elg-line);
+    border-radius: 10px;
+    background: var(--elg-surface);
+    color: var(--elg-delete-red);
+    font-family: var(--elg-font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* ---------- Bottom tab bar ---------- */
+  .elg-mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 150;
+    background: var(--elg-surface);
+    border-top: 1px solid var(--elg-line);
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .elg-mobile-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--elg-ink-3);
+    font-family: var(--elg-font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  .elg-mobile-tab.active {
+    color: var(--elg-primary);
+  }
+
+  .elg-mobile-tab-icon-wrap {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .elg-mobile-tab-icon-wrap img,
+  .elg-mobile-tab-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .elg-mobile-tab-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--elg-primary);
+    border: 1.5px solid var(--elg-surface);
+  }
+
+  /* ---------- Floating action button ---------- */
+  .elg-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 20px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--elg-primary);
+    color: #fff;
+    border: none;
+    box-shadow: 0 10px 24px rgba(66, 77, 199, 0.4);
+    z-index: 120;
+    cursor: pointer;
+  }
+
+  /* ---------- Generic mobile card list (replaces .elg-table-wrap) ---------- */
+  /* Only hide a table if a mobile card list exists somewhere before it in
+     the same panel — pages that haven't gotten a mobile card treatment yet
+     keep their table (scrollable) rather than going blank. */
+  .elg-mobile-cards ~ .elg-table-wrap {
+    display: none;
+  }
+
+  .elg-mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .elg-mobile-card {
+    background: var(--elg-surface);
+    border: 1px solid var(--elg-line);
+    border-radius: 12px;
+    padding: 14px;
+    position: relative;
+  }
+
+  .elg-mobile-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .elg-mobile-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--elg-ink);
+    line-height: 1.35;
+  }
+
+  .elg-mobile-card-subtitle {
+    font-size: 12.5px;
+    color: var(--elg-ink-3);
+    margin-top: 1px;
+  }
+
+  .elg-mobile-card-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--elg-ink-2);
+    margin-bottom: 6px;
+  }
+
+  .elg-mobile-card-row img,
+  .elg-mobile-card-row svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--elg-ink-3);
+  }
+
+  .elg-mobile-card-2col {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--elg-line);
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .elg-mobile-card-2col .elg-mobile-card-row {
+    margin-bottom: 0;
+  }
+
+  .elg-mobile-card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .elg-mobile-card-price {
+    font-size: 16px;
+    font-weight: 500;
+    font-family: "STK Bureau Serif";
+    color: var(--elg-ink);
+  }
+
+  .elg-mobile-card .elg-row-actions {
+    position: static;
+  }
+
+  .elg-mobile-card .elg-row-menu {
+    top: 28px;
+  }
+
+  /* Dashboard's 4 metric cards read as a 2x2 grid on mobile, not a stack. */
+  .elg-metric-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ---------- Filter bar: search + a filter-sheet trigger icon ---------- */
+  .elg-filterbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .elg-filterbar .elg-field-search {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .elg-filterbar:not(.elg-reports-filterbar) > .elg-select,
+  .elg-filterbar:not(.elg-reports-filterbar) > .elg-date-range-field,
+  .elg-filterbar:not(.elg-reports-filterbar) > .elg-date-field {
+    display: none !important;
+  }
+
+  /* Reports' filterbar keeps its date range visible but stacks under the
+     period buttons instead of sitting side-by-side. */
+  .elg-reports-filterbar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+
+  .elg-reports-filterbar > div:first-child {
+    width: 100%;
+  }
+
+  .elg-reports-filterbar > div:first-child .elg-btn {
+    flex: 1;
+  }
+
+  .elg-reports-filterbar > .elg-date-range-field {
+    display: flex !important;
+    width: 100%;
+  }
+
+  .elg-reports-filterbar > .elg-date-range-field .elg-input {
+    flex: 1;
+  }
+
+  .elg-mobile-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--elg-line-strong);
+    background: var(--elg-surface);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .elg-filterbar > .elg-btn-primary {
+    display: none;
+  }
+
+  /* Applied-filter chips row (shown under the search bar once a filter sheet
+     value is picked). */
+  .elg-mobile-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: -12px;
+    margin-bottom: 18px;
+  }
+
+  .elg-mobile-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 12px;
+    border-radius: 100px;
+    background: var(--elg-primary-soft);
+    color: var(--elg-primary);
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .elg-mobile-filter-chip button {
+    border: none;
+    background: none;
+    color: var(--elg-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+  }
+
+  /* Horizontally scrollable country/type chip row (Customers page). */
+  .elg-mobile-country-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 18px;
+  }
+
+  .elg-mobile-country-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .elg-mobile-country-chip {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--elg-line-strong);
+    background: var(--elg-surface);
+    color: var(--elg-ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .elg-mobile-country-chip.active {
+    background: var(--elg-primary);
+    border-color: var(--elg-primary);
+    color: #fff;
+  }
+
+  .elg-mobile-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--elg-primary-soft);
+    color: var(--elg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ---------- Customer profile ---------- */
+  .elg-back-link,
+  .elg-profile-head {
+    display: none;
+  }
+
+  .elg-mobile-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .elg-mobile-back {
+    border: none;
+    background: none;
+    color: var(--elg-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .elg-customer-toggle-btn {
+    display: inline-flex;
+  }
+
+  .elg-customer-toggle-btn.active {
+    background: var(--elg-primary);
+    border-color: var(--elg-primary);
+    color: #fff;
+  }
+
+  .elg-profile-grid {
+    display: block;
+  }
+
+  .elg-mobile-view-content .elg-profile-sidebar {
+    display: none;
+  }
+
+  .elg-mobile-view-details .elg-mobile-tab-content-col {
+    display: none;
+  }
+
+  .elg-tabs {
+    display: flex;
+    background: var(--elg-page-bg);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+
+  .elg-tabs .elg-tab {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 12.5px;
+    padding: 8px 6px;
+  }
+
+  .elg-profile-sidebar .elg-panel {
+    margin-bottom: 16px;
+  }
+
+  /* ---------- Settings: master list drawer + drill-in ---------- */
+  .elg-page:has(.elg-settings-grid) .elg-page-head,
+  .elg-page:has(.elg-settings-grid) .elg-crumbs {
+    display: none;
+  }
+
+  .elg-mobile-settings-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .elg-settings-grid {
+    display: block !important;
+  }
+
+  .elg-settings-nav {
+    flex-direction: column !important;
+    width: 100% !important;
+    background: var(--elg-surface);
+    border: 1px solid #E8E8E8;
+    padding: 10px;
+  }
+
+  .elg-settings-nav-item {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    font-size: 15px !important;
+  }
+
+  .elg-settings-nav-item.active {
+    background: transparent !important;
+    color: var(--elg-primary) !important;
+    border: 1px solid var(--elg-primary);
+  }
+
+  .elg-settings-main {
+    display: none;
+    width: 100%;
+  }
+
+  .elg-mobile-settings-open .elg-settings-nav {
+    display: none;
+  }
+
+  .elg-mobile-settings-open .elg-settings-main {
+    display: flex;
+  }
+
+  /* Invoice document preview (Customer profile's Invoice tab) — already
+     wraps, just needs tighter padding/type at phone widths. */
+  .elg-invoice-doc {
+    padding: 16px;
+    font-size: 12px;
+  }
+
+  .elg-invoice-doc .idr > div:last-child {
+    text-align: left !important;
+  }
+
+  /* ---------- Employee profile (mirrors customer profile's mobile layout) ---------- */
+  .elg-employee-profile-head {
+    display: none;
+  }
+
+  /* Salary slip document preview — same treatment as the invoice preview. */
+  .elg-salary-slip {
+    padding: 16px !important;
+  }
+
+  .elg-salary-slip > div:first-child {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .elg-salary-slip > div:first-child > div:last-child {
+    text-align: left !important;
+  }
+
+  .salaryslipsButtons {
+    flex-wrap: wrap;
+  }
+
+  .salaryslipsButtons .elg-btn {
+    flex: 1;
+  }
 }

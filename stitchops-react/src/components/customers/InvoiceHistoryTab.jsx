@@ -40,7 +40,36 @@ export default function InvoiceHistoryTab({ customer }) {
   }
 
   return (
-    <div className="elg-panel elg-table-wrap">
+    <div className="elg-panel">
+      <div className="elg-mobile-cards">
+        {invs.map((i) => {
+          const bi = invoiceBadgeInfo(i);
+          return (
+            <div key={i.id} className="elg-mobile-card">
+              <div className="elg-mobile-card-head">
+                <div className="elg-mobile-card-title">{i.invoiceNo}{i.version > 1 ? ` (v${i.version})` : ''}</div>
+                <div className="elg-mobile-card-price">{fmt(i.total, i.currency)}</div>
+              </div>
+              <div className="elg-mobile-card-2col">
+                <div className="elg-mobile-card-row">Generated: {i.generatedDate}</div>
+                <div className="elg-mobile-card-row">Approved: {i.approvedDate || '—'}</div>
+              </div>
+              <div className="elg-mobile-card-2col">
+                <div className="elg-mobile-card-row">Status: <span className={`elg-badge ${i.status === 'approved' ? 'elg-badge-completed' : 'elg-badge-pending-pay'}`}>{i.status === 'approved' ? 'Approved' : 'Pending Review'}</span></div>
+                <div className="elg-mobile-card-row">
+                  Payment: {i.status === 'approved' ? <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle">{bi.label}</span> : '—'}
+                </div>
+              </div>
+              {i.status === 'approved' && (
+                <button className="elg-btn elg-download-btn" style={{ width: '100%', marginTop: 8 }} onClick={() => handleDownload(i)}>
+                  <img src="/images/download-invoice.svg" alt="" width={14} height={14} /> Download
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="elg-table-wrap">
       <table className="elg-table">
         <thead><tr><th>Invoice</th><th>Generated</th><th>Approved</th><th>Total</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
         <tbody>
@@ -66,6 +95,7 @@ export default function InvoiceHistoryTab({ customer }) {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

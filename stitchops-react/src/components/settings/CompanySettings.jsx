@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IdCardIcon, BankIcon, MailIcon } from '../icons/Icon';
+import { IdCardIcon, BankIcon, MailIcon, ArrowLeftIcon, SearchIcon } from '../icons/Icon';
 import CompanyDetailsTab from './CompanyDetailsTab';
 import BankAccountsTab from './BankAccountsTab';
 import AssignedEmailsTab from './AssignedEmailsTab';
@@ -37,7 +37,14 @@ const TABS = [
 ];
 export default function CompanySettings() {
   const [tab, setTab] = useState('details');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const activeTab = TABS.find((t) => t.key === tab);
+
+  function selectTab(key) {
+    setTab(key);
+    setMobileOpen(true);
+  }
 
   return (
     <div className="elg-page">
@@ -47,6 +54,17 @@ export default function CompanySettings() {
         <span className="elg-crumb-current">Settings</span>
       </div>
 
+      <div className="elg-mobile-settings-header">
+        {mobileOpen ? (
+          <>
+            <button className="elg-mobile-back" onClick={() => setMobileOpen(false)}><ArrowLeftIcon /></button>
+            <div className="elg-page-title" style={{ fontSize: 20 }}>{activeTab?.label}</div>
+          </>
+        ) : (
+          <div className="elg-page-title" style={{ fontSize: 20 }}>Settings</div>
+        )}
+      </div>
+
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">Settings</div>
@@ -54,7 +72,7 @@ export default function CompanySettings() {
         </div>
       </div>
 
-      <div className="elg-settings-grid">
+      <div className={`elg-settings-grid ${mobileOpen ? 'elg-mobile-settings-open' : ''}`}>
         <div className="elg-settings-nav">
           {TABS.map((t) => {
             const Icon = t.icon;
@@ -62,7 +80,7 @@ export default function CompanySettings() {
               <div
                 key={t.key}
                 className={`elg-settings-nav-item ${tab === t.key ? 'active' : ''}`}
-                onClick={() => setTab(t.key)}
+                onClick={() => selectTab(t.key)}
               >
                 <img src={`${tab === t.key ? t.activeIcon : t.icon}`} alt="" />
                 {t.label}

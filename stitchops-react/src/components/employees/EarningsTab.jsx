@@ -43,7 +43,54 @@ export default function EarningsTab({ employee: e, orders: os }) {
 
   return (
     <>
-      <div className="elg-panel employeeList  elg-table-wrap">
+      <div className="elg-panel employeeList">
+        <div className="elg-mobile-cards">
+          {Object.entries(byCust).map(([custId, cOrders]) => {
+            const cust = getCustomer(Number(custId));
+            const totals = {};
+            cOrders.forEach((o) => {
+              const { amt, cc } = orderAmount(o);
+              totals[cc] = (totals[cc] || 0) + amt;
+            });
+            const converted = sumConvertedToDefault(totals, currencyRates, defaultCurrency);
+            const totalStr = converted == null ? '—' : fmt(converted, defaultCurrency);
+            const earnedStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
+            const expanded = expandedId === custId;
+            return (
+              <div key={custId} className="elg-mobile-card">
+                <div className="elg-mobile-card-head clickable" onClick={() => setExpandedId(expanded ? null : custId)}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <ChevronDownIcon width={13} height={13} style={{ transform: expanded ? 'rotate(180deg)' : 'none', color: 'var(--elg-ink-3)', flexShrink: 0 }} />
+                    <span className="elg-mobile-card-title">{cust?.company || 'Unknown Customer'}</span>
+                  </span>
+                  <button
+                    className="elg-icon-sq"
+                    onClick={(ev) => { ev.stopPropagation(); openModal(<EditSlipOrdersModal ctx={{ type: 'earnings', employeeId: e.id, customerId: Number(custId) }} />, { variant: 'elegant' }); }}
+                    title="Edit"
+                  >
+                    <img src="/icons/pencil-icon.svg" alt="" />
+                  </button>
+                </div>
+                <div className="elg-mobile-card-row">{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</div>
+                <div className="elg-mobile-card-foot">
+                  <span className="elg-mobile-card-row" style={{ marginBottom: 0 }}>{earnedStr}</span>
+                  <span className="elg-mobile-card-price">{totalStr}</span>
+                </div>
+                {expanded && cOrders.map((o) => {
+                  const { amt, cc } = orderAmount(o);
+                  const orderConverted = convertToDefault(amt, cc, currencyRates, defaultCurrency);
+                  return (
+                    <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0 22px', borderTop: '1px solid var(--elg-line)', marginTop: 8, color: 'var(--elg-ink-3)', fontSize: 13 }}>
+                      <span>{o.name}</span>
+                      <span>{fmt(amt, cc)} · {orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div className="elg-table-wrap">
         <table className="elg-table">
           <thead>
             <tr>
@@ -109,6 +156,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
       <div className="elg-panel-foot">
         Grouped by customer — click a row to see individual orders, or the <span>edit icon</span> to adjust them. Changes here also update the Reports commission summary

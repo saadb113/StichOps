@@ -8,7 +8,7 @@ import CustomerFormModal from './CustomerFormModal';
 import OrdersTab from './OrdersTab';
 import InvoiceTab from './InvoiceTab';
 import InvoiceHistoryTab from './InvoiceHistoryTab';
-import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon } from '../icons/Icon';
+import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon, KebabIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
   if (status === 'Free Trial') return 'elg-badge-inprogress';
@@ -23,6 +23,8 @@ export default function CustomerProfile() {
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('orders');
+  const [mobileView, setMobileView] = useState('content');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const c = getCustomer(id);
@@ -47,6 +49,33 @@ export default function CustomerProfile() {
     <div className="elg-page">
       <div className="elg-back-link" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}>
         <img src="/icons/customers-back-btn.svg" alt="" /> Back
+      </div>
+
+      <div className="elg-mobile-profile-header">
+        <button className="elg-mobile-back" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}><ArrowLeftIcon /></button>
+        <div className="elg-mobile-avatar">{initials}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="elg-mobile-card-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.company}</div>
+          <div className="elg-mobile-card-subtitle">{c.customerCode || '—'}</div>
+        </div>
+        <button className={`elg-icon-sq elg-customer-toggle-btn ${mobileView === 'details' ? 'active' : ''}`} title="Profile Details" onClick={() => setMobileView((v) => (v === 'details' ? 'content' : 'details'))}>
+          <DocIcon width={16} height={16} />
+        </button>
+        {isAdmin && (
+          <div className="elg-row-actions">
+            <button className="elg-icon-sq" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><KebabIcon width={16} height={16} /></button>
+            {mobileMenuOpen && (
+              <div className="elg-row-menu">
+                <button onClick={() => { setMobileMenuOpen(false); openModal(<OrderFormModal customerId={c.id} />, { variant: 'elegant' }); }}>
+                  <PlusIcon width={14} height={14} /> Add Order
+                </button>
+                <button onClick={() => { setMobileMenuOpen(false); openModal(<CustomerFormModal customer={c} />, { variant: 'elegant' }); }}>
+                  <img src="/images/edit.svg" alt="" width={14} height={14} /> Edit Profile
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="elg-profile-head">
@@ -84,8 +113,8 @@ export default function CustomerProfile() {
         </div>
       )}
 
-      <div className="elg-profile-grid">
-        <div>
+      <div className={`elg-profile-grid elg-mobile-view-${mobileView}`}>
+        <div className="elg-mobile-tab-content-col">
           {isAdmin && (
             <div className="elg-tabs">
               <div className={`elg-tab ${tab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>

@@ -40,7 +40,6 @@ function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
           onFocus={() => setOpen(true)}
           placeholder="Search or select a customer"
         />
-        <ChevronDownIcon />
       </div>
       {open && (
         <div className="elg-customer-picker-list">
@@ -185,7 +184,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
   }
 
   return (
-    <>
+    <div className="elg-add-order-modal">
       <button className="elg-modal-close" onClick={closeModal}><img src="/icons/model-close-icon.svg" alt="Close" width="20" height="20" /></button>
 
       {order ? (
@@ -293,6 +292,6 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
         <button className="elg-btn" style={{ width: 'auto' }} onClick={closeModal}>Cancel</button>
         <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleSave}>{order ? 'Save Changes' : 'Add Order'}</button>
       </div>
-    </>
+    </div>
   );
 }

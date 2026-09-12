@@ -141,6 +141,27 @@
   --elg-shadow: 0 12px 32px rgba(20, 20, 40, 0.08);
 }
 
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent !important;
+  background-image: url("data:image/svg+xml;utf8,<svg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M10.5 5.25003C10.5 5.25003 7.92229 8.74999 6.99997 8.75C6.07766 8.75001 3.5 5.25 3.5 5.25' stroke='%23191919' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-position-y: 50% !important;
+  padding-right: 2rem !important;
+}
+
+/*
+Source - https://stackoverflow.com/a/42087251
+Posted by svnm, modified by community. See post 'Timeline' for change history
+Retrieved 2026-09-12, License - CC BY-SA 4.0
+*/
+
+select::-ms-expand {
+  display: none;
+}
+
 /* ---------- Shared shell (sidebar + topbar) ---------- */
 #app.elg-shell {
   background: var(--elg-page-bg);
@@ -1466,6 +1487,7 @@
   justify-content: center;
 }
 
+
 .elg-modal-hero-icon img {
   width: 64px;
   height: 60px;
@@ -1522,7 +1544,7 @@
 
 .elg-modal-body {
   padding: 30px 24px;
-  max-height: 62vh;
+  max-height: calc(100vh - 330px);
   overflow: auto;
 }
 
@@ -1678,6 +1700,7 @@
   color: #191919;
   width: auto;
   background: transparent;
+  background-position: right 12px center !important;
 }
 
 .elg-price-field:focus-within {
@@ -3140,6 +3163,14 @@
   border: 1px solid var(--elg-line-strong);
   border-radius: 8px;
   cursor: text;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent !important;
+  background-image: url("data:image/svg+xml;utf8,<svg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M10.5 5.25003C10.5 5.25003 7.92229 8.74999 6.99997 8.75C6.07766 8.75001 3.5 5.25 3.5 5.25' stroke='%23191919' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position-x: 95% !important;
+  background-position-y: 50% !important;
+  padding-right: 2rem !important;
 }
 
 .elg-customer-picker-input.elg-select-danger {
@@ -3328,10 +3359,12 @@
     flex-direction: column;
     align-items: flex-start;
   }
-.elg-account-card-head{
-  flex-direction: column;
-  align-items: flex-start;
-}
+
+  .elg-account-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .elg-filterbar {
     margin-bottom: 24px;
     display: flex;
@@ -3657,7 +3690,7 @@ input[type="number"] {
   /* Only hide a table if a mobile card list exists somewhere before it in
      the same panel — pages that haven't gotten a mobile card treatment yet
      keep their table (scrollable) rather than going blank. */
-  .elg-mobile-cards ~ .elg-table-wrap {
+  .elg-mobile-cards~.elg-table-wrap {
     display: none;
   }
 
@@ -3769,9 +3802,9 @@ input[type="number"] {
     max-width: none;
   }
 
-  .elg-filterbar:not(.elg-reports-filterbar) > .elg-select,
-  .elg-filterbar:not(.elg-reports-filterbar) > .elg-date-range-field,
-  .elg-filterbar:not(.elg-reports-filterbar) > .elg-date-field {
+  .elg-filterbar:not(.elg-reports-filterbar)>.elg-select,
+  .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-range-field,
+  .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-field {
     display: none !important;
   }
 
@@ -3783,20 +3816,20 @@ input[type="number"] {
     gap: 12px;
   }
 
-  .elg-reports-filterbar > div:first-child {
+  .elg-reports-filterbar>div:first-child {
     width: 100%;
   }
 
-  .elg-reports-filterbar > div:first-child .elg-btn {
+  .elg-reports-filterbar>div:first-child .elg-btn {
     flex: 1;
   }
 
-  .elg-reports-filterbar > .elg-date-range-field {
+  .elg-reports-filterbar>.elg-date-range-field {
     display: flex !important;
     width: 100%;
   }
 
-  .elg-reports-filterbar > .elg-date-range-field .elg-input {
+  .elg-reports-filterbar>.elg-date-range-field .elg-input {
     flex: 1;
   }
 
@@ -3813,7 +3846,7 @@ input[type="number"] {
     cursor: pointer;
   }
 
-  .elg-filterbar > .elg-btn-primary {
+  .elg-filterbar>.elg-btn-primary {
     display: none;
   }
 
@@ -4025,7 +4058,7 @@ input[type="number"] {
     font-size: 12px;
   }
 
-  .elg-invoice-doc .idr > div:last-child {
+  .elg-invoice-doc .idr>div:last-child {
     text-align: left !important;
   }
 
@@ -4039,12 +4072,12 @@ input[type="number"] {
     padding: 16px !important;
   }
 
-  .elg-salary-slip > div:first-child {
+  .elg-salary-slip>div:first-child {
     flex-wrap: wrap;
     gap: 12px;
   }
 
-  .elg-salary-slip > div:first-child > div:last-child {
+  .elg-salary-slip>div:first-child>div:last-child {
     text-align: left !important;
   }
 

@@ -5,6 +5,7 @@ import { useUi } from '../../store/UiContext';
 import { isActive } from '../../lib/helpers';
 import CustomerFormModal from './CustomerFormModal';
 import OrderFormModal from '../orders/OrderFormModal';
+import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon } from '../icons/Icon';
@@ -154,6 +155,7 @@ export default function CustomersList() {
       <MobileFab
         onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
         onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+        onAddEmployee={() => openModal(<EmployeeFormModal />, { variant: 'elegant' })}
       />
 
       <div className="elg-panel elg-table-wrap">

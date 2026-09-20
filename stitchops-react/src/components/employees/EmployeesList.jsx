@@ -8,6 +8,9 @@ import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
 import EditTeamsModal from './EditTeamsModal';
 import CredentialsModal from './CredentialsModal';
+import CustomerFormModal from '../customers/CustomerFormModal';
+import OrderFormModal from '../orders/OrderFormModal';
+import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
@@ -318,9 +321,11 @@ export default function EmployeesList() {
         })}
       </div>
 
-      <button className="elg-fab" title="Add Employee" onClick={() => openModal(<EmployeeFormModal defaultCategory={category} />, { variant: 'elegant' })}>
-        <PlusIcon width={22} height={22} />
-      </button>
+      <MobileFab
+        onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
+        onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+        onAddEmployee={() => openModal(<EmployeeFormModal defaultCategory={category} />, { variant: 'elegant' })}
+      />
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

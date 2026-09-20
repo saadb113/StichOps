@@ -4,12 +4,13 @@ import { PlusIcon } from '../icons/Icon';
 
 const AddOrderIcon = '/icons/add-icon-black.svg';
 const AddCustomerIcon = '/icons/add-customer-icon.svg';
+const AddEmployeeIcon = '/icons/employees-icon.svg';
 
-// Admin gets a speed-dial FAB (expands to Add Order / Add Customer,
-// button rolls into a black "×" with a transition); Salesperson only ever
-// adds customers from here, so theirs stays the plain single-action FAB
-// it always was.
-export default function MobileFab({ onAddOrder, onAddCustomer }) {
+// Admin gets a speed-dial FAB (expands to Add Order / Add Customer / Add
+// Employee, button rolls into a black "×" with a transition); Salesperson
+// only ever adds customers from here, so theirs stays the plain
+// single-action FAB it always was.
+export default function MobileFab({ onAddOrder, onAddCustomer, onAddEmployee }) {
   const { isAdmin } = useAppState();
   const [open, setOpen] = useState(false);
 
@@ -38,6 +39,11 @@ export default function MobileFab({ onAddOrder, onAddCustomer }) {
           <button className="elg-fab-menu-item" style={{ '--elg-fab-delay': '0.08s' }} onClick={() => { setOpen(false); onAddCustomer(); }}>
             <img src={AddCustomerIcon} alt="" width={18} height={18} /> Add Customer
           </button>
+          {onAddEmployee && (
+            <button className="elg-fab-menu-item" style={{ '--elg-fab-delay': '0.14s' }} onClick={() => { setOpen(false); onAddEmployee(); }}>
+              <img src={AddEmployeeIcon} alt="" width={18} height={18} /> Add Employee
+            </button>
+          )}
         </div>
       )}
       <button className={`elg-fab ${open ? 'open' : ''}`} title="Quick add" onClick={() => setOpen((v) => !v)}>

@@ -6,6 +6,9 @@ import { fmt, commissionAmt, isActive, paymentBadge, convertToDefault } from '..
 import { TODAY, SYM } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
+import CustomerFormModal from '../customers/CustomerFormModal';
+import EmployeeFormModal from '../employees/EmployeeFormModal';
+import MobileFab from '../layout/MobileFab';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
 function greetingFor(date) {
@@ -228,6 +231,12 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
+
+      <MobileFab
+        onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
+        onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+        onAddEmployee={() => openModal(<EmployeeFormModal />, { variant: 'elegant' })}
+      />
     </div>
   );
 }

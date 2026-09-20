@@ -7,6 +7,7 @@ import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/const
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
 import CustomerFormModal from '../customers/CustomerFormModal';
+import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon } from '../icons/Icon';
@@ -183,6 +184,7 @@ export default function OrdersScreen() {
       <MobileFab
         onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
         onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+        onAddEmployee={() => openModal(<EmployeeFormModal />, { variant: 'elegant' })}
       />
 
       <div className="elg-panel elg-table-wrap">

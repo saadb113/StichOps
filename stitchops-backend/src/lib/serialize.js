@@ -51,6 +51,7 @@ function serializeCustomer(customer) {
     invoiceDay: customer.invoiceDay,
     notes: customer.notes,
     invoicePrefix: customer.invoicePrefix,
+    nextInvoiceSeq: customer.nextInvoiceSeq,
     createdAt: customer.createdAt
   };
 }

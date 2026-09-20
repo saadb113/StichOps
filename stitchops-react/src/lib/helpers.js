@@ -161,6 +161,17 @@ export function formatSlipNo(prefix, seq) {
   return `${prefix}-${String(seq).padStart(4, '0')}`;
 }
 
+// Mirrors the backend's lib/invoiceNumber.js prefix rule (first 2 letters
+// of the company + first letter of the contact name) — used only to
+// preview an invoice number before a draft has actually been generated.
+export function guessInvoicePrefix(company, contactName) {
+  const companyLetters = (company || '').toUpperCase().replace(/[^A-Z]/g, '');
+  const contactLetters = (contactName || '').toUpperCase().replace(/[^A-Z]/g, '');
+  const two = (companyLetters.slice(0, 2) || 'XX').padEnd(2, 'X');
+  const one = contactLetters.slice(0, 1) || 'X';
+  return two + one;
+}
+
 // Invoices/slips are generated the month after the period they cover (see
 // lib/monthlyInvoicing.js / the salary-slip approval gating) — this derives
 // that covered month's label from the record's own generated/approved date,

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt, bankAccountLines } from '../../lib/helpers';
-import { PencilIcon } from '../icons/Icon';
+import { fmt, commissionAmt, bankAccountLines, guessInvoicePrefix, formatSlipNo } from '../../lib/helpers';
+import { PencilIcon, DownloadIcon } from '../icons/Icon';
 import OrderFormModal from '../orders/OrderFormModal';
+import { downloadInvoicePdf } from '../../lib/invoicePdf';
 
 function InvoiceTabSales({ customer, orders }) {
   const completed = orders.filter((o) => o.status === 'Completed');
@@ -68,11 +69,26 @@ export default function InvoiceTab({ customer, orders }) {
     openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' });
   }
 
-  const nextRunLabel = (() => {
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    return nextMonth.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  })();
+  const now = new Date();
+  const nextRunDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextRunLabel = nextRunDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Previewing what next month's auto-invoice will actually look like — so
+  // the "covered month" derivation (helpers.coveredMonthLabel expects a
+  // generatedDate and subtracts a month from it) needs the real future
+  // generation date, not today, or the period label would be off by one.
+  function handleDownload() {
+    const prefix = customer.invoicePrefix || guessInvoicePrefix(customer.company, customer.name);
+    const seq = customer.nextInvoiceSeq || 1;
+    const draftInvoice = {
+      invoiceNo: formatSlipNo(prefix, seq),
+      version: 1,
+      generatedDate: nextRunDate.toISOString().slice(0, 10),
+      total,
+      currency: customer.currency
+    };
+    downloadInvoicePdf({ invoice: draftInvoice, customer, company, orders: draft, bankAccount });
+  }
 
   return (
     <>
@@ -132,9 +148,14 @@ export default function InvoiceTab({ customer, orders }) {
               <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={() => setEditMode(false)}>Save Changes</button>
             </>
           ) : (
-            <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setEditMode(true)}>
-              <PencilIcon width={13} height={13} /> Edit Orders
-            </button>
+            <>
+              <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={handleDownload}>
+                <DownloadIcon width={13} height={13} /> Download Invoice
+              </button>
+              <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setEditMode(true)}>
+                <PencilIcon width={13} height={13} /> Edit Orders
+              </button>
+            </>
           )}
         </div>
       </div>

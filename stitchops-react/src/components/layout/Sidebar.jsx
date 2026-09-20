@@ -131,13 +131,17 @@ export default function Sidebar({ open, onNavigate }) {
       <div className="elg-logo">
         <img src={elegantsLogo} alt="StitchOps" />
         <button className="elg-sidebar-close" onClick={onNavigate} aria-label="Close menu">
-          <ArrowLeftIcon width={18} height={18} />
+
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.75 5.5C13.75 5.5 8.25001 9.55069 8.25 11C8.24999 12.4494 13.75 16.5 13.75 16.5" stroke="#191919" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+
         </button>
       </div>
 
       {isAdmin && (
         <div className="elg-sidebar-actions">
-          <button className="elg-btn elg-btn-primary" style={{fontWeight: 500}} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+          <button className="elg-btn elg-btn-primary" style={{ fontWeight: 500 }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
             <img src={AddOrder} alt="Add Order" /> Add Order
           </button>
           <button className="elg-customer-btn" onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>

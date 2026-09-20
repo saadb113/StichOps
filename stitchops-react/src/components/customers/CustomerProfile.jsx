@@ -60,7 +60,11 @@ export default function CustomerProfile() {
       </div>
 
       <div className="elg-mobile-profile-header">
-        <button className="elg-mobile-back" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}><ArrowLeftIcon /></button>
+        <button className="elg-mobile-back" onClick={() => navigate(isAdmin ? '/customers' : '/my-customers')}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.75 5.5C13.75 5.5 8.25001 9.55069 8.25 11C8.24999 12.4494 13.75 16.5 13.75 16.5" stroke="#191919" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
         <div className="elg-mobile-avatar">{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="elg-mobile-card-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.company}</div>

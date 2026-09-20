@@ -3751,7 +3751,7 @@ input[type="number"] {
   .elg-modal-body {
     padding: 30px 24px;
     max-height: calc(100vh - 550px) !important;
-    overflow: auto;
+    overflow-y: auto;
   }
 
   /* ---------- Bottom tab bar ---------- */
@@ -4183,6 +4183,17 @@ input[type="number"] {
 
   .edit-toggle-btn.active svg path {
     stroke: #fff;
+  }
+  
+  .edit-toggle-btn{
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .edit-toggle-btn svg,
+  .edit-toggle-btn img{
+    width: 20px;
+    height: 20px;
   }
 
   .elg-profile-grid {

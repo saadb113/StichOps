@@ -67,18 +67,16 @@ export default function CustomerProfile() {
           <div className="elg-mobile-card-subtitle">{c.customerCode || '—'}</div>
         </div>
         <button className={`elg-icon-sq elg-customer-toggle-btn edit-toggle-btn ${mobileView === 'details' ? 'active' : ''}`} title="Profile Details" onClick={() => setMobileView((v) => (v === 'details' ? 'content' : 'details'))}>
-
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M2.91797 8.33333C2.91797 5.19064 2.91797 3.61929 3.9553 2.64298C4.99263 1.66667 6.66219 1.66667 10.0013 1.66667H10.6452C13.3629 1.66667 14.7217 1.66667 15.6654 2.33153C15.9358 2.52202 16.1758 2.74794 16.3782 3.00241C17.0846 3.89056 17.0846 5.16946 17.0846 7.72727V9.84848C17.0846 12.3178 17.0846 13.5524 16.6939 14.5385C16.0656 16.1238 14.737 17.3743 13.0527 17.9655C12.0049 18.3333 10.6931 18.3333 8.06948 18.3333C6.57026 18.3333 5.82065 18.3333 5.22195 18.1232C4.25946 17.7853 3.50026 17.0708 3.14127 16.1649C2.91797 15.6014 2.91797 14.8959 2.91797 13.4848V8.33333Z" stroke="#191919" stroke-width="1.2" stroke-linejoin="round" />
             <path d="M17.0833 10C17.0833 11.5341 15.8397 12.7778 14.3056 12.7778C13.7507 12.7778 13.0966 12.6806 12.5572 12.8251C12.0779 12.9535 11.7035 13.3279 11.5751 13.8072C11.4306 14.3466 11.5278 15.0007 11.5278 15.5556C11.5278 17.0897 10.2841 18.3333 8.75 18.3333" stroke="#191919" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
             <path d="M6.66797 5.83333H12.5013" stroke="#191919" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
             <path d="M6.66797 9.16667H9.16797" stroke="#191919" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-
         </button>
         {isAdmin && (
           <div className="elg-row-actions">
-            <button className="elg-icon-sq" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><KebabIcon width={16} height={16} /></button>
+            <button className="elg-icon-sq edit-toggle-btn" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><img alt="More" src="/icons/filter-actions-dot-icon.svg" /></button>
             {mobileMenuOpen && (
               <div className="elg-row-menu">
                 <button onClick={() => { setMobileMenuOpen(false); openModal(<OrderFormModal customerId={c.id} />, { variant: 'elegant' }); }}>

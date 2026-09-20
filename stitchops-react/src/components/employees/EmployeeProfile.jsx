@@ -100,7 +100,7 @@ export default function EmployeeProfile() {
 
         </button>
         <div className="elg-row-actions">
-          <button className="elg-icon-sq" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><KebabIcon width={16} height={16} /></button>
+          <button className="elg-icon-sq edit-toggle-btn" title="More" onClick={() => setMobileMenuOpen((v) => !v)}><img alt="More" src="/icons/filter-actions-dot-icon.svg" /></button>
           {mobileMenuOpen && (
             <div className="elg-row-menu">
               <button onClick={() => { setMobileMenuOpen(false); openModal(<EmployeeFormModal employee={e} />, { variant: 'elegant' }); }}>

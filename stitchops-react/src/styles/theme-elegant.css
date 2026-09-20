@@ -4189,11 +4189,16 @@ input[type="number"] {
     width: 40px !important;
     height: 40px !important;
   }
+
   
-  .edit-toggle-btn svg,
-  .edit-toggle-btn img{
+  .edit-toggle-btn svg{
     width: 20px;
     height: 20px;
+  }
+  
+  .edit-toggle-btn img{
+    width: 14px;
+    height: 14px;
   }
 
   .elg-profile-grid {

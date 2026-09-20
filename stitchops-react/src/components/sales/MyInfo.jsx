@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { fmt } from '../../lib/helpers';
-import { PersonIcon, MailIcon } from '../icons/Icon';
+import { PersonIcon, MailIcon, ArrowLeftIcon } from '../icons/Icon';
 import ImageUploadBox from '../common/ImageUploadBox';
 
 function YourDetails(){
@@ -22,12 +22,39 @@ const TABS = [
 ];
 
 export default function MyInfo() {
-  const { currentEmployee: emp, company, uploadEmployeePhoto, deleteEmployeePhoto } = useAppState();
+  const { currentEmployee: emp, company, isSalesperson, uploadEmployeePhoto, deleteEmployeePhoto } = useAppState();
   const [tab, setTab] = useState('details');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const defaultCurrency = company?.defaultCurrency || 'PKR';
+  // Assigned Emails is a sales-only concept (which client-facing inbox an
+  // order came in on) — Designers/other teams just get their details, with
+  // no tab list to switch between since there's only the one section.
+  const tabs = isSalesperson ? TABS : TABS.filter((t) => t.key === 'details');
+  const showNav = tabs.length > 1;
+  const activeTab = tabs.find((t) => t.key === tab) || tabs[0];
+  // With one tab there's nothing to pick from, so skip the mobile
+  // master-list step entirely and go straight to the content — same
+  // "open" mechanism as Settings (CompanySettings.jsx), just pre-opened.
+  const mobileContentOpen = showNav ? mobileOpen : true;
+
+  function selectTab(key) {
+    setTab(key);
+    setMobileOpen(true);
+  }
 
   return (
     <div className="elg-page">
+      <div className="elg-mobile-settings-header">
+        {mobileContentOpen ? (
+          <>
+            {showNav && <button className="elg-mobile-back" onClick={() => setMobileOpen(false)}><ArrowLeftIcon /></button>}
+            <div className="elg-page-title" style={{ fontSize: 20 }}>{showNav ? activeTab?.label : 'My Info'}</div>
+          </>
+        ) : (
+          <div className="elg-page-title" style={{ fontSize: 20 }}>My Info</div>
+        )}
+      </div>
+
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">My Info</div>
@@ -35,22 +62,24 @@ export default function MyInfo() {
         </div>
       </div>
 
-      <div className="elg-settings-grid myinfo">
-        <div className="elg-settings-nav">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            return (
-              <div
-                key={t.key}
-                className={`elg-settings-nav-item ${tab === t.key ? 'active' : ''}`}
-                onClick={() => setTab(t.key)}
-              >
-                {Icon}
-                {t.label}
-              </div>
-            );
-          })}
-        </div>
+      <div className={`elg-settings-grid myinfo ${mobileContentOpen ? 'elg-mobile-settings-open' : ''}`} style={showNav ? undefined : { gridTemplateColumns: '1fr' }}>
+        {showNav && (
+          <div className="elg-settings-nav">
+            {tabs.map((t) => {
+              const Icon = t.icon;
+              return (
+                <div
+                  key={t.key}
+                  className={`elg-settings-nav-item ${tab === t.key ? 'active' : ''}`}
+                  onClick={() => selectTab(t.key)}
+                >
+                  {Icon}
+                  {t.label}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="elg-settings-main ">
           {tab === 'details' ? (
@@ -71,7 +100,7 @@ export default function MyInfo() {
                 <div className="elg-kv-row"><span className="k">Payout day</span><span className="v">{emp.payoutDay} of each month</span></div>
               </div>
             </div>
-          ) : (
+          ) : isSalesperson ? (
             <div className="elg-settings-card">
               <div className="elg-settings-card-title"><h2>Assigned Emails</h2></div>
               {(!emp.emails || emp.emails.length === 0) ? (
@@ -84,7 +113,7 @@ export default function MyInfo() {
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

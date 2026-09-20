@@ -11,6 +11,11 @@ datasource db {
 enum UserRole {
   ADMIN
   SALESPERSON
+  // Any non-Salesperson employee (Designer, or a custom team) who gets a
+  // self-service login — same portal shape as Salesperson minus the
+  // customer-facing bits (no "My Customers"), see routes/employees.js and
+  // stitchops-react's Guards.jsx / Sidebar.jsx.
+  EMPLOYEE
 }
 
 // Singleton row (id always 1) holding server-generated sequence numbers
@@ -20,6 +25,13 @@ model Counter {
   id               Int @id @default(autoincrement())
   nextInvoiceNo    Int @default(232)
   nextCustomerCode Int @default(1005)
+  // First-of-month date of the last period the monthly auto-invoice run
+  // (lib/monthlyInvoicing.js) has already processed, so the reactive check
+  // doesn't re-bundle the same month's orders on every notification load.
+  lastAutoInvoiceRun DateTime? @db.Date
+  // Same idea, for the "salary slips are ready" notification
+  // (lib/monthlySlipNotify.js) — fires once per newly-closed month.
+  lastSlipNotifyRun  DateTime? @db.Date
 }
 
 model Company {
@@ -32,11 +44,27 @@ model Company {
   logo            String?
 }
 
+// Which fields are meaningful depends on `country` — e.g. sortCode/iban for
+// the UK, routingNumber/accountType for the US, bic/iban for Europe,
+// bsb/bic for Australia (see BANK_COUNTRIES in the frontend). Kept as a
+// flat, sparse set of optional columns rather than per-country tables or a
+// JSON blob, matching this schema's existing style (Customer/Order already
+// carry plenty of optional fields the same way).
 model BankAccount {
-  id          Int    @id @default(autoincrement())
-  currency    String
-  accountName String @default("")
-  accountNo   String @default("")
+  id             Int    @id @default(autoincrement())
+  country        String @default("United Kingdom")
+  currency       String
+  accountName    String @default("")
+  accountHolder  String @default("")
+  accountNo      String @default("")
+  sortCode       String @default("")
+  routingNumber  String @default("")
+  accountType    String @default("")
+  bic            String @default("")
+  iban           String @default("")
+  bsb            String @default("")
+  paymentAccount String @default("")
+  address        String @default("")
 
   createdAt DateTime @default(now())
 }
@@ -67,6 +95,17 @@ model Employee {
   contact     String?
   photo       String?
   commissionRate Float @default(10)
+
+  // Salary slips are approved one calendar month at a time (see
+  // lib/slipNumber.js and routes/employees.js' approve-slip) — slipPrefix/
+  // nextSlipSeq number them like SHA-0010, SHA-0011 (first 3 letters of the
+  // employee's name, not checked for collisions, same convention as the
+  // customer invoice prefix). lastSlipApprovedPeriod is the first-of-month
+  // date of the most recently approved period, so a closed month can't be
+  // approved twice.
+  slipPrefix             String?
+  nextSlipSeq            Int      @default(1)
+  lastSlipApprovedPeriod DateTime? @db.Date
 
   user                  User?
   companyEmails         CompanyEmail[]
@@ -119,6 +158,14 @@ model Customer {
   status        String   @default("Free Trial")
   invoiceDay    Int?
   notes         String   @default("")
+
+  // Derived from company + contact name (see lib/invoiceNumber.js) the first
+  // time an invoice is generated for this customer, then held fixed so
+  // invoice numbers stay stable even if those names are edited later. Not
+  // unique by design — the client's naming convention can collide between
+  // customers (invoiceNo itself stays unique regardless).
+  invoicePrefix  String?
+  nextInvoiceSeq Int     @default(1)
 
   orders   Order[]
   invoices Invoice[]
@@ -196,13 +243,26 @@ model Payslip {
   currency     String
   baseSalary   Float
   commission   Float
+  bonusTotal   Float    @default(0)
   approvedDate DateTime @db.Date
   paymentStatus String  @default("Pending")
 
   commissionOrders Order[] @relation("CommissionPayslip")
   productionOrders Order[] @relation("ProductionPayslip")
+  bonuses          PayslipBonus[]
 
   createdAt DateTime @default(now())
+}
+
+// One-off extra line items added to a slip at approval time (e.g. "Eid
+// Bonus", "Performance Bonus") — a slip can have any number of these, each
+// with its own label and amount, summing to Payslip.bonusTotal.
+model PayslipBonus {
+  id        Int     @id @default(autoincrement())
+  payslipId Int
+  payslip   Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  label     String
+  amount    Float
 }
 
 model PasswordResetRequest {

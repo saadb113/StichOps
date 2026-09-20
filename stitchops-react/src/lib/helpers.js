@@ -1,4 +1,4 @@
-import { SYM, TODAY } from './constants';
+import { SYM, TODAY, BANK_COUNTRIES } from './constants';
 
 export function fmt(amount, ccy) {
   return SYM[ccy] + ' ' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -147,4 +147,44 @@ export function sumConvertedToDefault(byCcy, rates, defaultCcy) {
     total += converted;
   }
   return total;
+}
+
+// Mirrors the backend's lib/slipNumber.js / lib/invoiceNumber.js prefix rule
+// (first 3 letters of the name, letters only) — used only to preview a
+// slip number before an employee has ever had one assigned server-side.
+export function guessSlipPrefix(name) {
+  const letters = (name || '').toUpperCase().replace(/[^A-Z]/g, '');
+  return (letters.slice(0, 3) || 'EMP').padEnd(3, 'X');
+}
+
+export function formatSlipNo(prefix, seq) {
+  return `${prefix}-${String(seq).padStart(4, '0')}`;
+}
+
+// Invoices/slips are generated the month after the period they cover (see
+// lib/monthlyInvoicing.js / the salary-slip approval gating) — this derives
+// that covered month's label from the record's own generated/approved date,
+// so a downloaded PDF doesn't need a separate stored "period" field.
+export function coveredMonthLabel(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00.000Z');
+  const prev = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1));
+  return `Month of ${prev.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })}`;
+}
+
+// Which fields matter for a bank account depends on its country (see
+// BANK_COUNTRIES) — this builds the {label, value} lines to display for
+// wherever an account's details are shown (invoice payment box, etc.),
+// skipping anything left blank.
+export function bankAccountLines(account) {
+  if (!account) return [];
+  const countryDef = BANK_COUNTRIES.find((c) => c.country === account.country) || BANK_COUNTRIES[0];
+  const lines = [];
+  if (account.accountHolder) lines.push({ label: 'Account Holder', value: account.accountHolder });
+  countryDef.fields.forEach((f) => {
+    if (account[f.key]) lines.push({ label: f.label, value: account[f.key] });
+  });
+  if (account.paymentAccount) lines.push({ label: 'Payment Account', value: account.paymentAccount });
+  if (account.address) lines.push({ label: `${account.paymentAccount || 'Payment'}'s Address`, value: account.address });
+  return lines;
 }

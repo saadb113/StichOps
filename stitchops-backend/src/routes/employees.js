@@ -12,6 +12,8 @@ const { parseDateOnly, today } = require('../lib/date');
 const { isForeignKeyViolation } = require('../lib/prismaErrors');
 const { upload, deleteUploadedFile } = require('../lib/upload');
 const { convertToDefaultCurrency, getDefaultCurrency } = require('../lib/currency');
+const { nextSlipNumberForEmployee, generateSlipPrefix } = require('../lib/slipNumber');
+const { previousMonthPeriod } = require('../lib/period');
 
 const router = express.Router();
 
@@ -37,7 +39,8 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
         currency: defaultCurrency,
         baseSalary: body.baseSalary,
         payoutDay: body.payoutDay,
-        commissionRate: body.commissionRate
+        commissionRate: body.commissionRate,
+        slipPrefix: generateSlipPrefix(body.name)
       }
     });
 
@@ -48,25 +51,27 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
       });
     }
 
+    // Every employee gets a self-service login now, not just Salespeople —
+    // Designers and custom-team employees get the same portal (their own
+    // payslip/info, no customer-facing bits). Only the User.role differs.
     let credentials = null;
     let needsEmailWarning = false;
-    if (employee.role === 'Salesperson') {
-      if (!body.email) {
-        needsEmailWarning = true;
-      } else {
-        const clash = await tx.user.findUnique({ where: { email: body.email.toLowerCase() } });
-        if (clash) {
-          const err = new Error('A login with that email already exists.');
-          err.status = 409;
-          throw err;
-        }
-        const tempPw = genTempPassword();
-        const passwordHash = await hashPassword(tempPw);
-        const user = await tx.user.create({
-          data: { email: body.email.toLowerCase(), passwordHash, role: 'SALESPERSON', employeeId: employee.id, mustChangePassword: true, welcomed: false }
-        });
-        credentials = { name: employee.name, email: user.email, tempPw };
+    if (!body.email) {
+      needsEmailWarning = true;
+    } else {
+      const clash = await tx.user.findUnique({ where: { email: body.email.toLowerCase() } });
+      if (clash) {
+        const err = new Error('A login with that email already exists.');
+        err.status = 409;
+        throw err;
       }
+      const tempPw = genTempPassword();
+      const passwordHash = await hashPassword(tempPw);
+      const userRole = employee.role === 'Salesperson' ? 'SALESPERSON' : 'EMPLOYEE';
+      const user = await tx.user.create({
+        data: { email: body.email.toLowerCase(), passwordHash, role: userRole, employeeId: employee.id, mustChangePassword: true, welcomed: false }
+      });
+      credentials = { name: employee.name, email: user.email, tempPw };
     }
 
     const full = await tx.employee.findUnique({ where: { id: employee.id }, include: employeeInclude });
@@ -139,6 +144,37 @@ router.delete('/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) =
   res.json({ ok: true });
 }));
 
+// For employees created before self-service logins existed for their role
+// (or who were added without an email at the time) — provisions a login
+// the same way the create-employee flow does.
+router.post('/:id/create-login', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const employee = await prisma.employee.findUnique({ where: { id } });
+  if (!employee) return res.status(404).json({ error: 'Employee not found.' });
+
+  const existing = await prisma.user.findUnique({ where: { employeeId: id } });
+  if (existing) return res.status(400).json({ error: 'This employee already has a login.' });
+
+  const email = (req.body.email || employee.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'An email is required to create a login.' });
+
+  const clash = await prisma.user.findUnique({ where: { email } });
+  if (clash) return res.status(409).json({ error: 'A login with that email already exists.' });
+
+  const tempPw = genTempPassword();
+  const passwordHash = await hashPassword(tempPw);
+  const userRole = employee.role === 'Salesperson' ? 'SALESPERSON' : 'EMPLOYEE';
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.create({
+      data: { email, passwordHash, role: userRole, employeeId: id, mustChangePassword: true, welcomed: false }
+    });
+    if (!employee.email) await tx.employee.update({ where: { id }, data: { email } });
+  });
+
+  res.json({ name: employee.name, email, tempPw });
+}));
+
 router.post('/:id/regenerate-credentials', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const employee = await prisma.employee.findUnique({ where: { id } });
@@ -158,13 +194,23 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
   const employee = await prisma.employee.findUnique({ where: { id } });
   if (!employee) return res.status(404).json({ error: 'Employee not found.' });
 
+  // A slip only becomes approvable once its month has actually closed — the
+  // still-open current month stays edit-only in the UI, and this check
+  // backs that up server-side (and stops the same closed month being
+  // approved twice, since base salary has no "already paid" flag to check
+  // the way orders do).
+  const { periodStart, periodEnd } = previousMonthPeriod();
+  if (employee.lastSlipApprovedPeriod && employee.lastSlipApprovedPeriod.getTime() >= periodStart.getTime()) {
+    return res.status(400).json({ error: 'This month\'s slip has already been approved.' });
+  }
+
   const isSales = employee.role === 'Salesperson';
   const isDesigner = employee.role === 'Designer';
 
   const eligible = isSales
-    ? await prisma.order.findMany({ where: { customer: { salespersonId: id }, status: 'Completed', commissionPaid: false } })
+    ? await prisma.order.findMany({ where: { customer: { salespersonId: id }, status: 'Completed', commissionPaid: false, date: { lte: periodEnd } } })
     : isDesigner
-      ? await prisma.order.findMany({ where: { designerId: id, status: 'Completed', productionPaid: false } })
+      ? await prisma.order.findMany({ where: { designerId: id, status: 'Completed', productionPaid: false, date: { lte: periodEnd } } })
       : [];
 
   const defaultCurrency = await getDefaultCurrency(prisma);
@@ -177,12 +223,17 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
     if (isSales) variableTotal += await convertToDefaultCurrency(prisma, commissionAmt(o), o.currency, defaultCurrency);
     else variableTotal += o.productionCost;
   }
-  const total = employee.baseSalary + variableTotal;
+  const bonuses = Array.isArray(req.body.bonuses)
+    ? req.body.bonuses
+        .map((b) => ({ label: (typeof b.label === 'string' ? b.label.trim() : '') || 'Bonus', amount: Number(b.amount) || 0 }))
+        .filter((b) => b.amount > 0)
+    : [];
+  const bonusTotal = bonuses.reduce((s, b) => s + b.amount, 0);
+  const total = employee.baseSalary + variableTotal + bonusTotal;
   const todayDate = parseDateOnly(today());
 
   const payslip = await prisma.$transaction(async (tx) => {
-    const count = await tx.payslip.count();
-    const slipNo = 'SLIP-' + String(100 + count + 1);
+    const slipNo = await nextSlipNumberForEmployee(tx, employee);
     const created = await tx.payslip.create({
       data: {
         employeeId: id,
@@ -191,9 +242,16 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
         currency: defaultCurrency,
         baseSalary: employee.baseSalary,
         commission: variableTotal,
+        bonusTotal,
         approvedDate: todayDate
       }
     });
+
+    if (bonuses.length) {
+      await tx.payslipBonus.createMany({
+        data: bonuses.map((b) => ({ payslipId: created.id, label: b.label, amount: b.amount }))
+      });
+    }
 
     if (eligible.length) {
       await tx.order.updateMany({
@@ -204,7 +262,9 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
       });
     }
 
-    return tx.payslip.findUnique({ where: { id: created.id }, include: { commissionOrders: true, productionOrders: true } });
+    await tx.employee.update({ where: { id }, data: { lastSlipApprovedPeriod: periodStart } });
+
+    return tx.payslip.findUnique({ where: { id: created.id }, include: { commissionOrders: true, productionOrders: true, bonuses: true } });
   });
 
   res.status(201).json(serializePayslip(payslip));

@@ -1,75 +1,87 @@
-import { jsPDF } from 'jspdf';
-import { fmt } from './helpers';
+import { fmt, coveredMonthLabel, bankAccountLines } from './helpers';
+import { renderTemplateToPdf } from './htmlToPdf';
 
-export function downloadInvoicePdf({ invoice, customer, company, orders }) {
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 48;
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text(company?.name || 'StitchOps', margin, 56);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  if (company?.address) doc.text(company.address, margin, 72);
+// "14 Riverside Yard, Manchester, UK" -> ["14 Riverside Yard,", "Manchester, UK"]
+function splitAddress(address) {
+  if (!address) return [];
+  const idx = address.indexOf(', ');
+  if (idx === -1) return [address];
+  return [address.slice(0, idx + 1), address.slice(idx + 2)];
+}
 
-  doc.setTextColor(20, 20, 20);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('INVOICE', pageWidth - margin, 56, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  const invoiceLabel = invoice.invoiceNo + (invoice.version > 1 ? ` (v${invoice.version})` : '');
-  doc.text(`Invoice No: ${invoiceLabel}`, pageWidth - margin, 76, { align: 'right' });
-  doc.text(`Date: ${invoice.generatedDate}`, pageWidth - margin, 90, { align: 'right' });
-  doc.text(`Status: ${invoice.paymentStatus}`, pageWidth - margin, 104, { align: 'right' });
+export async function downloadInvoicePdf({ invoice, customer, company, orders, bankAccount }) {
+  await renderTemplateToPdf({
+    templatePath: '/pdf-templates/invoice.html',
+    rootSelector: '.invoice-doc',
+    filename: `${invoice.invoiceNo}.pdf`,
+    populate: (root) => {
+      const set = (field, value) => {
+        const el = root.querySelector(`[data-field="${field}"]`);
+        if (el) el.textContent = value ?? '';
+      };
 
-  let y = 140;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('Bill To', margin, y);
-  y += 16;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  if (customer?.company) { doc.text(customer.company, margin, y); y += 14; }
-  if (customer?.name) { doc.text(customer.name, margin, y); y += 14; }
-  if (customer?.email) { doc.text(customer.email, margin, y); y += 14; }
-  if (customer?.address) { doc.text(customer.address, margin, y); y += 14; }
+      const invoiceLabel = invoice.invoiceNo + (invoice.version > 1 ? ` (v${invoice.version})` : '');
+      set('doc-no', `# ${invoiceLabel}`);
+      set('period', coveredMonthLabel(invoice.generatedDate));
 
-  y += 16;
-  const tableWidth = pageWidth - margin * 2;
-  doc.setFillColor(40, 45, 70);
-  doc.rect(margin, y, tableWidth, 24, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('Order', margin + 10, y + 16);
-  doc.text('Date', margin + tableWidth * 0.55, y + 16);
-  doc.text('Price', pageWidth - margin - 10, y + 16, { align: 'right' });
-  y += 24;
+      const addrEl = root.querySelector('[data-field="company-address"]');
+      if (addrEl) {
+        addrEl.innerHTML = splitAddress(company?.address).map((l) => `<div>${escapeHtml(l)}</div>`).join('');
+      }
 
-  doc.setTextColor(20, 20, 20);
-  doc.setFont('helvetica', 'normal');
-  orders.forEach((o, idx) => {
-    if (idx % 2 === 1) {
-      doc.setFillColor(246, 247, 250);
-      doc.rect(margin, y, tableWidth, 22, 'F');
+      set('bill-name', customer?.name);
+      set('bill-company', customer?.company);
+      set('bill-email', customer?.email);
+
+      // Only the invoice carries an address (the salary slip doesn't) —
+      // and it's the customer's full billing address, assembled from their
+      // separate address/zip/country fields into one line.
+      const address = [customer?.address, customer?.zip, customer?.country].filter(Boolean).join(', ');
+      const addrRow = root.querySelector('[data-field="bill-address-row"]');
+      if (address) {
+        set('bill-address', address);
+      } else if (addrRow) {
+        addrRow.style.display = 'none';
+      }
+
+      const tbody = root.querySelector('[data-field="order-rows"]');
+      if (tbody) {
+        tbody.innerHTML = orders.map((o) => `
+          <tr>
+            <td>${escapeHtml(o.name)}</td>
+            <td>${escapeHtml(o.date)}</td>
+            <td class="align-right">${escapeHtml(fmt(o.price, o.currency))}</td>
+          </tr>
+        `).join('');
+      }
+      set('total', fmt(invoice.total, invoice.currency));
+
+      // The bank account passed in is already the one matching this
+      // invoice's own currency (see call sites) — so its address, sort
+      // code, IBAN etc. are specifically the ones for that currency, not
+      // some other account's. If there's nothing on file, the whole box
+      // is hidden rather than shown empty.
+      const paymentBox = root.querySelector('[data-field="payment-details"]');
+      const lines = bankAccount ? bankAccountLines(bankAccount) : [];
+      if (paymentBox) {
+        if (lines.length) {
+          const fieldsEl = paymentBox.querySelector('[data-field="payment-fields"]');
+          if (fieldsEl) {
+            fieldsEl.innerHTML = lines.map((l) => `
+              <div class="invoice-field"><span class="label">${escapeHtml(l.label)}:</span> <span class="value">${escapeHtml(l.value)}</span></div>
+            `).join('');
+          }
+        } else {
+          paymentBox.style.display = 'none';
+        }
+      }
+
+      set('footer-email', company?.email);
+      set('footer-contact', company?.contact);
     }
-    doc.text(o.name, margin + 10, y + 15);
-    doc.text(o.date, margin + tableWidth * 0.55, y + 15);
-    doc.text(fmt(o.price, o.currency), pageWidth - margin - 10, y + 15, { align: 'right' });
-    y += 22;
   });
-
-  doc.setDrawColor(210, 210, 210);
-  doc.line(margin, y + 6, pageWidth - margin, y + 6);
-  y += 30;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('Total', pageWidth - margin - 160, y);
-  doc.text(fmt(invoice.total, invoice.currency), pageWidth - margin - 10, y, { align: 'right' });
-
-  doc.save(`${invoice.invoiceNo}.pdf`);
 }

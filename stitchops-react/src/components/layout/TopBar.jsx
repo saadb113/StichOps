@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import Avatar from '../common/Avatar';
+import { MenuIcon } from '../icons/Icon';
 
 function NotificationAvatar({ employee }) {
   if (!employee) {
@@ -35,8 +36,8 @@ function timeAgo(iso) {
   return `${days}d ago`;
 }
 
-export default function TopBar() {
-  const { currentUser, currentEmployee, company, isAdmin, notifications, markNotificationRead, markAllNotificationsRead, refreshCustomers, getEmployee, logout } = useAppState();
+export default function TopBar({ onToggleMenu }) {
+  const { currentUser, currentEmployee, company, isAdmin, notifications, markNotificationRead, markAllNotificationsRead, refreshCustomers, refreshInvoices, refreshOrders, getEmployee, logout } = useAppState();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -68,6 +69,9 @@ export default function TopBar() {
     if (n.type === 'new_customer') {
       try { await refreshCustomers(); } catch { /* ignore */ }
     }
+    if (n.type === 'invoice_generated') {
+      try { await Promise.all([refreshInvoices(), refreshOrders()]); } catch { /* ignore */ }
+    }
     if (n.link) navigate(n.link);
   }
 
@@ -80,6 +84,9 @@ export default function TopBar() {
           <div className="elg-topbar-mobile-name">{displayName}</div>
         </div>
       </div>
+      <button className="elg-icon-btn elg-tablet-menu-btn" title="Menu" onClick={onToggleMenu}>
+        <MenuIcon />
+      </button>
       <div className="elg-search" onClick={() => window.dispatchEvent(new Event('open-global-search'))}>
         <img src="/icons/nav-search-icon.svg" alt="Search" />
         <input id="search" name="search" placeholder="Search" type="text" readOnly />
@@ -120,12 +127,12 @@ export default function TopBar() {
                       className={`elg-notif-row ${n.read ? '' : 'unread'}`}
                       onClick={() => handleNotifClick(n)}
                     >
-                      {!n.read && <span className="elg-notif-dot" />}
                       <NotificationAvatar employee={n.employeeId ? getEmployee(n.employeeId) : null} />
                       <span className="elg-notif-text">
                         <span className="elg-notif-message">{n.message}</span>
                         <span className="elg-notif-time">{timeAgo(n.createdAt)}</span>
                       </span>
+                      {!n.read && <span className="elg-notif-dot" />}
                     </div>
                   ))}
                 </div>

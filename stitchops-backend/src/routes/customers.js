@@ -1,12 +1,14 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../lib/asyncHandler');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validate');
 const { serializeCustomer } = require('../lib/serialize');
 const { customerInclude } = require('../lib/includes');
 const { createCustomerSchema, updateCustomerSchema } = require('../schemas/customer');
 const { broadcastNotification } = require('../lib/sse');
+const { generateInvoicePrefix } = require('../lib/invoiceNumber');
+const { isForeignKeyViolation } = require('../lib/prismaErrors');
 
 const router = express.Router();
 
@@ -54,6 +56,7 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
   }
 
   const { customer, notification } = await prisma.$transaction(async (tx) => {
+    const invoicePrefix = generateInvoicePrefix(body.company, body.name);
     const created = await tx.customer.create({
       data: {
         customerCode,
@@ -67,10 +70,11 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
         emailClient: body.emailClient,
         contact: body.contact || '',
         salespersonId: salesperson.id,
-        receivedEmail: isSales ? (body.receivedEmail || null) : null,
+        receivedEmail: body.receivedEmail || null,
         status: 'Free Trial',
         invoiceDay: isSales ? null : (body.invoiceDay ?? null),
-        notes: body.notes || ''
+        notes: body.notes || '',
+        invoicePrefix
       },
       include: customerInclude
     });
@@ -143,6 +147,22 @@ router.patch('/:id', requireAuth, validateBody(updateCustomerSchema), asyncHandl
 
   const updated = await prisma.customer.update({ where: { id }, data, include: customerInclude });
   res.json(serializeCustomer(updated));
+}));
+
+router.delete('/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const existing = await prisma.customer.findUnique({ where: { id } });
+  if (!existing) return res.status(404).json({ error: 'Customer not found.' });
+
+  try {
+    await prisma.customer.delete({ where: { id } });
+  } catch (e) {
+    if (isForeignKeyViolation(e)) {
+      return res.status(409).json({ error: `Can't delete ${existing.company} — they still have orders or invoices on record. Remove those first.` });
+    }
+    throw e;
+  }
+  res.json({ ok: true });
 }));
 
 module.exports = router;

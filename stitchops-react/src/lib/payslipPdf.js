@@ -1,78 +1,70 @@
-import { jsPDF } from 'jspdf';
-import { fmt } from './helpers';
+import { fmt, coveredMonthLabel, commissionAmt, convertToDefault } from './helpers';
+import { renderTemplateToPdf } from './htmlToPdf';
 
-// Deliberately plain — the user's said the invoice redesign will double as
-// the salary-slip format, so this exists to make Download actually produce
-// a file rather than to be the final design.
-export function downloadPayslipPdf({ slip, employee, company }) {
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 48;
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text(company?.name || 'StitchOps', margin, 56);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  if (company?.address) doc.text(company.address, margin, 72);
+function splitAddress(address) {
+  if (!address) return [];
+  const idx = address.indexOf(', ');
+  if (idx === -1) return [address];
+  return [address.slice(0, idx + 1), address.slice(idx + 2)];
+}
 
-  doc.setTextColor(20, 20, 20);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('SALARY SLIP', pageWidth - margin, 56, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Slip No: ${slip.slipNo}`, pageWidth - margin, 76, { align: 'right' });
-  doc.text(`Date: ${slip.approvedDate}`, pageWidth - margin, 90, { align: 'right' });
-  doc.text(`Status: ${slip.paymentStatus}`, pageWidth - margin, 104, { align: 'right' });
+export async function downloadPayslipPdf({ slip, employee, company, orders = [], currencyRates = [], getCustomer }) {
+  await renderTemplateToPdf({
+    templatePath: '/pdf-templates/payslip.html',
+    rootSelector: '.payslip-doc',
+    filename: `${slip.slipNo}.pdf`,
+    populate: (root) => {
+      const set = (field, value) => {
+        const el = root.querySelector(`[data-field="${field}"]`);
+        if (el) el.textContent = value ?? '';
+      };
 
-  let y = 140;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('Paid To', margin, y);
-  y += 16;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  if (employee?.name) { doc.text(employee.name, margin, y); y += 14; }
-  if (employee?.designation) { doc.text(employee.designation, margin, y); y += 14; }
-  if (employee?.email) { doc.text(employee.email, margin, y); y += 14; }
+      set('doc-no', `# ${slip.slipNo}`);
+      set('period', coveredMonthLabel(slip.approvedDate));
 
-  y += 16;
-  const tableWidth = pageWidth - margin * 2;
-  doc.setFillColor(40, 45, 70);
-  doc.rect(margin, y, tableWidth, 24, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('Description', margin + 10, y + 16);
-  doc.text('Amount', pageWidth - margin - 10, y + 16, { align: 'right' });
-  y += 24;
+      const addrEl = root.querySelector('[data-field="company-address"]');
+      if (addrEl) {
+        addrEl.innerHTML = splitAddress(company?.address).map((l) => `<div>${escapeHtml(l)}</div>`).join('');
+      }
 
-  doc.setTextColor(20, 20, 20);
-  doc.setFont('helvetica', 'normal');
-  const rows = [
-    ['Base Salary', slip.baseSalary],
-    ['Commission', slip.commission]
-  ];
-  rows.forEach(([label, amt], idx) => {
-    if (idx % 2 === 1) {
-      doc.setFillColor(246, 247, 250);
-      doc.rect(margin, y, tableWidth, 22, 'F');
+      // No Address field here — that's invoice-only.
+      set('paid-name', employee?.name);
+      set('paid-company', employee?.role);
+      set('paid-email', employee?.email);
+
+      const isSales = employee?.role === 'Salesperson';
+      const byCust = {};
+      orders.forEach((o) => {
+        if (!byCust[o.customerId]) byCust[o.customerId] = [];
+        byCust[o.customerId].push(o);
+      });
+
+      const rows = [`<tr><td>Base Salary</td><td class="align-right">${escapeHtml(fmt(slip.baseSalary, slip.currency))}</td></tr>`];
+      Object.entries(byCust).forEach(([custId, cOrders]) => {
+        const cust = getCustomer ? getCustomer(Number(custId)) : null;
+        let sum = 0;
+        cOrders.forEach((o) => {
+          const amt = isSales ? commissionAmt(o) : o.productionCost;
+          const cc = isSales ? o.currency : (o.productionCostCurrency || o.currency);
+          sum += convertToDefault(amt, cc, currencyRates, slip.currency) ?? 0;
+        });
+        const label = `${isSales ? 'Commission' : 'Production'} — ${cust ? cust.company : 'Unknown'} (${cOrders.length} order${cOrders.length === 1 ? '' : 's'})`;
+        rows.push(`<tr><td>${escapeHtml(label)}</td><td class="align-right">${escapeHtml(fmt(sum, slip.currency))}</td></tr>`);
+      });
+      (slip.bonuses || []).forEach((b) => {
+        rows.push(`<tr><td>${escapeHtml(b.label || 'Bonus')}</td><td class="align-right">${escapeHtml(fmt(b.amount, slip.currency))}</td></tr>`);
+      });
+
+      const tbody = root.querySelector('[data-field="salary-rows"]');
+      if (tbody) tbody.innerHTML = rows.join('');
+      set('total', fmt(slip.total, slip.currency));
+
+      set('footer-email', company?.email);
+      set('footer-contact', company?.contact);
     }
-    doc.text(label, margin + 10, y + 15);
-    doc.text(fmt(amt, slip.currency), pageWidth - margin - 10, y + 15, { align: 'right' });
-    y += 22;
   });
-
-  doc.setDrawColor(210, 210, 210);
-  doc.line(margin, y + 6, pageWidth - margin, y + 6);
-  y += 30;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('Total', pageWidth - margin - 160, y);
-  doc.text(fmt(slip.total, slip.currency), pageWidth - margin - 10, y, { align: 'right' });
-
-  doc.save(`${slip.slipNo}.pdf`);
 }

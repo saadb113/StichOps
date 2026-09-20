@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Salary Slip Template</title>
+<style>
+  /* Mirrors invoice.html's visual language (same header/table/footer
+     treatment) — kept as its own file/class set so editing one doesn't
+     affect the other. No Address field and no Payment Details / Thank You
+     sections here, per the salary-slip design. */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #E5E5E5;
+    font-family: "Inter Display", Arial, sans-serif;
+    color: #191919;
+  }
+
+  .payslip-doc {
+    width: 600px;
+    min-height: 848px; /* A4 aspect ratio at this width, so the footer has a
+                           full page to sit at the bottom of even when the
+                           content above is short */
+    margin: 40px auto;
+    background: #fff;
+    padding: 40px 48px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- header ---------- */
+  .payslip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+  }
+
+  .payslip-logo {
+    width: 34px;
+    height: 37px;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .payslip-company-address {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #383838;
+  }
+
+  .payslip-header-right {
+    text-align: right;
+  }
+
+  .payslip-no {
+    font-family: Georgia, "STK Bureau Serif", serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: #191919;
+    /* Georgia's default digits are old-style (short, uneven baseline) —
+       force full-height lining numerals so they match the letters. */
+    font-variant-numeric: lining-nums;
+    font-feature-settings: "lnum" 1;
+  }
+
+  .payslip-period {
+    font-size: 12px;
+    color: #383838;
+    margin-top: 4px;
+  }
+
+  /* ---------- section title + label/value rows ---------- */
+  .payslip-section-title {
+    font-family: Georgia, "STK Bureau Serif", serif;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 8px;
+    color: #191919;
+  }
+
+  .payslip-field {
+    font-size: 12px;
+    line-height: 1.9;
+  }
+
+  .payslip-field .label {
+    color: #5C5C5C;
+  }
+
+  .payslip-field .value {
+    color: #191919;
+    font-weight: 500;
+  }
+
+  .payslip-paid-to {
+    margin-bottom: 24px;
+  }
+
+  /* ---------- table ---------- */
+  .payslip-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+
+  .payslip-table thead th {
+    background: #EBEBEB;
+    color: #5C5C5C;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  .payslip-table thead th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  .payslip-table thead th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .payslip-table tbody td {
+    padding: 12px 14px;
+    color: #191919;
+  }
+
+  .payslip-table tbody tr:nth-child(even) {
+    background: #F9F9F9;
+  }
+
+  .payslip-table tfoot .payslip-total-row td {
+    padding: 14px 14px 4px;
+    border-top: 1px solid #DEDEDE;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .align-right {
+    text-align: right;
+  }
+
+  /* ---------- footer ---------- */
+  .payslip-footer {
+    margin-top: auto; /* pins the footer to the bottom of .payslip-doc */
+    border-top: 1px solid #E5E5E5;
+    padding-top: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #383838;
+  }
+  .payslip-footer-element {
+    display: inline-block;
+    margin: 0 10px;
+  }
+
+  .payslip-footer-element span {
+    color: #191919;
+  }
+
+  .payslip-footer-sep {
+    margin: 0 10px;
+    color: #C7C7C7;
+  }
+</style>
+</head>
+<body>
+
+  <div class="payslip-doc">
+
+    <div class="payslip-header">
+      <div class="payslip-header-left">
+        <img class="payslip-logo" src="/images/elegant-design-icon.png" alt="Logo" />
+        <div class="payslip-company-address" data-field="company-address">
+          <div>14 Riverside Yard,</div>
+          <div>Manchester, UK</div>
+        </div>
+      </div>
+      <div class="payslip-header-right">
+        <div class="payslip-no" data-field="doc-no"># SHA-0010</div>
+        <div class="payslip-period" data-field="period">Month of August</div>
+      </div>
+    </div>
+
+    <div class="payslip-paid-to">
+      <div class="payslip-section-title">Paid To</div>
+      <div class="payslip-field"><span class="label">Name:</span> <span class="value" data-field="paid-name">Ayesha Khan</span></div>
+      <div class="payslip-field"><span class="label">Company:</span> <span class="value" data-field="paid-company">Salesperson</span></div>
+      <div class="payslip-field"><span class="label">Email:</span> <span class="value" data-field="paid-email">ayesha.khan@theelegantsdesign.co.uk</span></div>
+    </div>
+
+    <table class="payslip-table">
+      <thead>
+        <tr>
+          <th>Salary</th>
+          <th class="align-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody data-field="salary-rows">
+        <tr>
+          <td>Base Salary</td>
+          <td class="align-right">Rs. 15,000</td>
+        </tr>
+        <tr>
+          <td>Commission — Northbridge Retail Ltd (2 orders)</td>
+          <td class="align-right">Rs. 40,428</td>
+        </tr>
+        <tr>
+          <td>Commission — Fischer &amp; Bloom Textiles (1 order)</td>
+          <td class="align-right">Rs. 37,944</td>
+        </tr>
+        <tr>
+          <td>Bonus</td>
+          <td class="align-right">Rs. 10,000</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="payslip-total-row">
+          <td>Total</td>
+          <td class="align-right" data-field="total">Rs. 103,372</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="payslip-footer">
+      <div class="payslip-footer-element">Email: <span data-field="footer-email">info@theelegantsdesign.com</span></div>
+      <span class="payslip-footer-sep">|</span>
+      <div class="payslip-footer-element">Contact: <span data-field="footer-contact">+44 7308 162490</span></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

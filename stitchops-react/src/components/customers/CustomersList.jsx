@@ -4,7 +4,9 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { isActive } from '../../lib/helpers';
 import CustomerFormModal from './CustomerFormModal';
+import OrderFormModal from '../orders/OrderFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
+import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon } from '../icons/Icon';
 
 function initialsFor(name) {
@@ -71,11 +73,11 @@ export default function CustomersList() {
           </span>
           {(from || to) && <button className="elg-date-clear" title="Clear dates" onClick={() => { setFrom(''); setTo(''); }}>&times;</button>}
         </div>
-        <select className="elg-select" value={customerType} onChange={(e) => setCustomerType(e.target.value)}>
+        {/* <select className="elg-select" value={customerType} onChange={(e) => setCustomerType(e.target.value)}>
           <option value="">All Customer Types</option>
           <option value="Free Trial">Free Trial</option>
           <option value="Paid">Paid</option>
-        </select>
+        </select> */}
         <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All Status</option>
           <option value="Active">Active</option>
@@ -149,9 +151,10 @@ export default function CustomersList() {
         })}
       </div>
 
-      <button className="elg-fab" title="Add Customer" onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
-        <PlusIcon width={22} height={22} />
-      </button>
+      <MobileFab
+        onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
+        onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+      />
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

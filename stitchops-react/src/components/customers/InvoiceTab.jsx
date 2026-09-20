@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt } from '../../lib/helpers';
+import { fmt, commissionAmt, bankAccountLines } from '../../lib/helpers';
 import { PencilIcon } from '../icons/Icon';
 import OrderFormModal from '../orders/OrderFormModal';
 
@@ -49,9 +49,9 @@ function InvoiceTabSales({ customer, orders }) {
   );
 }
 
-export default function InvoiceTab({ customer, orders, onApproved }) {
-  const { isAdmin, company, bankAccounts, approveInvoice } = useAppState();
-  const { toast, openModal } = useUi();
+export default function InvoiceTab({ customer, orders }) {
+  const { isAdmin, company, bankAccounts } = useAppState();
+  const { openModal } = useUi();
   const [editMode, setEditMode] = useState(false);
 
   if (!isAdmin) return <InvoiceTabSales customer={customer} orders={orders} />;
@@ -67,21 +67,16 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
   function editOrder(o) {
     openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' });
   }
-  async function handleApprove() {
-    try {
-      const inv = await approveInvoice(customer.id);
-      if (inv) {
-        toast(inv.invoiceNo + ' approved. Download is now available.');
-        if (onApproved) onApproved();
-      }
-    } catch (e) {
-      toast(e.message);
-    }
-  }
+
+  const nextRunLabel = (() => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  })();
 
   return (
     <>
-      <div className="elg-badge elg-badge-pending-pay" style={{ marginBottom: 14 }}>Pending review &middot; draft, not yet finalized</div>
+      <div className="elg-badge elg-badge-pending-pay" style={{ marginBottom: 14 }}>Draft &middot; will be auto-invoiced on {nextRunLabel}</div>
       <div className="elg-invoice-doc">
         <div className="idr">
           <div>
@@ -113,10 +108,16 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
         <div className="elg-bank-box">
           <strong>Payment Details</strong><br />
           {bankAccount ? (
-            <>
-              {bankAccount.accountName}<br />
-              {bankAccount.accountNo}
-            </>
+            bankAccountLines(bankAccount).length ? (
+              bankAccountLines(bankAccount).map((line) => (
+                <div key={line.label}>{line.label}: {line.value}</div>
+              ))
+            ) : (
+              <>
+                {bankAccount.accountName}<br />
+                {bankAccount.accountNo}
+              </>
+            )
           ) : (
             <span>No {customer.currency} bank account on file.</span>
           )}
@@ -131,12 +132,9 @@ export default function InvoiceTab({ customer, orders, onApproved }) {
               <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={() => setEditMode(false)}>Save Changes</button>
             </>
           ) : (
-            <>
-              <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setEditMode(true)}>
-                <PencilIcon width={13} height={13} /> Edit Orders
-              </button>
-              <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} onClick={handleApprove}>Approve Invoice</button>
-            </>
+            <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setEditMode(true)}>
+              <PencilIcon width={13} height={13} /> Edit Orders
+            </button>
           )}
         </div>
       </div>

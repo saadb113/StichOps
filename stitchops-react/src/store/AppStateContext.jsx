@@ -26,6 +26,9 @@ export function AppStateProvider({ children }) {
 
   const isAdmin = currentUser?.role === 'admin';
   const isSalesperson = currentUser?.role === 'salesperson';
+  // Any logged-in non-admin — Salesperson or a Designer/custom-team
+  // "EMPLOYEE" login — gets the self-service portal (own payslip/info).
+  const isEmployee = !!currentUser && !isAdmin;
 
   // ---------- collection fetchers ----------
   const refreshCustomers = async () => setCustomers(await api.get('/customers'));
@@ -103,6 +106,7 @@ export function AppStateProvider({ children }) {
       setNotifications((list) => (list.some((n) => n.id === notification.id) ? list : [notification, ...list].slice(0, 10)));
       if (notification.type === 'password_reset_request') refreshPasswordResetRequests();
       if (notification.type === 'new_customer') refreshCustomers();
+      if (notification.type === 'invoice_generated') { refreshInvoices(); refreshOrders(); }
       // The employee behind this notification (their photo, most likely)
       // may be newer than whatever this admin tab last fetched.
       if (notification.employeeId) refreshEmployees();
@@ -129,6 +133,10 @@ export function AppStateProvider({ children }) {
   }
   async function setCustomerStatus(id, status) {
     return updateCustomer(id, { status });
+  }
+  async function deleteCustomer(id) {
+    await api.delete(`/customers/${id}`);
+    await refreshCustomers();
   }
 
   // ---------- orders ----------
@@ -183,17 +191,9 @@ export function AppStateProvider({ children }) {
   }
 
   // ---------- invoices ----------
-  async function approveInvoice(customerId) {
-    let invoice;
-    try {
-      invoice = await api.post('/invoices/approve', { customerId });
-    } catch (e) {
-      if (e.status === 400) return null;
-      throw e;
-    }
-    await Promise.all([refreshInvoices(), refreshOrders()]);
-    return invoice;
-  }
+  // Invoices are no longer approved manually from here — the backend bundles
+  // each customer's completed orders into one auto-approved invoice on the
+  // 1st of the month (see stitchops-backend/src/lib/monthlyInvoicing.js).
   async function togglePaymentStatus(id) {
     const updated = await api.patch(`/invoices/${id}/payment`);
     await refreshInvoices();
@@ -201,9 +201,13 @@ export function AppStateProvider({ children }) {
   }
 
   // ---------- employees / payslips ----------
-  async function approveSlip(employeeId) {
-    const slip = await api.post(`/employees/${employeeId}/approve-slip`);
-    await Promise.all([refreshPayslips(), refreshOrders()]);
+  async function approveSlip(employeeId, bonuses) {
+    const slip = await api.post(`/employees/${employeeId}/approve-slip`, { bonuses: bonuses || [] });
+    // Approving updates the employee's own record too (nextSlipSeq,
+    // lastSlipApprovedPeriod), which is what gates whether the closed
+    // month's card can show up again — so the employee list needs
+    // refreshing here, not just orders/payslips.
+    await Promise.all([refreshPayslips(), refreshOrders(), refreshEmployees()]);
     return slip;
   }
   async function toggleCustomerEarningsPaid(employeeId, customerId) {
@@ -250,6 +254,11 @@ export function AppStateProvider({ children }) {
       if (e.status === 400) return null;
       throw e;
     }
+  }
+  async function createLogin(employeeId, email) {
+    const result = await api.post(`/employees/${employeeId}/create-login`, email ? { email } : {});
+    await refreshEmployees();
+    return result;
   }
   async function addCategory(name) {
     await api.post('/employee-categories', { name });
@@ -462,15 +471,15 @@ export function AppStateProvider({ children }) {
     customers, orders, invoices, payslips, employees, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,
     notifications,
-    currentUser, isAdmin, isSalesperson, currentEmployee,
+    currentUser, isAdmin, isSalesperson, isEmployee, currentEmployee,
     // lookups
-    getCustomer, getEmployee, refreshCustomers,
+    getCustomer, getEmployee, refreshCustomers, refreshOrders, refreshInvoices,
     // mutators
-    addCustomer, updateCustomer, setCustomerStatus,
+    addCustomer, updateCustomer, setCustomerStatus, deleteCustomer,
     addOrder, updateOrder, deleteOrder, softDeleteOrder, setOrderStatus, addComment,
-    approveInvoice, togglePaymentStatus,
+    togglePaymentStatus,
     approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
-    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
+    addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, createLogin, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,
     updateCompany, uploadCompanyLogo, deleteCompanyLogo, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
     addBankAccount, updateBankAccount, deleteBankAccount,

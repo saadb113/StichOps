@@ -24,6 +24,7 @@ const TYPES = {
   invoiceDay: 'number',
   total: 'number',
   commission: 'number',
+  bonusTotal: 'number',
   rate: 'number',
   version: 'number',
   commissionPaid: 'boolean',
@@ -85,7 +86,7 @@ const MODELS = {
     prismaModel: 'payslip',
     dateField: 'approvedDate',
     importable: false,
-    columns: ['id', 'employeeId', 'slipNo', 'total', 'currency', 'baseSalary', 'commission', 'approvedDate', 'paymentStatus']
+    columns: ['id', 'employeeId', 'slipNo', 'total', 'currency', 'baseSalary', 'commission', 'bonusTotal', 'approvedDate', 'paymentStatus']
   },
   notifications: {
     label: 'Notifications',
@@ -106,7 +107,7 @@ const MODELS = {
     prismaModel: 'bankAccount',
     dateField: 'createdAt',
     importable: false,
-    columns: ['id', 'currency', 'accountName', 'accountNo', 'createdAt']
+    columns: ['id', 'country', 'currency', 'accountName', 'accountHolder', 'accountNo', 'sortCode', 'routingNumber', 'accountType', 'bic', 'iban', 'bsb', 'paymentAccount', 'address', 'createdAt']
   },
   currencyRates: {
     label: 'Currency Rates',

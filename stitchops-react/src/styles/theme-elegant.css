@@ -163,8 +163,20 @@ select::-ms-expand {
 }
 
 /* ---------- Shared shell (sidebar + topbar) ---------- */
+
+#app {
+  display: flex;
+  min-height: 100vh;
+  max-height: 100vh;
+}
+
 #app.elg-shell {
   background: var(--elg-page-bg);
+  overflow: hidden;
+}
+
+.elg-main-content {
+  overflow-y: scroll;
 }
 
 #app.elg-shell #main {
@@ -447,7 +459,7 @@ select::-ms-expand {
 
 .elg-attention-card {
   margin-top: auto;
-  padding: 24px 17px;
+  padding: 17px 17px;
   text-align: center;
 }
 
@@ -951,6 +963,31 @@ select::-ms-expand {
   padding: 2px;
 }
 
+/* Inside an .elg-date-range-field (Orders/Invoices/Customers/Reports filter
+   bars) the clear button sits as a normal flex sibling next to the two date
+   inputs, not layered over a single one — so it needs to opt out of the
+   absolute positioning above, or it floats free of the filter bar and
+   overlaps whatever's below it. */
+.elg-date-range-field .elg-date-clear {
+  position: static;
+  transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid var(--elg-line-strong);
+  border-radius: 50%;
+  background: var(--elg-surface);
+  font-size: 15px;
+}
+
+.elg-date-range-field .elg-date-clear:hover {
+  background: var(--elg-page-bg);
+  color: var(--elg-ink);
+}
+
 .elg-table-wrap {
   overflow-x: auto;
   /* Row-action dropdowns (.elg-row-menu) are absolutely positioned inside
@@ -1192,6 +1229,14 @@ select::-ms-expand {
   white-space: nowrap;
 }
 
+.elg-salary-slip .elg-table td:last-child {
+  width: auto !important;
+}
+
+.salaryslipsButtons {
+  margin-bottom: 16px
+}
+
 .elg-panel {
   padding: 16px 16px 0;
   padding-bottom: 8px;
@@ -1243,6 +1288,12 @@ select::-ms-expand {
 }
 
 @media (max-width:640px) {
+
+  #app {
+    max-height: max-content !important;
+    ;
+  }
+
   .elg-metric-grid {
     grid-template-columns: 1fr;
   }
@@ -2540,19 +2591,21 @@ select::-ms-expand {
   font-weight: 500;
 }
 
+/* 
 .elg-settings-nav-item:nth-child(2).active svg path,
 .elg-settings-nav-item:nth-child(1).active svg path {
   stroke: var(--elg-primary)
-}
+} */
 
 .myinfo .elg-settings-nav-item:nth-child(2).active svg path,
 .elg-settings-nav-item:nth-child(3).active svg path {
   fill: var(--elg-primary)
 }
 
+/* 
 .myinfo .elg-settings-nav-item:nth-child(2).active svg path {
   stroke: none
-}
+} */
 
 .elg-settings-main {
   display: flex;
@@ -2587,6 +2640,11 @@ select::-ms-expand {
   justify-content: space-between;
   gap: 12px;
   margin: 0 0 20px;
+  flex-wrap: wrap;
+}
+
+.elg-settings-card {
+  padding: 14px;
 }
 
 .elg-settings-card-title h2 {
@@ -3080,6 +3138,7 @@ select::-ms-expand {
   gap: 10px;
   padding: 11px 14px;
   cursor: pointer;
+  align-items: center;
   border-bottom: 1px solid var(--elg-line);
 }
 
@@ -3310,17 +3369,74 @@ select::-ms-expand {
     width: 100%;
   }
 
+  /* Sidebar becomes a slide-in drawer, opened via the topbar menu button
+     (elg-tablet-menu-btn) since there's no room for it inline anymore. */
   #sidebar.elg-sidebar {
     position: fixed;
+    top: 0;
+    left: 0;
     height: 100vh;
-    overflow: scroll;
-    left: -1000px;
+    width: 300px;
+    max-width: 82vw;
+    min-height: 0;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 210;
+    overflow-y: auto;
+    box-shadow: 12px 0 32px rgba(20, 20, 40, 0.18);
+  }
+
+  #sidebar.elg-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mob-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 30, 0.45);
+    z-index: 200;
+  }
+
+  .elg-sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--elg-line-strong);
+    background: var(--elg-surface);
+    color: var(--elg-ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .elg-sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 20px 20px;
+    padding: 12px 14px;
+    border: 1px solid var(--elg-line);
+    border-radius: 10px;
+    background: var(--elg-surface);
+    color: var(--elg-delete-red);
+    font-family: var(--elg-font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
   }
 }
 
 @media screen and (max-width : 820px) {}
 
 @media screen and (max-width : 640px) {
+
+  table {
+    min-width: auto !important;
+  }
+
   .elg-settings-nav {
     background: transparent;
     padding: 0;
@@ -3335,9 +3451,10 @@ select::-ms-expand {
     color: white;
   }
 
+  /* 
   .elg-settings-nav-item.active svg path {
     stroke: white !important;
-  }
+  } */
 
   .elg-settings-nav-item:nth-child(3).active svg path {
     stroke: transparent !important;
@@ -3472,12 +3589,26 @@ input[type="number"] {
 .elg-mobile-filter-btn,
 .elg-mobile-filter-chips,
 .elg-mobile-country-chips,
-.elg-customer-toggle-btn {
+.elg-customer-toggle-btn,
+.elg-mobile-profile-header,
+.elg-mobile-settings-header,
+.elg-tablet-menu-btn,
+.elg-fab-wrap {
   display: none;
 }
 
 .elg-logo {
   justify-content: space-between;
+}
+
+/* Tablet-only range: the sidebar has already collapsed into the drawer
+   (see the max-width:1024px block above), but the phone bottom nav (which
+   normally opens it) isn't shown yet — so the topbar needs its own menu
+   button in this range. */
+@media screen and (max-width: 1024px) and (min-width: 641px) {
+  .elg-tablet-menu-btn {
+    display: inline-flex;
+  }
 }
 
 @media (max-width: 640px) {
@@ -3502,6 +3633,15 @@ input[type="number"] {
     display: flex;
     padding: 12px 16px;
     height: auto;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+  }
+
+  .elg-page {
+    font-family: var(--elg-font-sans);
+    padding: 70px 0px;
   }
 
   .elg-search,
@@ -3608,6 +3748,12 @@ input[type="number"] {
     cursor: pointer;
   }
 
+  .elg-modal-body {
+    padding: 30px 24px;
+    max-height: calc(100vh - 550px) !important;
+    overflow: auto;
+  }
+
   /* ---------- Bottom tab bar ---------- */
   .elg-mobile-bottom-nav {
     display: flex;
@@ -3616,9 +3762,15 @@ input[type="number"] {
     right: 0;
     bottom: 0;
     z-index: 150;
-    background: var(--elg-surface);
     border-top: 1px solid var(--elg-line);
     padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, #FFFFFF 62.34%);
+    backdrop-filter: blur(4px);
+  }
+
+  .elg-main-content {
+    overflow-y: hidden;
   }
 
   .elg-mobile-tab {
@@ -3626,15 +3778,16 @@ input[type="number"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 8px;
     background: none;
     border: none;
-    color: var(--elg-ink-3);
+    color: #191919;
     font-family: var(--elg-font-sans);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     padding: 4px 0;
+    text-decoration: none;
   }
 
   .elg-mobile-tab.active {
@@ -3643,8 +3796,8 @@ input[type="number"] {
 
   .elg-mobile-tab-icon-wrap {
     position: relative;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3675,8 +3828,8 @@ input[type="number"] {
     position: fixed;
     right: 20px;
     bottom: calc(78px + env(safe-area-inset-bottom));
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: var(--elg-primary);
     color: #fff;
@@ -3684,6 +3837,66 @@ input[type="number"] {
     box-shadow: 0 10px 24px rgba(66, 77, 199, 0.4);
     z-index: 120;
     cursor: pointer;
+  }
+
+  /* Admin's speed-dial FAB (Add Order / Add Customer) — the wrap owns the
+     fixed position so the button itself can go back to being a normal flex
+     item once it's stacked with the popup menu above it. */
+  .elg-fab-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    position: fixed;
+    right: 20px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    z-index: 120;
+  }
+
+  .elg-fab-wrap .elg-fab {
+    position: static;
+    transition: background-color 0.25s ease, transform 0.25s ease;
+  }
+
+  .elg-fab-wrap .elg-fab.open {
+    background: #1a1a1a;
+    transform: rotate(45deg);
+  }
+
+  .elg-fab-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .elg-fab-menu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--elg-surface);
+    color: var(--elg-ink);
+    border: 1px solid var(--elg-line-strong);
+    border-radius: 100px;
+    padding: 8.5px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--elg-font-sans);
+    box-shadow: 0 6px 18px rgba(20, 20, 40, 0.16);
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: elg-fab-item-in 0.22s ease forwards;
+    animation-delay: var(--elg-fab-delay, 0s);
+    line-height: 1.2;
+  }
+
+  @keyframes elg-fab-item-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* ---------- Generic mobile card list (replaces .elg-table-wrap) ---------- */
@@ -3968,6 +4181,10 @@ input[type="number"] {
     color: #fff;
   }
 
+  .edit-toggle-btn.active svg path {
+    stroke: #fff;
+  }
+
   .elg-profile-grid {
     display: block;
   }
@@ -4087,5 +4304,61 @@ input[type="number"] {
 
   .salaryslipsButtons .elg-btn {
     flex: 1;
+  }
+}
+
+
+/* Sidebar Height Style Configuration */
+
+@media screen and (max-height: 900px) {
+  .elg-nav {
+    gap: 4px;
+  }
+
+  #sidebar .elg-nav-divider {
+    margin: 20px 0;
+  }
+}
+
+
+@media screen and (max-height: 830px) {
+  .elg-nav {
+    margin-top: 15px;
+  }
+
+  .elg-sidebar-actions {
+    padding-top: 15px;
+    padding-bottom: 10px;
+  }
+
+  #sidebar .elg-nav-divider {
+    margin: 10px 0;
+  }
+
+  #sidebar .elg-nav-item {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  #sidebar .elg-sidebar-actions .elg-btn,
+  #sidebar .elg-sidebar-actions .elg-customer-btn {
+    font-size: 13px;
+    padding: 5px;
+  }
+}
+
+
+@media screen and (max-height: 780px) {
+  .elg-attention-content {
+    padding: 14px;
+  }
+
+  .elg-attention-text {
+    font-size: 12px;
+  }
+
+  .elg-attention-icon,
+  .elg-attention-text {
+    margin-bottom: 6px;
   }
 }

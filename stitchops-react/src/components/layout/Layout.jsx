@@ -15,8 +15,8 @@ export default function Layout() {
     <div id="app" className="elg-shell">
       <div className={`mob-backdrop ${mobileMenuOpen ? 'open' : ''}`} onClick={() => setMobileMenuOpen(false)}></div>
       <Sidebar open={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-        <TopBar />
+      <div className="elg-main-content" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        <TopBar onToggleMenu={() => setMobileMenuOpen((v) => !v)} />
         <div id="main">
           <Outlet />
         </div>

@@ -17,7 +17,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoiceHistoryTab({ customer }) {
-  const { invoices, orders, company, togglePaymentStatus } = useAppState();
+  const { invoices, orders, company, bankAccounts, togglePaymentStatus } = useAppState();
   const { openModal, toast } = useUi();
 
   const invs = invoices.filter((i) => i.customerId === customer.id).sort((a, b) => b.id - a.id);
@@ -36,7 +36,8 @@ export default function InvoiceHistoryTab({ customer }) {
 
   function handleDownload(inv) {
     const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
-    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders });
+    const bankAccount = bankAccounts.find((a) => a.currency === customer.currency);
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount });
   }
 
   return (

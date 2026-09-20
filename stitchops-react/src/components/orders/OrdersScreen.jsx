@@ -6,7 +6,9 @@ import { commissionAmt } from '../../lib/helpers';
 import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
+import CustomerFormModal from '../customers/CustomerFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
+import MobileFab from '../layout/MobileFab';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
@@ -35,9 +37,14 @@ export default function OrdersScreen() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
+  // Pending/in-progress orders are what the sidebar's Orders badge counts,
+  // so they need to stay visible here regardless of the selected date range
+  // — otherwise the badge points at orders the date filter is hiding.
+  const isNeedsAttention = (o) => o.status === 'Pending' || o.status === 'In progress';
+
   let list = orders.slice();
-  if (from) list = list.filter((o) => o.date >= from);
-  if (to) list = list.filter((o) => o.date <= to);
+  if (from) list = list.filter((o) => o.date >= from || isNeedsAttention(o));
+  if (to) list = list.filter((o) => o.date <= to || isNeedsAttention(o));
   if (currency) list = list.filter((o) => o.currency === currency);
   if (status) list = list.filter((o) => o.status === status);
   if (search) {
@@ -47,7 +54,10 @@ export default function OrdersScreen() {
       return o.name.toLowerCase().startsWith(q) || (c && (c.company.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)));
     });
   }
-  list = list.sort((a, b) => b.date.localeCompare(a.date));
+  list = list.sort((a, b) => {
+    const statusDiff = ORDER_STATUSES.indexOf(a.status) - ORDER_STATUSES.indexOf(b.status);
+    return statusDiff !== 0 ? statusDiff : b.date.localeCompare(a.date);
+  });
 
   // Starting a fresh search clears the date range so results aren't
   // silently narrowed to whatever range happens to be selected — matching
@@ -170,9 +180,10 @@ export default function OrdersScreen() {
         })}
       </div>
 
-      <button className="elg-fab" title="Add Order" onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
-        <PlusIcon width={22} height={22} />
-      </button>
+      <MobileFab
+        onAddOrder={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}
+        onAddCustomer={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}
+      />
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">

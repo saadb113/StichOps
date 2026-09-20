@@ -12,6 +12,6 @@ const employeeInclude = { companyEmails: true, user: true };
 
 const invoiceInclude = { orders: true };
 
-const payslipInclude = { commissionOrders: true, productionOrders: true };
+const payslipInclude = { commissionOrders: true, productionOrders: true, bonuses: true };
 
 module.exports = { customerInclude, orderInclude, employeeInclude, invoiceInclude, payslipInclude };

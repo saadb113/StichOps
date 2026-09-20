@@ -25,12 +25,18 @@ function HistoryIcon({ active }) {
 function CurrentEarningsPanel({ emp, os }) {
   const { getCustomer, company, currencyRates } = useAppState();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
-  const unpaidReady = os.filter((o) => !o.commissionPaid);
+  const isSales = emp.role === 'Salesperson';
+  const earningLabel = isSales ? 'Commission' : 'Production';
+  const earnAmt = (o) => (isSales ? commissionAmt(o) : (o.productionCost || 0));
+  const earnCcy = (o) => (isSales ? o.currency : (o.productionCostCurrency || o.currency));
+  const isPaid = (o) => (isSales ? o.commissionPaid : o.productionPaid);
+
+  const unpaidReady = os.filter((o) => !isPaid(o));
 
   let unpaidTotalCombined = 0;
   let hasUnknownRate = false;
   unpaidReady.forEach((o) => {
-    const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
+    const converted = convertToDefault(earnAmt(o), earnCcy(o), currencyRates, defaultCurrency);
     if (converted == null) hasUnknownRate = true;
     else unpaidTotalCombined += converted;
   });
@@ -42,25 +48,25 @@ function CurrentEarningsPanel({ emp, os }) {
     <>
       <div className="elg-panel elg-table-wrap" style={{ marginBottom: 20 }}>
         <table className="elg-table">
-          <thead><tr><th>Customer</th><th>Orders</th><th>Invoice Total</th><th>Commission</th></tr></thead>
+          <thead><tr><th>Customer</th><th>Orders</th><th>Invoice Total</th><th>{earningLabel}</th></tr></thead>
           <tbody>
             {Object.keys(byCust).length === 0 && <tr><td colSpan={4} className="elg-empty">No completed orders in this view.</td></tr>}
             {Object.entries(byCust).map(([custId, cOrders]) => {
               const cust = getCustomer(Number(custId));
-              const totals = {}; let rate = cOrders[0]?.commissionRate;
-              let commTotal = 0; let commUnknown = false;
+              const totals = {}; let rate = isSales ? cOrders[0]?.commissionRate : null;
+              let earnTotal = 0; let earnUnknown = false;
               cOrders.forEach((o) => {
                 totals[o.currency] = (totals[o.currency] || 0) + o.price;
-                const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
-                if (converted == null) commUnknown = true;
-                else commTotal += converted;
+                const converted = convertToDefault(earnAmt(o), earnCcy(o), currencyRates, defaultCurrency);
+                if (converted == null) earnUnknown = true;
+                else earnTotal += converted;
               });
               return (
                 <tr key={custId}>
                   <td>{cust ? cust.company : '—'}</td>
                   <td>{cOrders.length}</td>
                   <td>{Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ')}</td>
-                  <td>{commUnknown ? '—' : fmt(commTotal, defaultCurrency)} <span className="elg-comm-pct">({rate}%)</span></td>
+                  <td>{earnUnknown ? '—' : fmt(earnTotal, defaultCurrency)} {rate != null && <span className="elg-comm-pct">({rate}%)</span>}</td>
                 </tr>
               );
             })}
@@ -76,7 +82,7 @@ function CurrentEarningsPanel({ emp, os }) {
           <thead><tr><th>Order</th><th style={{ textAlign: 'right' }}>Amount</th></tr></thead>
           <tbody>
             <tr><td>Base Salary</td><td style={{ textAlign: 'right' }}>{fmt(emp.baseSalary, defaultCurrency)}</td></tr>
-            <tr><td>Total Commission</td><td style={{ textAlign: 'right' }}>{hasUnknownRate ? '—' : fmt(unpaidTotalCombined, defaultCurrency)}</td></tr>
+            <tr><td>Total {earningLabel}</td><td style={{ textAlign: 'right' }}>{hasUnknownRate ? '—' : fmt(unpaidTotalCombined, defaultCurrency)}</td></tr>
             <tr><td style={{ fontWeight: 700, color: 'var(--elg-ink)' }}>Total</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{hasUnknownRate ? '—' : fmt(emp.baseSalary + unpaidTotalCombined, defaultCurrency)}</td></tr>
           </tbody>
         </table>

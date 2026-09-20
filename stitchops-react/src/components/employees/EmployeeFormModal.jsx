@@ -53,7 +53,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
         closeModal();
       } else {
         const { credentials, needsEmailWarning } = await addEmployee(data);
-        if (needsEmailWarning) toast('Email is required to create a salesperson login.');
+        if (needsEmailWarning) toast('Email is required to create a login — add one from Edit Profile, then use Create Login.');
         if (credentials) {
           openModal(<CredentialsModal title="Login Created" name={credentials.name} email={credentials.email} tempPw={credentials.tempPw} />, { variant: 'elegant', dismissible: false });
           return;

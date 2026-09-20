@@ -81,7 +81,19 @@ export default function CustomerFormModal({ customer = null }) {
     }
   }
 
-  const showReceivedEmail = isSalesperson && currentEmployee && currentEmployee.emails && currentEmployee.emails.length > 0;
+  const selectedSalesperson = employees.find((e) => e.name === salesperson);
+  const receivedEmailOptions = isSalesperson
+    ? (currentEmployee?.emails || [])
+    : (selectedSalesperson?.emails || []);
+  const showReceivedEmail = receivedEmailOptions.length > 0;
+
+  function handleSalespersonChange(name) {
+    setSalesperson(name);
+    // A previously-picked email may belong to the old salesperson, not this
+    // one — clear it rather than silently keeping a mismatched selection.
+    const emails = employees.find((e) => e.name === name)?.emails || [];
+    if (!emails.includes(receivedEmail)) setReceivedEmail('');
+  }
 
   return (
     <>
@@ -151,7 +163,7 @@ export default function CustomerFormModal({ customer = null }) {
           
           <div className="elg-field">
             <label>Salesperson</label>
-            <select value={salesperson} onChange={(e) => setSalesperson(e.target.value)} disabled={isSalesperson}>
+            <select value={salesperson} onChange={(e) => handleSalespersonChange(e.target.value)} disabled={isSalesperson}>
               {salespeople.map((e) => <option key={e.id}>{e.name}</option>)}
             </select>
           </div>
@@ -166,8 +178,8 @@ export default function CustomerFormModal({ customer = null }) {
           <div className="elg-field">
             <label>Client on Email</label>
             <select value={receivedEmail} onChange={(e) => setReceivedEmail(e.target.value)}>
-              <option value="">Select which of your emails this client came in on</option>
-              {currentEmployee.emails.map((em) => <option key={em} value={em}>{em}</option>)}
+              <option value="">{isSalesperson ? 'Select which of your emails this client came in on' : `Select which of ${salesperson}'s emails this client came in on`}</option>
+              {receivedEmailOptions.map((em) => <option key={em} value={em}>{em}</option>)}
             </select>
           </div>
         )}

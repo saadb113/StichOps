@@ -21,7 +21,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, orders, customers, company, getCustomer, togglePaymentStatus } = useAppState();
+  const { invoices, orders, customers, company, bankAccounts, getCustomer, togglePaymentStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,7 +77,8 @@ export default function InvoicesScreen() {
   function handleDownload(inv) {
     const customer = getCustomer(inv.customerId);
     const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
-    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders });
+    const bankAccount = bankAccounts.find((a) => a.currency === (customer?.currency));
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount });
   }
 
   return (

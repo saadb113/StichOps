@@ -26,6 +26,9 @@ export function GearIcon(props) {
 export function SearchIcon(props) {
   return <svg {...base} {...props} width={props.width || 16} height={props.height || 16}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>;
 }
+export function MenuIcon(props) {
+  return <svg {...base} {...props}><path d="M4 6h16M4 12h16M4 18h16" /></svg>;
+}
 export function BellIcon(props) {
   return <svg {...base} {...props}><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z" /><path d="M10 19a2 2 0 0 0 4 0" /></svg>;
 }

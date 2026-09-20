@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { SYM } from '../../lib/constants';
+import { SYM, BANK_COUNTRIES, PAYMENT_ACCOUNTS } from '../../lib/constants';
 import { PencilIcon } from '../icons/Icon';
 import AddAccountModal from './AddAccountModal';
 
@@ -20,7 +20,7 @@ function ConfirmDeleteAccountModal({ account }) {
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 420 }}>
+    <div className="elg-modal">
       <div className="elg-modal-body" style={{ padding: 24 }}>
         <p style={{ fontSize: 14, color: 'var(--elg-ink)', margin: 0, lineHeight: 1.5 }}>
           Delete the <strong>{account.currency} Account</strong>? This can&apos;t be undone.
@@ -34,24 +34,42 @@ function ConfirmDeleteAccountModal({ account }) {
   );
 }
 
+function initialForm(account, countryDef) {
+  const form = {
+    accountName: account.accountName || '',
+    accountHolder: account.accountHolder || '',
+    paymentAccount: account.paymentAccount || '',
+    address: account.address || ''
+  };
+  countryDef.fields.forEach((f) => { form[f.key] = account[f.key] || ''; });
+  return form;
+}
+
 function BankAccountCard({ account }) {
   const { updateBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const [editing, setEditing] = useState(false);
-  const [accountNo, setAccountNo] = useState(account.accountNo);
-  const [name, setName] = useState(account.accountName);
-  const [currency, setCurrency] = useState(account.currency);
+  const countryDef = BANK_COUNTRIES.find((c) => c.country === account.country) || BANK_COUNTRIES[0];
+  const [form, setForm] = useState(() => initialForm(account, countryDef));
+
+  function setField(key, value) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
 
   function startEdit() {
-    setAccountNo(account.accountNo);
-    setName(account.accountName);
-    setCurrency(account.currency);
+    setForm(initialForm(account, countryDef));
     setEditing(true);
   }
 
   async function handleSave() {
     try {
-      await updateBankAccount(account.id, { accountNo: accountNo.trim(), accountName: name.trim(), currency });
+      await updateBankAccount(account.id, {
+        accountName: form.accountName.trim(),
+        accountHolder: form.accountHolder.trim(),
+        paymentAccount: form.paymentAccount,
+        address: form.address.trim(),
+        ...Object.fromEntries(countryDef.fields.map((f) => [f.key, (form[f.key] || '').trim()]))
+      });
       toast('Account updated.');
       setEditing(false);
     } catch (e) {
@@ -64,11 +82,7 @@ function BankAccountCard({ account }) {
       <div className="elg-account-card-head">
         <div className="elg-account-card-title">
           {account.currency} Account
-          {editing ? (
-            <img src='/images/edit.svg' />
-          ) : (
-            <span className="elg-ccy-tag">{account.currency} {SYM[account.currency] || ''}</span>
-          )}
+          <span className="elg-ccy-tag">{account.currency} {SYM[account.currency] || ''}</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {!editing && (
@@ -82,27 +96,49 @@ function BankAccountCard({ account }) {
         </div>
       </div>
 
-      <div className="elg-field">
-        <label>Account No.</label>
-        <input value={editing ? accountNo : account.accountNo} onChange={(e) => setAccountNo(e.target.value)} disabled={!editing} />
+      {editing && (
+        <div className="elg-field" style={{ marginBottom: 16 }}>
+          <label>Account Name</label>
+          <input value={form.accountName} onChange={(e) => setField('accountName', e.target.value)} />
+        </div>
+      )}
+
+      <div className="elg-field" style={{ marginBottom: 16 }}>
+        <label>Account Holder</label>
+        <input value={editing ? form.accountHolder : account.accountHolder} onChange={(e) => setField('accountHolder', e.target.value)} disabled={!editing} placeholder="e.g. The Elegants Design Ltd." />
       </div>
+
+      {countryDef.fields.map((f) => (
+        <div className="elg-field" style={{ marginBottom: 16 }} key={f.key}>
+          <label>{f.label}</label>
+          {f.options ? (
+            <select className="elg-select" value={editing ? form[f.key] : account[f.key]} onChange={(e) => setField(f.key, e.target.value)} disabled={!editing}>
+              <option value="">Select</option>
+              {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          ) : (
+            <input value={editing ? form[f.key] : account[f.key]} onChange={(e) => setField(f.key, e.target.value)} disabled={!editing} placeholder={f.placeholder} />
+          )}
+        </div>
+      ))}
+
+      <div className="elg-field" style={{ marginBottom: 16 }}>
+        <label>Payment Account</label>
+        <select className="elg-select" value={editing ? form.paymentAccount : account.paymentAccount} onChange={(e) => setField('paymentAccount', e.target.value)} disabled={!editing}>
+          <option value="">Select</option>
+          {PAYMENT_ACCOUNTS.map((p) => <option key={p} value={p}>{p}</option>)}
+        </select>
+      </div>
+
       <div className="elg-field" style={{ marginBottom: editing ? 16 : 0 }}>
-        <label>Name</label>
-        <input value={editing ? name : account.accountName} onChange={(e) => setName(e.target.value)} disabled={!editing} />
+        <label>Address</label>
+        <input value={editing ? form.address : account.address} onChange={(e) => setField('address', e.target.value)} disabled={!editing} placeholder="Add Address" />
       </div>
 
       {editing && (
-        <>
-          <div className="elg-field" style={{ marginBottom: 16 }}>
-            <label>Currency</label>
-            <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-              {Object.keys(SYM).map((cc) => <option key={cc} value={cc}>{cc} {SYM[cc]}</option>)}
-            </select>
-          </div>
-          <div style={{ textAlign: 'right', marginLeft: "auto", width: "max-content" }}>
-            <button className="elg-btn elg-btn-primary" style={{ padding: "7.5px 13px", width: 'auto' }} onClick={handleSave}>Save Changes</button>
-          </div>
-        </>
+        <div style={{ textAlign: 'right', marginLeft: "auto", width: "max-content" }}>
+          <button className="elg-btn elg-btn-primary" style={{ padding: "7.5px 13px", width: 'auto' }} onClick={handleSave}>Save Changes</button>
+        </div>
       )}
     </div>
   );

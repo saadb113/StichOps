@@ -58,8 +58,8 @@ router.post('/welcome', requireAuth, asyncHandler(async (req, res) => {
 
 router.post('/forgot-password', validateBody(forgotPasswordSchema), asyncHandler(async (req, res) => {
   const email = req.body.email.trim().toLowerCase();
-  const user = await prisma.user.findFirst({ where: { email, role: 'SALESPERSON' } });
-  if (!user) return res.status(400).json({ error: 'No salesperson account found with that email.' });
+  const user = await prisma.user.findFirst({ where: { email, role: { not: 'ADMIN' } } });
+  if (!user) return res.status(400).json({ error: 'No account found with that email.' });
 
   const existing = await prisma.passwordResetRequest.findFirst({ where: { email } });
   if (!existing) {

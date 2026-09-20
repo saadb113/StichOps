@@ -23,9 +23,19 @@ const companyUpdateSchema = z.object({
 });
 
 const bankAccountSchema = z.object({
+  country: z.string().trim().min(1, 'Country is required.'),
   currency: z.string().trim().min(1, 'Currency is required.'),
   accountName: z.string().trim().optional().default(''),
-  accountNo: z.string().trim().optional().default('')
+  accountHolder: z.string().trim().optional().default(''),
+  accountNo: z.string().trim().optional().default(''),
+  sortCode: z.string().trim().optional().default(''),
+  routingNumber: z.string().trim().optional().default(''),
+  accountType: z.string().trim().optional().default(''),
+  bic: z.string().trim().optional().default(''),
+  iban: z.string().trim().optional().default(''),
+  bsb: z.string().trim().optional().default(''),
+  paymentAccount: z.string().trim().optional().default(''),
+  address: z.string().trim().optional().default('')
 });
 
 const bankAccountUpdateSchema = bankAccountSchema.partial();

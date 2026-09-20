@@ -6,7 +6,7 @@ import EditSlipOrdersModal from './EditSlipOrdersModal';
 import { DownloadIcon } from '../icons/Icon';
 
 export default function SlipHistoryTab({ employee: e }) {
-  const { payslips, togglePayslipPayment, company } = useAppState();
+  const { payslips, togglePayslipPayment, company, orders, currencyRates, getCustomer } = useAppState();
   const { openModal, toast } = useUi();
 
   const slips = payslips.filter((s) => s.employeeId === e.id).sort((a, b) => b.id - a.id);
@@ -18,6 +18,11 @@ export default function SlipHistoryTab({ employee: e }) {
     } catch (err) {
       toast(err.message);
     }
+  }
+
+  function handleDownload(s) {
+    const slipOrders = orders.filter((o) => s.orderIds.includes(o.id));
+    downloadPayslipPdf({ slip: s, employee: e, company, orders: slipOrders, currencyRates, getCustomer });
   }
   if (!slips.length) {
     return (
@@ -55,7 +60,7 @@ export default function SlipHistoryTab({ employee: e }) {
             <button
               className="elg-btn elg-btn-sm"
               style={{ width: '100%', marginTop: 8 }}
-              onClick={() => downloadPayslipPdf({ slip: s, employee: e, company })}
+              onClick={() => handleDownload(s)}
             >
               <img src="/images/download.svg" alt="" /> Download
             </button>
@@ -97,7 +102,7 @@ export default function SlipHistoryTab({ employee: e }) {
                 <button
                   className="elg-btn elg-btn-sm"
                   style={{padding : "4.5px 10px", width: 'auto', display: 'inline-flex', marginRight: 6 }}
-                  onClick={() => downloadPayslipPdf({ slip: s, employee: e, company })}
+                  onClick={() => handleDownload(s)}
                 >
                   <img src="/images/download.svg" alt="" /> Download
                 </button>

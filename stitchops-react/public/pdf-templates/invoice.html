@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Invoice Template</title>
+<style>
+  /* Starting point, not final — tweak spacing/sizing/colors freely and hand
+     the file back. Keep the class names as-is; the PDF generator targets
+     them directly. */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #E5E5E5;
+    font-family: "Inter Display", Arial, sans-serif;
+    color: #191919;
+  }
+
+  .invoice-doc {
+    width: 600px;
+    min-height: 848px; /* A4 aspect ratio at this width, so the footer has a
+                           full page to sit at the bottom of even when the
+                           content above is short */
+    margin: 40px auto;
+    background: #fff;
+    padding: 40px 48px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- header ---------- */
+  .invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+  }
+
+  .invoice-logo {
+    width: 34px;
+    height: 37px;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .invoice-company-address {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #383838;
+  }
+
+  .invoice-header-right {
+    text-align: right;
+  }
+
+  .invoice-no {
+    font-family: Georgia, "STK Bureau Serif", serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: #191919;
+    /* Georgia's default digits are old-style (short, uneven baseline) —
+       force full-height lining numerals so they match the letters. */
+    font-variant-numeric: lining-nums;
+    font-feature-settings: "lnum" 1;
+  }
+
+  .invoice-period {
+    font-size: 12px;
+    color: #383838;
+    margin-top: 4px;
+  }
+
+  /* ---------- section title + label/value rows ---------- */
+  .invoice-section-title {
+    font-family: Georgia, "STK Bureau Serif", serif;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 8px;
+    color: #191919;
+  }
+
+  .invoice-field {
+    font-size: 12px;
+    line-height: 1.9;
+  }
+
+  .invoice-field .label {
+    color: #5C5C5C;
+  }
+
+  .invoice-field .value {
+    color: #191919;
+    font-weight: 500;
+  }
+
+  .invoice-bill-to {
+    margin-bottom: 24px;
+  }
+
+  /* ---------- table ---------- */
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+
+  .invoice-table tr{
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .invoice-table thead th {
+    background: #EBEBEB;
+    color: #5C5C5C;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+  
+  .invoice-table thead th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  .invoice-table thead th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .invoice-table tbody td {
+    padding: 12px 14px;
+    color: #191919;
+  }
+
+  .invoice-table tbody tr:nth-child(even) {
+    background: #F9F9F9;
+  }
+
+  .invoice-table tfoot .invoice-total-row td {
+    padding: 14px 14px 4px;
+    border-top: 1px solid #DEDEDE;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .align-right {
+    text-align: right;
+  }
+
+  /* ---------- payment details box ---------- */
+  .invoice-payment-details {
+    background: #F9F9F9;
+    border: 1px solid #E8E8E8;
+    border-radius: 8px;
+    padding: 15px 16px;
+    margin-bottom: 28px;
+  }
+
+  /* ---------- thank you ---------- */
+  .invoice-thank-you {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .invoice-thank-you-title {
+    font-family: Georgia, "STK Bureau Serif", serif;
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .invoice-thank-you-text {
+    font-size: 12px;
+    color: #5C5C5C;
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  /* ---------- footer ---------- */
+  .invoice-footer {
+    margin-top: auto; /* pins the footer to the bottom of .invoice-doc */
+    border-top: 1px solid #E5E5E5;
+    padding-top: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #383838;
+  }
+  .invoice-footer-element {
+    display: inline-block;
+    margin: 0 10px;
+  }
+  
+  .invoice-footer-element span{
+    color: #191919;
+  }
+
+  .invoice-footer-sep {
+    margin: 0 10px;
+    color: #C7C7C7;
+  }
+</style>
+</head>
+<body>
+
+  <div class="invoice-doc">
+
+    <div class="invoice-header">
+      <div class="invoice-header-left">
+        <img class="invoice-logo" src="/images/elegant-design-icon.png" alt="Logo" />
+        <div class="invoice-company-address" data-field="company-address">
+          <div>14 Riverside Yard,</div>
+          <div>Manchester, UK</div>
+        </div>
+      </div>
+      <div class="invoice-header-right">
+        <div class="invoice-no" data-field="doc-no"># NOR-0010</div>
+        <div class="invoice-period" data-field="period">Month of September</div>
+      </div>
+    </div>
+
+    <div class="invoice-bill-to">
+      <div class="invoice-section-title">Bill To</div>
+      <div class="invoice-field"><span class="label">Name:</span> <span class="value" data-field="bill-name">James Whitfield</span></div>
+      <div class="invoice-field"><span class="label">Company:</span> <span class="value" data-field="bill-company">Northbridge Retail Ltd</span></div>
+      <div class="invoice-field"><span class="label">Email:</span> <span class="value" data-field="bill-email">james@northbridge.co.uk</span></div>
+      <div class="invoice-field" data-field="bill-address-row"><span class="label">Address:</span> <span class="value" data-field="bill-address">Brighton Marina Leisure Centre, Brighton, East Sussex, BN2 5UT, United Kingdom</span></div>
+    </div>
+
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Date</th>
+          <th class="align-right">Price</th>
+        </tr>
+      </thead>
+      <tbody data-field="order-rows">
+        <tr>
+          <td>Staff Jacket Logo Set</td>
+          <td>10-07-2026</td>
+          <td class="align-right">£70.00</td>
+        </tr>
+        <tr>
+          <td>Chest Logo</td>
+          <td>10-07-2026</td>
+          <td class="align-right">£50.00</td>
+        </tr>
+        <tr>
+          <td>Jacket Back</td>
+          <td>10-07-2026</td>
+          <td class="align-right">£100.00</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="invoice-total-row">
+          <td colspan="2">Total</td>
+          <td class="align-right" data-field="total">£220.00</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="invoice-payment-details" data-field="payment-details">
+      <div class="invoice-section-title">Payment Details</div>
+      <div data-field="payment-fields">
+        <div class="invoice-field"><span class="label">Account Holder:</span> <span class="value">The Elegants Design</span></div>
+        <div class="invoice-field"><span class="label">Sort Code:</span> <span class="value">23-14-70</span></div>
+        <div class="invoice-field"><span class="label">Account Number:</span> <span class="value">39475986</span></div>
+        <div class="invoice-field"><span class="label">IBAN:</span> <span class="value">GB87 TRWI 2314 7039 4759 86</span></div>
+        <div class="invoice-field"><span class="label">Wise's Address:</span> <span class="value">56 Shoreditch High Street London E1 6JJ United Kingdom</span></div>
+      </div>
+    </div>
+
+    <div class="invoice-thank-you">
+      <div class="invoice-thank-you-title">Thank You!</div>
+      <div class="invoice-thank-you-text">
+        Thank you for your business and trust. If you have any questions
+        about this invoice, please feel free to contact us.
+      </div>
+    </div>
+
+    <div class="invoice-footer">
+      <div class="invoice-footer-element">Email: <span data-field="footer-email">info@theelegantsdesign.com</span></div>
+      <span class="invoice-footer-sep">|</span>
+      <div class="invoice-footer-element">Contact: <span data-field="footer-contact">+44 7308 162490</span></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

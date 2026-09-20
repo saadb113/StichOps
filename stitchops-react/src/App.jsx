@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { PublicOnly, ChangePasswordGate, WelcomeGate, RequireAuth, RequireAdmin, RequireSalesperson, HomeRedirect } from './routes/Guards';
+import { PublicOnly, ChangePasswordGate, WelcomeGate, RequireAuth, RequireAdmin, RequireSalesperson, RequireEmployee, HomeRedirect } from './routes/Guards';
 import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
 import ForgotPassword from './components/auth/ForgotPassword';
@@ -39,8 +39,8 @@ export default function App() {
 
         <Route path="my-customers" element={<RequireSalesperson><CustomersList /></RequireSalesperson>} />
         <Route path="my-customers/:customerId" element={<RequireSalesperson><CustomerProfile /></RequireSalesperson>} />
-        <Route path="my-payslip" element={<RequireSalesperson><MyPayslip /></RequireSalesperson>} />
-        <Route path="my-info" element={<RequireSalesperson><MyInfo /></RequireSalesperson>} />
+        <Route path="my-payslip" element={<RequireEmployee><MyPayslip /></RequireEmployee>} />
+        <Route path="my-info" element={<RequireEmployee><MyInfo /></RequireEmployee>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

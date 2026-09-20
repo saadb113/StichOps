@@ -25,7 +25,10 @@ function serializeEmployee(employee) {
     contact: employee.contact || '',
     photo: employee.photo || null,
     emails: (employee.companyEmails || []).map((ce) => ce.email),
-    hasLogin: !!employee.user
+    hasLogin: !!employee.user,
+    slipPrefix: employee.slipPrefix || null,
+    nextSlipSeq: employee.nextSlipSeq,
+    lastSlipApprovedPeriod: toDateOnlyString(employee.lastSlipApprovedPeriod)
   };
 }
 
@@ -47,6 +50,7 @@ function serializeCustomer(customer) {
     status: customer.status,
     invoiceDay: customer.invoiceDay,
     notes: customer.notes,
+    invoicePrefix: customer.invoicePrefix,
     createdAt: customer.createdAt
   };
 }
@@ -109,6 +113,8 @@ function serializePayslip(payslip) {
     currency: payslip.currency,
     baseSalary: payslip.baseSalary,
     commission: payslip.commission,
+    bonusTotal: payslip.bonusTotal,
+    bonuses: (payslip.bonuses || []).map((b) => ({ id: b.id, label: b.label, amount: b.amount })),
     approvedDate: toDateOnlyString(payslip.approvedDate),
     paymentStatus: payslip.paymentStatus,
     orderIds
@@ -138,9 +144,19 @@ function serializeCompany(company) {
 function serializeBankAccount(account) {
   return {
     id: account.id,
+    country: account.country || 'United Kingdom',
     currency: account.currency,
     accountName: account.accountName || '',
-    accountNo: account.accountNo || ''
+    accountHolder: account.accountHolder || '',
+    accountNo: account.accountNo || '',
+    sortCode: account.sortCode || '',
+    routingNumber: account.routingNumber || '',
+    accountType: account.accountType || '',
+    bic: account.bic || '',
+    iban: account.iban || '',
+    bsb: account.bsb || '',
+    paymentAccount: account.paymentAccount || '',
+    address: account.address || ''
   };
 }
 

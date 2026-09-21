@@ -10,6 +10,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
   const { openModal, toast } = useUi();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const [expandedId, setExpandedId] = useState(null);
+  const isSales = e.role === 'Salesperson';
 
   if (!os.length) {
     return (
@@ -37,7 +38,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
   }
 
   function orderAmount(o) {
-    if (e.role === 'Salesperson') return { amt: commissionAmt(o), cc: o.currency };
+    if (isSales) return { amt: commissionAmt(o), cc: o.currency };
     return { amt: o.productionCost, cc: o.productionCostCurrency || o.currency };
   }
 
@@ -54,7 +55,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
             });
             const converted = sumConvertedToDefault(totals, currencyRates, defaultCurrency);
             const totalStr = converted == null ? '—' : fmt(converted, defaultCurrency);
-            const earnedStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
+            const nativeStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
             const expanded = expandedId === custId;
             return (
               <div key={custId} className="elg-mobile-card">
@@ -72,8 +73,9 @@ export default function EarningsTab({ employee: e, orders: os }) {
                   </button>
                 </div>
                 <div className="elg-mobile-card-row">{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</div>
+                {isSales && <div className="elg-mobile-card-row">{nativeStr}</div>}
                 <div className="elg-mobile-card-foot">
-                  <span className="elg-mobile-card-row" style={{ marginBottom: 0 }}>{earnedStr}</span>
+                  <span className="elg-mobile-card-row" style={{ marginBottom: 0 }}>{isSales ? 'In ' + defaultCurrency : ''}</span>
                   <span className="elg-mobile-card-price">{totalStr}</span>
                 </div>
                 {expanded && cOrders.map((o) => {
@@ -82,7 +84,7 @@ export default function EarningsTab({ employee: e, orders: os }) {
                   return (
                     <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0 22px', borderTop: '1px solid var(--elg-line)', marginTop: 8, color: 'var(--elg-ink-3)', fontSize: 13 }}>
                       <span>{o.name}</span>
-                      <span>{fmt(amt, cc)} · {orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</span>
+                      <span>{isSales ? `${fmt(amt, cc)} · ${orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}` : (orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency))}</span>
                     </div>
                   );
                 })}
@@ -96,9 +98,9 @@ export default function EarningsTab({ employee: e, orders: os }) {
             <tr>
               <th>Customer</th>
               <th>Orders</th>
-              <th>{e.role === 'Salesperson' ? 'Commission Earned' : 'Production Cost'}</th>
-              <th>{e.role === 'Salesperson' ? 'Commission in ' + defaultCurrency : 'Production Cost in ' + defaultCurrency}</th>
-              <th style={{minWidth : "150px"}}>Actions</th>
+              <th>Total Commission</th>
+              {isSales && <th>Total Commission in {defaultCurrency}</th>}
+              <th style={{minWidth : "150px"}}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -109,28 +111,26 @@ export default function EarningsTab({ employee: e, orders: os }) {
               cOrders.forEach((o) => {
                 const { amt, cc } = orderAmount(o);
                 totals[cc] = (totals[cc] || 0) + amt;
-                const paid = e.role === 'Salesperson' ? o.commissionPaid : o.productionPaid;
+                const paid = isSales ? o.commissionPaid : o.productionPaid;
                 if (!paid) allPaid = false;
               });
               const converted = sumConvertedToDefault(totals, currencyRates, defaultCurrency);
               const totalStr = converted == null ? '—' : fmt(converted, defaultCurrency);
-              const earnedStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
+              const nativeStr = Object.entries(totals).map(([cc, v]) => fmt(v, cc)).join(' + ');
               const expanded = expandedId === custId;
               return (
                 <Fragment key={custId}>
-                  <tr className="clickable" onClick={() => setExpandedId(expanded ? null : custId)}>
+                  <tr className={`clickable elg-earnings-parent-row ${expanded ? 'expanded' : ''}`} onClick={() => setExpandedId(expanded ? null : custId)}>
                     <td>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <ChevronDownIcon width={13} height={13} style={{ transform: expanded ? 'rotate(180deg)' : 'none', color: 'var(--elg-ink-3)', flexShrink: 0 }} />
                         {cust?.company || 'Unknown Customer'}
                       </span>
                     </td>
-                    <td>{cOrders.length} order{cOrders.length === 1 ? '' : 's'}</td>
-                    <td>{earnedStr}</td>
-                    <td><span>{totalStr}</span></td>
-
+                    <td>{cOrders.length}</td>
+                    <td>{isSales ? nativeStr : totalStr}</td>
+                    {isSales && <td>{totalStr}</td>}
                     <td>
-
                       <button
                         className="elg-btn elg-btn-sm earnings-action-btn"
                         onClick={(ev) => { ev.stopPropagation(); openModal(<EditSlipOrdersModal ctx={{ type: 'earnings', employeeId: e.id, customerId: Number(custId) }} />, { variant: 'elegant' }); }}
@@ -139,14 +139,16 @@ export default function EarningsTab({ employee: e, orders: os }) {
                       </button>
                     </td>
                   </tr>
-                  {expanded && cOrders.map((o) => {
+                  {expanded && cOrders.map((o, idx) => {
                     const { amt, cc } = orderAmount(o);
                     const orderConverted = convertToDefault(amt, cc, currencyRates, defaultCurrency);
+                    const isLast = idx === cOrders.length - 1;
                     return (
-                      <tr key={o.id} className="elg-earnings-order-row">
-                        <td colSpan={2} style={{ paddingLeft: 34, color: 'var(--elg-ink-3)' }}>{o.name}</td>
-                        <td>{fmt(amt, cc)}</td>
-                        <td>{orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</td>
+                      <tr key={o.id} className={`elg-earnings-order-row ${isLast ? 'elg-earnings-order-last' : ''}`}>
+                        <td style={{ paddingLeft: 34, color: 'var(--elg-ink-3)' }}>{o.name}</td>
+                        <td></td>
+                        <td style={{ color: 'var(--elg-ink-3)' }}>{isSales ? fmt(amt, cc) : (orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency))}</td>
+                        {isSales && <td style={{ color: 'var(--elg-ink-3)' }}>{orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</td>}
                         <td></td>
                       </tr>
                     );

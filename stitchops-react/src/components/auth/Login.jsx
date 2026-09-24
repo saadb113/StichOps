@@ -64,7 +64,6 @@ export default function Login() {
           <Link to="/forgot-password" className="elg-auth-link">Forgot password?</Link>
         </div>
         <button className="elg-btn elg-btn-primary" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Logging in…' : 'Login'}</button>
-        <div className="elg-auth-hint">Demo accounts — Admin: admin@stitchops.com / admin123. </div>
       </div>
     </div>
   );

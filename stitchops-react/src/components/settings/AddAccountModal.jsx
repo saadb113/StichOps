@@ -96,7 +96,7 @@ export default function AddAccountModal() {
             </div>
             <div className="elg-field">
               <label>Account Holder</label>
-              <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} placeholder="e.g. The Elegants Design Ltd." />
+              <input value={accountHolder} onChange={(e) => setAccountHolder(e.target.value)} />
             </div>
             {countryDef.fields.map((f) => (
               <div className="elg-field" key={f.key}>
@@ -107,7 +107,7 @@ export default function AddAccountModal() {
                     {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
                   </select>
                 ) : (
-                  <input value={fieldValues[f.key] || ''} onChange={(e) => setField(f.key, e.target.value)} placeholder={f.placeholder} />
+                  <input value={fieldValues[f.key] || ''} onChange={(e) => setField(f.key, e.target.value)} />
                 )}
               </div>
             ))}
@@ -119,7 +119,7 @@ export default function AddAccountModal() {
               </select>
             </div>
             <div className="elg-field">
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Add Address" />
+              <input value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
           </>
         )}

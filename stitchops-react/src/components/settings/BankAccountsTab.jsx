@@ -105,7 +105,7 @@ function BankAccountCard({ account }) {
 
       <div className="elg-field" style={{ marginBottom: 16 }}>
         <label>Account Holder</label>
-        <input value={editing ? form.accountHolder : account.accountHolder} onChange={(e) => setField('accountHolder', e.target.value)} disabled={!editing} placeholder="e.g. The Elegants Design Ltd." />
+        <input value={editing ? form.accountHolder : account.accountHolder} onChange={(e) => setField('accountHolder', e.target.value)} disabled={!editing} />
       </div>
 
       {countryDef.fields.map((f) => (
@@ -117,7 +117,7 @@ function BankAccountCard({ account }) {
               {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
           ) : (
-            <input value={editing ? form[f.key] : account[f.key]} onChange={(e) => setField(f.key, e.target.value)} disabled={!editing} placeholder={f.placeholder} />
+            <input value={editing ? form[f.key] : account[f.key]} onChange={(e) => setField(f.key, e.target.value)} disabled={!editing} />
           )}
         </div>
       ))}
@@ -132,7 +132,7 @@ function BankAccountCard({ account }) {
 
       <div className="elg-field" style={{ marginBottom: editing ? 16 : 0 }}>
         <label>Address</label>
-        <input value={editing ? form.address : account.address} onChange={(e) => setField('address', e.target.value)} disabled={!editing} placeholder="Add Address" />
+        <input value={editing ? form.address : account.address} onChange={(e) => setField('address', e.target.value)} disabled={!editing} />
       </div>
 
       {editing && (

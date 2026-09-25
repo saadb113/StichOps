@@ -29,13 +29,16 @@ async function main() {
   await prisma.companyEmail.deleteMany({});
   await prisma.user.deleteMany({});
   await prisma.employee.deleteMany({});
-  await prisma.employeeCategory.deleteMany({});
   await prisma.bankAccount.deleteMany({});
   await prisma.currencyRate.deleteMany({});
   await prisma.company.deleteMany({});
   await prisma.counter.deleteMany({});
 
   console.log('Seeding admin-only data...');
+
+  for (const name of ['Salesperson', 'Designer']) {
+    await prisma.employeeCategory.upsert({ where: { name }, update: {}, create: { name } });
+  }
 
   await prisma.counter.create({
     data: { id: 1, nextInvoiceNo: 1, nextCustomerCode: 1001 }

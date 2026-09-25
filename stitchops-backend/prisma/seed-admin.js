@@ -12,7 +12,7 @@ async function hash(pw) {
 // Run this ONCE, manually, against the target database — it is destructive
 // and irreversible (see README note below / chat instructions).
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@stitchops.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@theelegantsdesign.com';
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
   console.log('Wiping existing data...');

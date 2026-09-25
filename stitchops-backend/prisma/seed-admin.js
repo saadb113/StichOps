@@ -33,6 +33,7 @@ async function main() {
   await prisma.currencyRate.deleteMany({});
   await prisma.company.deleteMany({});
   await prisma.counter.deleteMany({});
+  await prisma.employeeCategory.deleteMany({});
 
   console.log('Seeding admin-only data...');
 

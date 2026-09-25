@@ -36,7 +36,7 @@ async function main() {
 
   console.log('Seeding admin-only data...');
 
-  for (const name of ['Salesperson', 'Designer']) {
+  for (const name of ['Salesperson', 'Designers']) {
     await prisma.employeeCategory.upsert({ where: { name }, update: {}, create: { name } });
   }
 
@@ -54,6 +54,16 @@ async function main() {
       defaultCurrency: 'PKR'
     }
   });
+
+  const currencyRateSeed = [
+    { currency: 'USD', rate: 276.89 },
+    { currency: 'EUR', rate: 319.44 },
+    { currency: 'GBP', rate: 374.10 },
+    { currency: 'AUD', rate: 195.25 }
+  ];
+  for (const rate of currencyRateSeed) {
+    await prisma.currencyRate.create({ data: rate });
+  }
 
   await prisma.user.create({
     data: {

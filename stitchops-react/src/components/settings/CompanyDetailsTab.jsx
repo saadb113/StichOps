@@ -109,7 +109,7 @@ export default function CompanyDetailsTab() {
         <div className="elg-settings-card-title"><h2>Currencies</h2></div>
         <div className="elg-field" style={{ marginBottom: 20 }}>
           <label>Default Currency</label>
-          <select className="elg-select" value={defaultCurrency} onChange={(e) => handleDefaultCurrencyChange(e.target.value)}>
+          <select className="elg-select" value={defaultCurrency} onChange={(e) => handleDefaultCurrencyChange(e.target.value)} disabled>
             {Object.keys(CCY_NAMES).map((cc) => <option key={cc} value={cc}>{CCY_NAMES[cc]}</option>)}
           </select>
         </div>

@@ -46,7 +46,7 @@ export default function EditEmailModal({ email, employeeId }) {
         <div className="elg-field" style={{ marginBottom: 0 }}>
           <label>Assigned to</label>
           <select className="elg-select" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
-            <option value="">e.g. Shaheer Baig</option>
+            <option value="">Unassigned</option>
             {employees.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
         </div>

@@ -1130,6 +1130,10 @@ select::-ms-expand {
   gap: 10px;
 }
 
+.elg-greeting-mobile{
+  display: none;
+}
+
 .elg-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1301,6 +1305,12 @@ select::-ms-expand {
 
   .elg-greeting {
     font-size: 26px;
+    display: none;
+  }
+
+  .elg-greeting-mobile {
+    display: block !important;
+    margin-bottom: 12px;
   }
 }
 
@@ -2516,8 +2526,9 @@ select::-ms-expand {
   font-size: 16px;
   font-weight: 500;
 }
+
 .salaryslipsButtons .elg-btn:not(.elg-btn-primary) {
-background: transparent;
+  background: transparent;
 
 }
 
@@ -4189,19 +4200,19 @@ input[type="number"] {
   .edit-toggle-btn.active svg path {
     stroke: #fff;
   }
-  
-  .edit-toggle-btn{
+
+  .edit-toggle-btn {
     width: 40px !important;
     height: 40px !important;
   }
 
-  
-  .edit-toggle-btn svg{
+
+  .edit-toggle-btn svg {
     width: 20px;
     height: 20px;
   }
-  
-  .edit-toggle-btn img{
+
+  .edit-toggle-btn img {
     width: 14px;
     height: 14px;
   }

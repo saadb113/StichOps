@@ -11,10 +11,8 @@ import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFab from '../layout/MobileFab';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
-function greetingFor(date) {
-  let dateObj = new Date(date);
-  if (isNaN(dateObj)) dateObj = new Date();
-  const hStr = dateObj.toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
+function greetingFor() {
+  const hStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
   const h = parseInt(hStr, 10) % 24;
   if (h < 5 || h >= 21) return 'Good Night';
   if (h < 12) return 'Good Morning';
@@ -101,6 +99,7 @@ export default function Dashboard() {
     <div className="elg-page">
       <div className="elg-page-head" style={{ paddingBottom: 24, borderBottom : "1px solid #E8E8E8", marginBottom : 24}}>
         <div className="elg-greeting">{greetingFor(to)} <span>👋</span></div>
+        <div className="elg-greeting elg-greeting-mobile">Dashboard</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />

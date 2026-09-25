@@ -12,7 +12,11 @@ import MobileFab from '../layout/MobileFab';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
 function greetingFor(date) {
-  const h = new Date(date).getHours() || new Date().getHours();
+  let dateObj = new Date(date);
+  if (isNaN(dateObj)) dateObj = new Date();
+  const hStr = dateObj.toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
+  const h = parseInt(hStr, 10) % 24;
+  if (h < 5 || h >= 21) return 'Good Night';
   if (h < 12) return 'Good Morning';
   if (h < 18) return 'Good Afternoon';
   return 'Good Evening';

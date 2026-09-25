@@ -170,7 +170,7 @@ export default function SystemDataTab() {
     <>
       <div className="elg-settings-card" style={{ marginBottom: 20 }}>
         <div className="elg-settings-card-title"><h2>Upload Data</h2></div>
-        <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8, overflow: 'hidden' }}>
+        <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8 }}>
           <table className="elg-table">
             <thead><tr><th>Pages</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
             <tbody>
@@ -207,7 +207,7 @@ export default function SystemDataTab() {
             </span>
           </div>
         </div>
-        <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8, overflow: 'hidden' }}>
+        <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8 }}>
           <table className="elg-table">
             <thead><tr><th>Pages</th><th>From</th><th>To</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
             <tbody>

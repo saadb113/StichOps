@@ -19,7 +19,9 @@ function NotificationAvatar({ employee }) {
 }
 
 function currentGreeting() {
-  const h = new Date().getHours();
+  const hStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
+  const h = parseInt(hStr, 10) % 24;
+  if (h < 5 || h >= 21) return 'Good Night';
   if (h < 12) return 'Good Morning';
   if (h < 18) return 'Good Afternoon';
   return 'Good Evening';

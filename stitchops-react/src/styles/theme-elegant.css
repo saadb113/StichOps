@@ -876,6 +876,7 @@ select::-ms-expand {
 
 .elg-input:has(input[type="date"]) {
   position: relative;
+  white-space: nowrap;
 }
 
 .modal-elg-input:has(input[type="date"]) img {

@@ -119,7 +119,7 @@ export default function AddAccountModal() {
               </select>
             </div>
             <div className="elg-field">
-              <input value={address} onChange={(e) => setAddress(e.target.value)} />
+              <input value={address} placeholder="Add Address" onChange={(e) => setAddress(e.target.value)} />
             </div>
           </>
         )}

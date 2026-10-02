@@ -180,8 +180,17 @@
   }
 
   /* ---------- footer ---------- */
+  /* Thank You + footer always sit at the very bottom of the LAST page only
+     (invoicePdf.js paginates and attaches this block to the final page). */
+  .invoice-closing {
+    margin-top: auto;
+  }
+
+  .invoice-doc > * {
+    flex-shrink: 0;
+  }
+
   .invoice-footer {
-    margin-top: auto; /* pins the footer to the bottom of .invoice-doc */
     border-top: 1px solid #E5E5E5;
     padding-top: 16px;
     text-align: center;
@@ -273,18 +282,20 @@
       </div>
     </div>
 
-    <div class="invoice-thank-you">
-      <div class="invoice-thank-you-title">Thank You!</div>
-      <div class="invoice-thank-you-text">
-        Thank you for your business and trust. If you have any questions
-        about this invoice, please feel free to contact us.
+    <div class="invoice-closing">
+      <div class="invoice-thank-you">
+        <div class="invoice-thank-you-title">Thank You!</div>
+        <div class="invoice-thank-you-text">
+          Thank you for your business and trust. If you have any questions
+          about this invoice, please feel free to contact us.
+        </div>
       </div>
-    </div>
 
-    <div class="invoice-footer">
-      <div class="invoice-footer-element">Email: <span data-field="footer-email">info@theelegantsdesign.com</span></div>
-      <span class="invoice-footer-sep">|</span>
-      <div class="invoice-footer-element">Contact: <span data-field="footer-contact">+44 7308 162490</span></div>
+      <div class="invoice-footer">
+        <div class="invoice-footer-element">Email: <span data-field="footer-email">info@theelegantsdesign.com</span></div>
+        <span class="invoice-footer-sep">|</span>
+        <div class="invoice-footer-element">Contact: <span data-field="footer-contact">+44 7308 162490</span></div>
+      </div>
     </div>
 
   </div>

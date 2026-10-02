@@ -17,7 +17,11 @@ async function loadTemplate(path) {
   return templateCache[path];
 }
 
-export async function renderTemplateToPdf({ templatePath, rootSelector, populate, filename }) {
+// `paginate(root)` is optional: when given, it splits the populated root into
+// an array of fixed-height page elements (already attached to the same
+// container), and each one becomes exactly one PDF page. Without it the root
+// is rasterized once and sliced at page height (used by the payslip).
+export async function renderTemplateToPdf({ templatePath, rootSelector, populate, paginate, filename }) {
   const html = await loadTemplate(templatePath);
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const styleText = [...parsed.querySelectorAll('style')].map((s) => s.textContent).join('\n');
@@ -44,12 +48,24 @@ export async function renderTemplateToPdf({ templatePath, rootSelector, populate
   }
 
   try {
-    const canvas = await html2canvas(root, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-
     const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
+
+    if (paginate) {
+      const pages = paginate(root);
+      for (let i = 0; i < pages.length; i += 1) {
+        const pageCanvas = await html2canvas(pages[i], { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        if (i > 0) pdf.addPage();
+        pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, pageHeight);
+      }
+      pdf.save(filename);
+      return;
+    }
+
+    const canvas = await html2canvas(root, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 

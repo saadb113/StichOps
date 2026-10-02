@@ -68,26 +68,30 @@ function paginateInvoice(root) {
     }
   });
 
-  const attachTail = () => {
-    t.appendChild(tfoot);
-    page.append(payment, closing);
-  };
-  attachTail();
-
-  // Not enough room left for total + payment + Thank You: carry the last
-  // row onto a fresh page so the total never sits alone without any rows.
+  // Rows fill every page as far as they can. The total stays right under the
+  // last row; if even that doesn't fit, the last row carries over with it so
+  // the total never sits alone.
+  t.appendChild(tfoot);
   if (!fits(page) && tb.children.length > 1) {
     const last = tb.lastElementChild;
-    tfoot.remove();
-    payment.remove();
-    closing.remove();
     tb.removeChild(last);
     page = makePage();
     pages.push(page);
     ({ t, tb } = newTable(false));
     page.appendChild(t);
     tb.appendChild(last);
-    attachTail();
+    t.appendChild(tfoot);
+  }
+
+  // Payment details + Thank You/footer stay together; if they don't fit in
+  // the space left, they all move to a fresh last page.
+  page.append(payment, closing);
+  if (!fits(page)) {
+    payment.remove();
+    closing.remove();
+    page = makePage();
+    pages.push(page);
+    page.append(payment, closing);
   }
 
   root.style.display = 'none';

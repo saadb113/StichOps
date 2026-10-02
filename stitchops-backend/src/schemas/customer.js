@@ -13,7 +13,7 @@ const createCustomerSchema = z.object({
   contact: z.string().trim().default(''),
   salesperson: z.string().min(1, 'Salesperson is required.'),
   receivedEmail: z.string().nullable().optional(),
-  invoiceDay: z.number().int().min(1).max(28).nullable().optional(),
+  invoiceDay: z.number().int().min(1).max(31).nullable().optional(),
   notes: z.string().trim().default(''),
   status: z.enum(['Free Trial', 'Paid']).optional()
 });

@@ -1,5 +1,16 @@
 import { SYM, TODAY, BANK_COUNTRIES } from './constants';
 
+// Invoice Notification Date goes up to 31, which doesn't exist in every
+// month — a customer set to 31 (or 29/30 in February) is treated as due on
+// the LAST day of a shorter month, so the notification never silently skips
+// that month. Mirrors the backend's lib/dueDates.js clamping.
+export function isInvoiceNotificationDay(invoiceDay, date = new Date()) {
+  if (!invoiceDay) return false;
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const effectiveDay = Math.min(invoiceDay, daysInMonth);
+  return date.getDate() === effectiveDay;
+}
+
 export function fmt(amount, ccy) {
   return SYM[ccy] + ' ' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

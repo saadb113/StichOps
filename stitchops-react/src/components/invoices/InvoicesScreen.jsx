@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { paymentBadge } from '../../lib/helpers';
+import { paymentBadge, isInvoiceNotificationDay } from '../../lib/helpers';
 import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
@@ -42,8 +42,7 @@ export default function InvoicesScreen() {
 
   let list = invoices.filter((i) => i.status === 'approved');
   if (dueToday) {
-    const todayDate = new Date().getDate();
-    const dueCustomerIds = new Set(customers.filter((c) => c.invoiceDay === todayDate).map((c) => c.id));
+    const dueCustomerIds = new Set(customers.filter((c) => isInvoiceNotificationDay(c.invoiceDay)).map((c) => c.id));
     list = list.filter((i) => dueCustomerIds.has(i.customerId));
   }
   if (from) list = list.filter((i) => i.generatedDate >= from);

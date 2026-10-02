@@ -199,7 +199,7 @@ export default function CustomerProfile() {
                     {c.status}
                   </span>
                 </div>
-                {isAdmin && <div className="elg-kv-row"><span className="k">Invoice Day</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
+                {isAdmin && <div className="elg-kv-row"><span className="k">Invoice Notification Date</span><span className="v">{c.invoiceDay ? c.invoiceDay + ' of each month' : '—'}</span></div>}
               </div>
             </div>
           </div>

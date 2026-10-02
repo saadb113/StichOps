@@ -36,7 +36,19 @@ async function runCheck() {
     broadcastNotification(notification);
   }
 
-  const dueCustomers = await prisma.customer.findMany({ where: { invoiceDay: todayDay } });
+  // Invoice Notification Date goes up to 31, which doesn't exist in every
+  // month — a customer set to 31 (or 29/30 in February) is treated as due
+  // on the LAST day of a shorter month, so the notification never silently
+  // skips that month. Mirrors the frontend's lib/helpers.js clamping.
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dueCustomers = await prisma.customer.findMany({
+    where: {
+      OR: [
+        { invoiceDay: todayDay },
+        ...(todayDay === daysInMonth ? [{ invoiceDay: { gt: daysInMonth } }] : [])
+      ]
+    }
+  });
   if (dueCustomers.length > 0) {
     const already = await prisma.notification.findFirst({
       where: { type: 'invoice_day', createdAt: { gte: startOfToday } }
@@ -45,7 +57,7 @@ async function runCheck() {
       const notification = await prisma.notification.create({
         data: {
           type: 'invoice_day',
-          message: `${dueCustomers.length} customer${dueCustomers.length > 1 ? 's have' : ' has'} their invoice day today.`,
+          message: `${dueCustomers.length} customer${dueCustomers.length > 1 ? 's have' : ' has'} their invoice notification date today.`,
           link: '/invoices?dueToday=1'
         }
       });

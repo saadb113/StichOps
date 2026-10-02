@@ -78,13 +78,6 @@ export default function Dashboard() {
   });
   const totalIncomeStr = totalIncomeUnknown ? '—' : fmt(totalIncomeConverted, defaultCcy);
 
-  const dueSoon = customers.filter((c) => {
-    if (!c.invoiceDay) return false;
-    const d = new Date(monthPrefix + '-' + String(c.invoiceDay).padStart(2, '0'));
-    const today = new Date(refDate);
-    const diff = (d - today) / 86400000;
-    return diff >= 0 && diff <= 3;
-  });
   const payoutsSoon = employees.filter((e) => {
     const d = new Date(monthPrefix + '-' + String(e.payoutDay).padStart(2, '0'));
     const today = new Date(refDate);
@@ -113,9 +106,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {dueSoon.length > 0 && (
-        <div className="elg-flag"><WarningIcon /><div>{dueSoon.map((c) => (<span key={c.id}><strong>{c.company}</strong>'s invoice is due on {c.invoiceDay} {monthName}. </span>))}</div></div>
-      )}
       {payoutsSoon.length > 0 && (
         <div className="elg-flag"><WarningIcon /><div>{payoutsSoon.map((e) => (<span key={e.id}><strong>{e.name}</strong>'s salary slip is due on {e.payoutDay} {monthName}. </span>))}</div></div>
       )}

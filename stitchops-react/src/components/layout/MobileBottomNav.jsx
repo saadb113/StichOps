@@ -48,7 +48,7 @@ function MoreIcon({ active }) {
 // the self-service nav (Salesperson/Designer/other team) fits entirely in
 // 2-3 tabs already, so there's nothing left to put behind "More".
 export default function MobileBottomNav({ menuOpen, onToggleMenu }) {
-  const { isAdmin, isSalesperson, orders, invoices, passwordResetRequests, employees, customers } = useAppState();
+  const { isAdmin, isSalesperson, orders, invoices, passwordResetRequests, employees } = useAppState();
 
   const tabs = isAdmin ? ADMIN_TABS : (isSalesperson ? SALES_TABS : EMPLOYEE_TABS);
 
@@ -60,7 +60,6 @@ export default function MobileBottomNav({ menuOpen, onToggleMenu }) {
   const hasAttention = isAdmin && (
     passwordResetRequests.length > 0
     || employees.some((e) => e.payoutDay === todayDate)
-    || customers.some((c) => c.invoiceDay === todayDate)
   );
 
   return (

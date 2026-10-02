@@ -90,7 +90,7 @@ function AttentionCard({ cardKey, dismissed, onDismiss, children }) {
 }
 
 export default function Sidebar({ open, onNavigate }) {
-  const { isAdmin, isSalesperson, orders, invoices, employees, customers, passwordResetRequests, logout } = useAppState();
+  const { isAdmin, isSalesperson, orders, invoices, employees, passwordResetRequests, logout } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'In progress').length;
@@ -100,7 +100,6 @@ export default function Sidebar({ open, onNavigate }) {
 
   const todayDate = new Date().getDate();
   const payoutDueEmployees = employees.filter((e) => e.payoutDay === todayDate);
-  const invoiceDueCustomers = customers.filter((c) => c.invoiceDay === todayDate);
 
   function renderNavItem([path, label, Icon, ActiveIcon]) {
     const mobileHide = MOBILE_HIDDEN_PATHS.includes(path);
@@ -187,18 +186,6 @@ export default function Sidebar({ open, onNavigate }) {
             Today is the payout day for '{payoutDueEmployees.length}' employee{payoutDueEmployees.length > 1 ? 's' : ''}
           </div>
           <button className="elg-attention-btn" onClick={() => { navigate('/employees'); if (onNavigate) onNavigate(); }}>Review</button>
-        </AttentionCard>
-      )}
-
-      {isAdmin && invoiceDueCustomers.length > 0 && (
-        <AttentionCard cardKey="invoice" dismissed={dismissedCards.invoice} onDismiss={dismissCard}>
-          <div className="elg-attention-icon">
-            <img src={notificationsIcon} width={60} height={60} alt="Attention" />
-          </div>
-          <div className="elg-attention-text">
-            '{invoiceDueCustomers.length}' customer{invoiceDueCustomers.length > 1 ? 's have' : ' has'} their invoice day today
-          </div>
-          <button className="elg-attention-btn" onClick={() => { navigate('/invoices?dueToday=1'); if (onNavigate) onNavigate(); }}>Check Invoices</button>
         </AttentionCard>
       )}
 

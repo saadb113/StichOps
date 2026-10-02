@@ -169,7 +169,7 @@ export default function CustomerFormModal({ customer = null }) {
           </div>
           {isAdmin && (
             <>
-            <div className="elg-field"><label>Invoice Generation Day</label><input type="number" min="1" max="28" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" /></div>
+            <div className="elg-field"><label>Invoice Notification Date</label><input type="number" min="1" max="31" value={invoiceDay} onChange={(e) => setInvoiceDay(e.target.value)} placeholder="e.g. 5" /></div>
             <div />
             </>
           )}

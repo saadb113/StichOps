@@ -11,7 +11,7 @@ function statusPillStyle(status) {
   const map = {
     Completed: { bg: 'var(--elg-green)', fg: '#fff' },
     Pending: { bg: 'var(--elg-red)', fg: '#fff' },
-    'In Progress': { bg: 'var(--elg-orange)', fg: '#fff' },
+    Rush: { bg: 'var(--elg-orange)', fg: '#fff' },
     'On Hold': { bg: 'var(--elg-navy)', fg: '#fff' },
     Cancelled: { bg: 'var(--elg-gray)', fg: '#5B5F6B' }
   };
@@ -20,12 +20,14 @@ function statusPillStyle(status) {
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
   if (status === 'Pending') return 'elg-badge-pending';
-  if (status === 'In progress') return 'elg-badge-inprogress';
+  if (status === 'Rush') return 'elg-badge-inprogress';
   if (status === 'On hold') return 'elg-badge-onhold';
   return 'elg-badge-cancelled';
 }
 
-export default function OrdersTab({ customer, orders }) {
+export default function OrdersTab({ customer, orders: rawOrders }) {
+  // Rush orders pin to the top; Array.sort is stable so the incoming order is kept otherwise.
+  const orders = [...rawOrders].sort((a, b) => (b.status === 'Rush') - (a.status === 'Rush'));
   const { isAdmin, company, currencyRates, setOrderStatus, addComment } = useAppState();
   const { openModal, toast } = useUi();
   const defaultCurrency = company?.defaultCurrency || 'PKR';

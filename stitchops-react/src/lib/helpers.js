@@ -11,6 +11,17 @@ export function isInvoiceNotificationDay(invoiceDay, date = new Date()) {
   return date.getDate() === effectiveDay;
 }
 
+const normSearch = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// True when the query matches the START OF ANY WORD in any field — so "Sa",
+// "Cons" and "LTD" all find "Sam Construction LTD", and a salesperson's name
+// finds their customers/orders when that name is passed in as a field.
+export function matchesSearch(query, ...fields) {
+  const q = normSearch(query);
+  if (!q) return true;
+  return fields.some((f) => f && (' ' + normSearch(f)).includes(' ' + q));
+}
+
 export function fmt(amount, ccy) {
   return SYM[ccy] + ' ' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -66,20 +77,20 @@ export function statusBadgeClass(s) {
   if (s === 'Completed') return 'b-completed';
   if (s === 'On hold') return 'b-review';
   if (s === 'Cancelled') return 'b-inactive';
-  if (s === 'In progress') return 'b-review';
+  if (s === 'Rush') return 'b-review';
   return 'b-pending';
 }
 
 export function statusSelectBg(s) {
   if (s === 'Completed') return 'var(--accent-soft)';
-  if (s === 'On hold' || s === 'In progress') return 'var(--amber-soft)';
+  if (s === 'On hold' || s === 'Rush') return 'var(--amber-soft)';
   if (s === 'Cancelled') return 'var(--surface)';
   return 'var(--amber-soft)';
 }
 
 export function statusSelectFg(s) {
   if (s === 'Completed') return 'var(--accent)';
-  if (s === 'On hold' || s === 'In progress') return 'var(--amber-ink)';
+  if (s === 'On hold' || s === 'Rush') return 'var(--amber-ink)';
   if (s === 'Cancelled') return 'var(--ink-3)';
   return 'var(--amber-ink)';
 }

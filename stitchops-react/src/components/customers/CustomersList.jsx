@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { isActive } from '../../lib/helpers';
+import { isActive, matchesSearch } from '../../lib/helpers';
 import CustomerFormModal from './CustomerFormModal';
 import OrderFormModal from '../orders/OrderFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
@@ -29,11 +29,14 @@ export default function CustomersList() {
   const [country, setCountry] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [salesperson, setSalesperson] = useState('');
 
   const base = isAdmin ? customers : customers.filter((c) => c.salesperson === currentEmployee?.name);
   const countries = [...new Set(base.map((c) => c.country))].sort();
-  const q = search.toLowerCase();
-  let list = q ? base.filter((c) => c.name.toLowerCase().startsWith(q) || c.company.toLowerCase().startsWith(q)) : base;
+  let list = search.trim() ? base.filter((c) => matchesSearch(search, c.name, c.company, c.customerCode, c.email, c.salesperson)) : base;
+  const salespeople = [...new Set(base.map((c) => c.salesperson).filter(Boolean))].sort();
+  const salespersonCount = salesperson ? base.filter((c) => c.salesperson === salesperson).length : 0;
+  if (salesperson) list = list.filter((c) => c.salesperson === salesperson);
   if (customerType) list = list.filter((c) => c.status === customerType);
   if (status) list = list.filter((c) => (isActive(orders, c) ? 'Active' : 'Inactive') === status);
   if (country) list = list.filter((c) => c.country === country);
@@ -53,7 +56,7 @@ export default function CustomersList() {
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">{isAdmin ? 'Customers' : 'My Customers'}</div>
-          <div className="elg-page-sub">{isAdmin ? `${customers.length} profile${customers.length === 1 ? '' : 's'} listed` : `${base.length} customer${base.length === 1 ? '' : 's'} assigned to you`}</div>
+          <div className="elg-page-sub">{isAdmin ? (salesperson ? `${salespersonCount} customer${salespersonCount === 1 ? '' : 's'} from ${salesperson}` : `${customers.length} profile${customers.length === 1 ? '' : 's'} listed`) : `${base.length} customer${base.length === 1 ? '' : 's'} assigned to you`}</div>
         </div>
       </div>
 
@@ -84,6 +87,12 @@ export default function CustomersList() {
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
+        {isAdmin && (
+          <select className="elg-select" value={salesperson} onChange={(e) => setSalesperson(e.target.value)}>
+            <option value="">All Salespeople</option>
+            {salespeople.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
         <select className="elg-select" value={country} onChange={(e) => setCountry(e.target.value)}>
           <option value="">All Countries</option>
           {countries.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -100,10 +109,11 @@ export default function CustomersList() {
               fields={[
                 { key: 'customerType', label: 'Customer Type', allLabel: 'All Customer Types', options: [{ value: 'Free Trial', label: 'Free Trial' }, { value: 'Paid', label: 'Paid' }] },
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }] },
+                ...(isAdmin ? [{ key: 'salesperson', label: 'Salesperson', allLabel: 'All Salespeople', options: salespeople.map((s) => ({ value: s, label: s })) }] : []),
                 { type: 'dateRange', key: 'date', label: 'Added', fromKey: 'from', toKey: 'to' }
               ]}
-              values={{ customerType, status, from, to }}
-              onApply={(v) => { setCustomerType(v.customerType); setStatus(v.status); setFrom(v.from); setTo(v.to); }}
+              values={{ customerType, status, salesperson, from, to }}
+              onApply={(v) => { setCustomerType(v.customerType); setStatus(v.status); setSalesperson(v.salesperson || ''); setFrom(v.from); setTo(v.to); }}
             />,
             { variant: 'elegant' }
           )}
@@ -122,13 +132,14 @@ export default function CustomersList() {
       <div className="elg-mobile-filter-chips">
         {customerType && <span className="elg-mobile-filter-chip">{customerType}<button onClick={() => setCustomerType('')}>&times;</button></span>}
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
+        {salesperson && <span className="elg-mobile-filter-chip">{salesperson}<button onClick={() => setSalesperson('')}>&times;</button></span>}
         {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
       </div>
 
       <div className="elg-mobile-cards">
         {list.length === 0 && (
           <div className="elg-empty">
-            {search || customerType || status || country || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
+            {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
           </div>
         )}
         {list.map((c) => {
@@ -170,7 +181,7 @@ export default function CustomersList() {
           <tbody>
             {list.length === 0 && (
               <tr><td colSpan={isAdmin ? 8 : 7} className="elg-empty">
-                {search || customerType || status || country || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
+                {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
               </td></tr>
             )}
             {list.map((c) => {

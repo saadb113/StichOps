@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, unpaidAmountFor, sumConvertedToDefault } from '../../lib/helpers';
+import { fmt, unpaidAmountFor, sumConvertedToDefault, matchesSearch } from '../../lib/helpers';
 import EmployeeFormModal from './EmployeeFormModal';
 import ConfirmDeleteEmployeeModal from './ConfirmDeleteEmployeeModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -89,7 +89,7 @@ export default function EmployeesList() {
   const q = search.toLowerCase().trim();
   const baseList = employees.filter((e) => e.role === category);
   const list = q
-    ? baseList.filter((e) => e.name.toLowerCase().startsWith(q) || (e.designation && e.designation.toLowerCase().startsWith(q)) || (e.email && e.email.toLowerCase().startsWith(q)))
+    ? baseList.filter((e) => matchesSearch(q, e.name, e.designation, e.email))
     : baseList;
 
   async function handleApproveReset(id) {

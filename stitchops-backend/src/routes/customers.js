@@ -49,6 +49,8 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
   }
   const salesperson = await resolveSalesperson(salespersonName);
 
+  // Salespeople don't type an ID — it's assigned from the shared counter
+  // inside the transaction below, same sequence the admin form previews.
   const customerCode = isSales ? null : (body.customerCode || null);
   if (customerCode) {
     const clash = await prisma.customer.findUnique({ where: { customerCode } });
@@ -57,9 +59,19 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
 
   const { customer, notification } = await prisma.$transaction(async (tx) => {
     const invoicePrefix = generateInvoicePrefix(body.company, body.name);
+    let finalCode = customerCode;
+    let consumedCounter = !!customerCode;
+    if (isSales) {
+      const counter = await tx.counter.findUnique({ where: { id: 1 } });
+      let n = counter.nextCustomerCode;
+      while (await tx.customer.findUnique({ where: { customerCode: `CUST-${n}` } })) n += 1;
+      finalCode = `CUST-${n}`;
+      await tx.counter.update({ where: { id: 1 }, data: { nextCustomerCode: n + 1 } });
+      consumedCounter = false;
+    }
     const created = await tx.customer.create({
       data: {
-        customerCode,
+        customerCode: finalCode,
         name: body.name,
         company: body.company,
         country: body.country,
@@ -78,7 +90,7 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
       },
       include: customerInclude
     });
-    if (customerCode) {
+    if (consumedCounter) {
       await tx.counter.update({ where: { id: 1 }, data: { nextCustomerCode: { increment: 1 } } });
     }
     let createdNotification = null;

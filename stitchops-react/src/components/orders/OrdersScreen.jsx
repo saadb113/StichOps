@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { commissionAmt } from '../../lib/helpers';
+import { commissionAmt, matchesSearch } from '../../lib/helpers';
 import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
@@ -15,7 +15,7 @@ import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
   if (status === 'Pending') return 'elg-badge-pending';
-  if (status === 'In progress') return 'elg-badge-inprogress';
+  if (status === 'Rush') return 'elg-badge-inprogress';
   if (status === 'On hold') return 'elg-badge-onhold';
   return 'elg-badge-cancelled';
 }
@@ -41,7 +41,7 @@ export default function OrdersScreen() {
   // Pending/in-progress orders are what the sidebar's Orders badge counts,
   // so they need to stay visible here regardless of the selected date range
   // — otherwise the badge points at orders the date filter is hiding.
-  const isNeedsAttention = (o) => o.status === 'Pending' || o.status === 'In progress';
+  const isNeedsAttention = (o) => o.status === 'Pending' || o.status === 'Rush';
 
   let list = orders.slice();
   if (from) list = list.filter((o) => o.date >= from || isNeedsAttention(o));
@@ -49,15 +49,16 @@ export default function OrdersScreen() {
   if (currency) list = list.filter((o) => o.currency === currency);
   if (status) list = list.filter((o) => o.status === status);
   if (search) {
-    const q = search.toLowerCase();
     list = list.filter((o) => {
       const c = getCustomer(o.customerId);
-      return o.name.toLowerCase().startsWith(q) || (c && (c.company.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)));
+      return matchesSearch(search, o.name, c?.company, c?.name, c?.salesperson);
     });
   }
   list = list.sort((a, b) => {
-    const statusDiff = ORDER_STATUSES.indexOf(a.status) - ORDER_STATUSES.indexOf(b.status);
-    return statusDiff !== 0 ? statusDiff : b.date.localeCompare(a.date);
+    // Rush orders are pinned above everything else.
+    const rank = (s) => (s === 'Rush' ? -1 : ORDER_STATUSES.indexOf(s));
+    const statusDiff = rank(a.status) - rank(b.status);
+    return statusDiff !== 0 ? statusDiff : b.id - a.id;
   });
 
   // Starting a fresh search clears the date range so results aren't
@@ -189,7 +190,7 @@ export default function OrdersScreen() {
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
-          <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th style={{minWidth : "150px"}}>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th style={{minWidth : "150px"}}>Actions</th></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={8} className="elg-empty">No orders match these filters.</td></tr>}
             {list.map((o) => {
@@ -197,8 +198,8 @@ export default function OrdersScreen() {
               return (
                 <tr key={o.id} className="clickable">
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.date}</td>
-                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
                   <td><span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span></td>
                   <td>{o.currency} {SYM[o.currency]}</td>
                   <td>{o.price.toFixed(2)}</td>

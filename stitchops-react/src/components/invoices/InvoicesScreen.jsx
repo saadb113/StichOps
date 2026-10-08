@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { paymentBadge, isInvoiceNotificationDay } from '../../lib/helpers';
+import { paymentBadge, isInvoiceNotificationDay, matchesSearch } from '../../lib/helpers';
 import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
@@ -59,8 +59,7 @@ export default function InvoicesScreen() {
     });
   }
   if (search) {
-    const q = search.toLowerCase();
-    list = list.filter((i) => { const c = getCustomer(i.customerId); return c && (c.company.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)); });
+    list = list.filter((i) => { const c = getCustomer(i.customerId); return matchesSearch(search, i.invoiceNo, c?.company, c?.name, c?.salesperson); });
   }
   list = list.sort((a, b) => b.id - a.id);
 

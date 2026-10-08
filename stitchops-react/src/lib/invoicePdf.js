@@ -5,6 +5,14 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// 'YYYY-MM-DD' -> '5 Mar 2026'
+function formatInvoiceDate(d) {
+  if (!d) return '';
+  const dt = new Date(String(d).slice(0, 10) + 'T00:00:00.000Z');
+  if (Number.isNaN(dt.getTime())) return String(d);
+  return `${dt.getUTCDate()} ${dt.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' })} ${dt.getUTCFullYear()}`;
+}
+
 // "14 Riverside Yard, Manchester, UK" -> ["14 Riverside Yard,", "Manchester, UK"]
 function splitAddress(address) {
   if (!address) return [];
@@ -103,7 +111,7 @@ export async function downloadInvoicePdf({ invoice, customer, company, orders, b
     templatePath: '/pdf-templates/invoice.html',
     rootSelector: '.invoice-doc',
     paginate: paginateInvoice,
-    filename: `${invoice.invoiceNo}.pdf`,
+    filename: `${invoice.invoiceNo}-${coveredMonthLabel(invoice.generatedDate).replace('Month of ', '')}.pdf`,
     populate: (root) => {
       const set = (field, value) => {
         const el = root.querySelector(`[data-field="${field}"]`);
@@ -138,9 +146,9 @@ export async function downloadInvoicePdf({ invoice, customer, company, orders, b
       if (tbody) {
         tbody.innerHTML = orders.map((o) => `
           <tr>
+            <td>${escapeHtml(formatInvoiceDate(o.date))}</td>
             <td>${escapeHtml(o.name)}</td>
-            <td>${escapeHtml(o.date)}</td>
-            <td class="align-right">${escapeHtml(fmt(o.price, o.currency))}</td>
+            <td>${escapeHtml(fmt(o.price, o.currency))}</td>
           </tr>
         `).join('');
       }

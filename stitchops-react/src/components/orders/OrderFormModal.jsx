@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { SYM, ORDER_STATUSES, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
-import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
+import { customerOverdueInvoices, paymentBadge, matchesSearch } from '../../lib/helpers';
 import { BagIcon, CloseIcon, WarningIcon, ChevronDownIcon } from '../icons/Icon';
 const addOrderImg = '/images/addOrder.svg';
 
@@ -21,7 +21,7 @@ function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
 
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? customers.filter((c) => c.company.toLowerCase().startsWith(q))
+    ? customers.filter((c) => matchesSearch(q, c.company, c.name, c.salesperson))
     : customers;
 
   function pick(c) {
@@ -64,7 +64,7 @@ function statusPillStyle(status) {
   const map = {
     Completed: { bg: 'var(--elg-green)', fg: '#fff' },
     Pending: { bg: 'var(--elg-red)', fg: '#fff' },
-    'In progress': { bg: 'var(--elg-orange)', fg: '#fff' },
+    'Rush': { bg: 'var(--elg-orange)', fg: '#fff' },
     'On hold': { bg: 'var(--elg-navy)', fg: '#fff' },
     Cancelled: { bg: 'var(--elg-gray)', fg: '#5B5F6B' }
   };

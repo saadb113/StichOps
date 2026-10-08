@@ -9,7 +9,7 @@ const { parseDateOnly, today } = require('./date');
 // bell loads or reconnects. On the first check after the 1st of a month, it
 // bundles each customer's Completed, not-yet-invoiced orders dated on or
 // before the end of the *previous* month into one auto-approved invoice, so
-// an order still Pending/In progress when the month turns over just waits —
+// an order still Pending/Rush when the month turns over just waits —
 // it gets swept into whichever later run covers it once it's Completed,
 // since the date bound is "on or before", not an exact month match.
 let inFlight = null;

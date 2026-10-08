@@ -225,8 +225,14 @@ router.post('/:id/approve-slip', requireAuth, requireAdmin, asyncHandler(async (
   }
   const bonuses = Array.isArray(req.body.bonuses)
     ? req.body.bonuses
-        .map((b) => ({ label: (typeof b.label === 'string' ? b.label.trim() : '') || 'Bonus', amount: Number(b.amount) || 0 }))
-        .filter((b) => b.amount > 0)
+        // Deductions are stored as negative amounts alongside bonuses, so the
+        // existing bonusTotal/total arithmetic handles both without a schema change.
+        .map((b) => {
+          const amount = Number(b.amount) || 0;
+          const label = (typeof b.label === 'string' ? b.label.trim() : '') || (amount < 0 ? 'Deduction' : 'Bonus');
+          return { label, amount };
+        })
+        .filter((b) => b.amount !== 0)
     : [];
   const bonusTotal = bonuses.reduce((s, b) => s + b.amount, 0);
   const total = employee.baseSalary + variableTotal + bonusTotal;

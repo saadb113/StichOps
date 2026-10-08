@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
+import { matchesSearch } from '../../lib/helpers';
 
 const MAX_PER_GROUP = 5;
 
@@ -18,9 +19,7 @@ const GROUP_ICONS = {
 const TAGS = ['customers', 'employees', 'invoices', 'orders'];
 const TAG_LABEL = { customers: 'Customers', employees: 'Employees', invoices: 'Invoices', orders: 'Orders' };
 
-function matches(q, ...fields) {
-  return fields.some((f) => f && String(f).toLowerCase().startsWith(q));
-}
+const matches = matchesSearch;
 
 export default function GlobalSearch() {
   const { customers, orders, invoices, employees, isAdmin, getCustomer } = useAppState();
@@ -106,7 +105,7 @@ export default function GlobalSearch() {
     if (!query && !activeTag) return [];
 
     const customerHits = customers
-      .filter((c) => matches(query, c.company))
+      .filter((c) => matches(query, c.company, c.name, c.customerCode, c.email, c.salesperson))
       .slice(0, MAX_PER_GROUP)
       .map((c) => ({
         key: `customer-${c.id}`,
@@ -116,7 +115,10 @@ export default function GlobalSearch() {
       }));
 
     const orderHits = orders
-      .filter((o) => matches(query, o.name))
+      .filter((o) => {
+        const c = getCustomer(o.customerId);
+        return matches(query, o.name, c?.company, c?.name, c?.salesperson);
+      })
       .slice(0, MAX_PER_GROUP)
       .map((o) => {
         const cust = getCustomer(o.customerId);
@@ -130,7 +132,10 @@ export default function GlobalSearch() {
 
     const invoiceHits = isAdmin
       ? invoices
-        .filter((i) => matches(query, i.invoiceNo))
+        .filter((i) => {
+          const c = getCustomer(i.customerId);
+          return matches(query, i.invoiceNo, c?.company, c?.name, c?.salesperson);
+        })
         .slice(0, MAX_PER_GROUP)
         .map((i) => {
           const cust = getCustomer(i.customerId);
@@ -145,7 +150,7 @@ export default function GlobalSearch() {
 
     const employeeHits = isAdmin
       ? employees
-        .filter((e) => matches(query, e.name))
+        .filter((e) => matches(query, e.name, e.designation, e.email))
         .slice(0, MAX_PER_GROUP)
         .map((e) => ({
           key: `employee-${e.id}`,

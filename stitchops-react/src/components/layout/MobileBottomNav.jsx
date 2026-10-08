@@ -52,7 +52,7 @@ export default function MobileBottomNav({ menuOpen, onToggleMenu }) {
 
   const tabs = isAdmin ? ADMIN_TABS : (isSalesperson ? SALES_TABS : EMPLOYEE_TABS);
 
-  const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'In progress').length;
+  const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'Rush').length;
   const unpaidInvoiceCount = invoices.filter((i) => i.paymentStatus !== 'Completed').length;
   const badges = { '/orders': pendingOrderCount, '/invoices': unpaidInvoiceCount };
 

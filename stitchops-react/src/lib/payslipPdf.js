@@ -56,7 +56,9 @@ export async function downloadPayslipPdf({ slip, employee, company, orders = [],
         rows.push(`<tr><td>${escapeHtml(label)}</td><td class="align-right">${escapeHtml(fmt(sum, slip.currency))}</td></tr>`);
       });
       (slip.bonuses || []).forEach((b) => {
-        rows.push(`<tr><td>${escapeHtml(b.label || 'Bonus')}</td><td class="align-right">${escapeHtml(fmt(b.amount, slip.currency))}</td></tr>`);
+        const neg = b.amount < 0;
+        const amountStr = (neg ? '- ' : '') + fmt(Math.abs(b.amount), slip.currency);
+        rows.push(`<tr><td>${escapeHtml(b.label || (neg ? 'Deduction' : 'Bonus'))}</td><td class="align-right">${escapeHtml(amountStr)}</td></tr>`);
       });
 
       const tbody = root.querySelector('[data-field="salary-rows"]');

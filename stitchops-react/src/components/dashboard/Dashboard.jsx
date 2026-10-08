@@ -39,7 +39,7 @@ function rangeLabel(from, to) {
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
   if (status === 'Pending') return 'elg-badge-pending';
-  if (status === 'In progress') return 'elg-badge-inprogress';
+  if (status === 'Rush') return 'elg-badge-inprogress';
   if (status === 'On hold') return 'elg-badge-onhold';
   return 'elg-badge-cancelled';
 }

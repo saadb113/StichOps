@@ -6,10 +6,13 @@ import EditSlipOrdersModal from './EditSlipOrdersModal';
 import EmployeeFormModal from './EmployeeFormModal';
 
 let bonusIdSeq = 0;
-function newBonus() {
+// A row is either a bonus (adds to the slip) or a deduction (subtracts);
+// amounts are typed as positive numbers and signed by `kind`.
+function newBonus(kind = 'bonus') {
   bonusIdSeq += 1;
-  return { id: bonusIdSeq, label: '', amount: '' };
+  return { id: bonusIdSeq, kind, label: '', amount: '' };
 }
+const signed = (b) => (b.kind === 'deduction' ? -1 : 1) * (Number(b.amount) || 0);
 
 function toDateStr(d) {
   return d.toISOString().slice(0, 10);
@@ -55,7 +58,7 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
     if (converted == null) hasUnknownRate = true;
     else variableTotal += converted;
   });
-  const bonusTotal = bonuses.reduce((s, b) => s + (Number(b.amount) || 0), 0);
+  const bonusTotal = bonuses.reduce((s, b) => s + signed(b), 0);
   const grandTotal = e.baseSalary + variableTotal + bonusTotal;
   const byCust = {};
   orders.forEach((o) => {
@@ -63,8 +66,8 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
     byCust[o.customerId].push(o);
   });
 
-  function addBonusRow() {
-    setDraftBonuses((list) => [...list, newBonus()]);
+  function addBonusRow(kind) {
+    setDraftBonuses((list) => [...list, newBonus(kind)]);
   }
   function updateBonusRow(id, field, value) {
     setDraftBonuses((list) => list.map((b) => (b.id === id ? { ...b, [field]: value } : b)));
@@ -92,7 +95,7 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
     try {
       const payload = savedBonuses
         .filter((b) => Number(b.amount) > 0)
-        .map((b) => ({ label: b.label, amount: Number(b.amount) }));
+        .map((b) => ({ label: b.label, amount: signed(b) }));
       const slip = await approveSlip(e.id, payload);
       toast(slip.slipNo + ' approved for ' + e.name + '. Download is now available.');
       setSavedBonuses([]);
@@ -194,9 +197,9 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
                         style={{ width: '100%', borderRadius: 4 }}
                         value={b.label}
                         onChange={(ev) => updateBonusRow(b.id, 'label', ev.target.value)}
-                        placeholder="Add Bonus"
+                        placeholder={b.kind === 'deduction' ? 'Deduction' : 'Add Bonus'}
                       />
-                    ) : (b.label || 'Bonus')}
+                    ) : (b.label || (b.kind === 'deduction' ? 'Deduction' : 'Bonus'))}
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     {editMode ? (
@@ -208,10 +211,10 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
                           min="0"
                           value={b.amount}
                           onChange={(ev) => updateBonusRow(b.id, 'amount', ev.target.value)}
-                          placeholder="Add Amount"
+                          placeholder={b.kind === 'deduction' ? 'Amount' : 'Add Amount'}
                         />
                       </div>
-                    ) : fmt(Number(b.amount) || 0, defaultCurrency)}
+                    ) : (b.kind === 'deduction' ? '- ' : '') + fmt(Number(b.amount) || 0, defaultCurrency)}
                   </td>
                   {editMode && (
                     <td className="elg-edit-btn">
@@ -232,13 +235,22 @@ function SlipPeriodCard({ e, orders, slipNo, periodLabel, canApprove, badgeText,
 
       <div className='salaryslipsButtons' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
         {editMode && canApprove ? (
-          <button
-            className="elg-btn"
-            style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            onClick={addBonusRow}
-          >
-            + Add Bonus
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              className="elg-btn"
+              style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              onClick={() => addBonusRow('bonus')}
+            >
+              + Add Bonus
+            </button>
+            <button
+              className="elg-btn"
+              style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              onClick={() => addBonusRow('deduction')}
+            >
+              Deduct Amount
+            </button>
+          </div>
         ) : <span />}
         <div style={{ display: 'flex', gap: 10 }}>
           {editMode ? (

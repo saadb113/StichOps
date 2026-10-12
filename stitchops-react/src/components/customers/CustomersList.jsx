@@ -8,6 +8,7 @@ import OrderFormModal from '../orders/OrderFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
+import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon } from '../icons/Icon';
 
 function initialsFor(name) {
@@ -65,18 +66,7 @@ export default function CustomersList() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          {(from || to) && <button className="elg-date-clear" title="Clear dates" onClick={() => { setFrom(''); setTo(''); }}>&times;</button>}
-        </div>
+        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
         {/* <select className="elg-select" value={customerType} onChange={(e) => setCustomerType(e.target.value)}>
           <option value="">All Customer Types</option>
           <option value="Free Trial">Free Trial</option>
@@ -194,7 +184,7 @@ export default function CustomersList() {
                   <td>{c.country}</td>
                   <td>{c.currency}</td>
                   <td><span className={`elg-badge ${customerTypeClass(c.status)}`}>{c.status}</span></td>
-                  {isAdmin && <td>{c.salesperson}</td>}
+                  {isAdmin && <td>{c.salesperson || '—'}</td>}
                   <td><span className={`elg-badge ${active ? 'elg-badge-active' : 'elg-badge-inactive'}`}>{active ? 'Active' : 'Inactive'}</span></td>
                 </tr>
               );

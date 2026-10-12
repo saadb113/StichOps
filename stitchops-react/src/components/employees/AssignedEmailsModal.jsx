@@ -30,7 +30,7 @@ export default function AssignedEmailsModal({ employee }) {
       <div className="elg-modal-body assignmentEmailModal">
         <div className="elg-field" style={{marginBottom : 0}}>
 
-          <AssignedEmailsField employeeId={employee.id} value={emails} onChange={setEmails} />
+          <AssignedEmailsField value={emails} onChange={setEmails} />
         </div>
       </div>
       <div className="elg-modal-foot right-btns-fixed">

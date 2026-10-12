@@ -6,7 +6,9 @@ import { paymentBadge, isInvoiceNotificationDay, matchesSearch } from '../../lib
 import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
+import ConfirmMarkPaidModal from './ConfirmMarkPaidModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
+import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon } from '../icons/Icon';
 
 function invoiceBadgeInfo(inv) {
@@ -63,9 +65,17 @@ export default function InvoicesScreen() {
   }
   list = list.sort((a, b) => b.id - a.id);
 
-  async function handleToggle(id) {
+  async function handleToggle(inv) {
+    // Marking an invoice Paid is a billing event — confirm it first. Reverting
+    // a Paid invoice back to Pending stays a plain click (a correction, not
+    // something that needs a guard).
+    if (inv.paymentStatus !== 'Completed') {
+      const c = getCustomer(inv.customerId);
+      openModal(<ConfirmMarkPaidModal invoice={inv} customerName={c?.company} />, { variant: 'elegant' });
+      return;
+    }
     try {
-      const next = await togglePaymentStatus(id);
+      const next = await togglePaymentStatus(inv.id);
       toast('Payment marked as ' + next + '.');
     } catch (e) {
       toast(e.message);
@@ -104,18 +114,7 @@ export default function InvoicesScreen() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search invoices or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          {(from || to) && <button className="elg-date-clear" title="Clear dates" onClick={() => { setFrom(''); setTo(''); }}>&times;</button>}
-        </div>
+        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
         <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All Status</option>
           <option value="Paid">Paid</option>
@@ -187,7 +186,7 @@ export default function InvoicesScreen() {
               </div>
               <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{i.generatedDate}</div>
               <div className="elg-mobile-card-foot">
-                <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span>
+                <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title="Click to toggle Paid/Unpaid">{bi.label}</span>
                 <span className="elg-mobile-card-price">{i.currency} {i.total.toFixed(2)}</span>
               </div>
             </div>
@@ -210,7 +209,7 @@ export default function InvoicesScreen() {
                   <td className="clickable" onClick={() => navigate(`/customers/${i.customerId}`)}>{c ? c.company : '—'}</td>
                   <td>{i.currency}</td>
                   <td>{i.total.toFixed(2)}</td>
-                  <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
+                  <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
                   <td>
                     <div className="elg-row-actions">
                       <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><img src="/images/download-invoice.svg"/></button>

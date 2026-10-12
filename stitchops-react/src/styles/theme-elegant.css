@@ -519,6 +519,12 @@ select::-ms-expand {
   background: var(--elg-surface);
   border-bottom: 1px solid var(--elg-line);
   font-family: var(--elg-font-sans);
+  /* .elg-main-content (its scrolling ancestor) owns the scrollbar, not the
+     page, so this needs to stick to that container's top rather than the
+     viewport — keeps it in place as the page content scrolls underneath. */
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .elg-search {
@@ -964,12 +970,41 @@ select::-ms-expand {
   padding: 2px;
 }
 
-/* Inside an .elg-date-range-field (Orders/Invoices/Customers/Reports filter
-   bars) the clear button sits as a normal flex sibling next to the two date
-   inputs, not layered over a single one — so it needs to opt out of the
-   absolute positioning above, or it floats free of the filter bar and
-   overlaps whatever's below it. */
-.elg-date-range-field .elg-date-clear {
+/* ---------- Custom range calendar (RangeDateField / RangeCalendar) ---------- */
+.elg-rangefield {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.elg-rangefield-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  width: auto;
+  min-width: 190px;
+}
+
+.elg-rangefield-trigger span {
+  font-size: 13px !important;
+  color: var(--elg-ink) !important;
+}
+
+.elg-rangefield-trigger span.placeholder {
+  color: var(--elg-ink-3) !important;
+}
+
+.elg-rangefield-trigger img {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.elg-rangefield .elg-date-clear {
   position: static;
   transform: none;
   display: inline-flex;
@@ -984,9 +1019,147 @@ select::-ms-expand {
   font-size: 15px;
 }
 
-.elg-date-range-field .elg-date-clear:hover {
+.elg-rangefield .elg-date-clear:hover {
   background: var(--elg-page-bg);
   color: var(--elg-ink);
+}
+
+.elg-rangefield-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  background: var(--elg-surface);
+  border: 1px solid var(--elg-line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(20, 20, 30, 0.14);
+  padding: 14px;
+  width: 296px;
+}
+
+.elg-rangefield-popover.align-right {
+  left: auto;
+  right: 0;
+}
+
+.elg-rangecal-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--elg-line);
+}
+
+.elg-rangecal-presets button {
+  border: 1px solid var(--elg-line-strong);
+  background: var(--elg-page-bg);
+  color: var(--elg-ink-2);
+  font-size: 12px;
+  font-family: var(--elg-font-sans);
+  padding: 5px 10px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.elg-rangecal-presets button:hover {
+  border-color: var(--elg-primary);
+  color: var(--elg-primary);
+}
+
+.elg-rangecal-presets button.clear {
+  margin-left: auto;
+  background: transparent;
+  border-color: transparent;
+  color: var(--elg-delete-red, #c0392b);
+}
+
+.elg-rangecal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.elg-rangecal-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--elg-ink);
+  font-family: var(--elg-font-sans);
+}
+
+.elg-rangecal-nav {
+  border: 1px solid var(--elg-line-strong);
+  background: var(--elg-surface);
+  color: var(--elg-ink-2);
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.elg-rangecal-nav:hover {
+  background: var(--elg-page-bg);
+  color: var(--elg-ink);
+}
+
+.elg-rangecal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.elg-rangecal-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--elg-ink-3);
+  font-family: var(--elg-font-sans);
+}
+
+.elg-rangecal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 2px;
+}
+
+.elg-rangecal-day {
+  border: none;
+  background: transparent;
+  font-family: var(--elg-font-sans);
+  font-size: 12.5px;
+  color: var(--elg-ink);
+  width: 34px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.elg-rangecal-day:hover {
+  background: var(--elg-page-bg);
+}
+
+.elg-rangecal-day.outside {
+  color: var(--elg-ink-3);
+}
+
+.elg-rangecal-day.today {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--elg-primary);
+}
+
+.elg-rangecal-day.in-range {
+  background: rgba(51, 78, 172, 0.1);
+  border-radius: 0;
+}
+
+.elg-rangecal-day.range-start,
+.elg-rangecal-day.range-end {
+  background: var(--elg-primary);
+  color: #fff;
+  font-weight: 600;
 }
 
 .elg-table-wrap {
@@ -1536,6 +1709,7 @@ select::-ms-expand {
 .elg-modal-hero {
   text-align: center;
   padding: 40px 34px 8px;
+  border-bottom: 1px solid var(--elg-line);
 }
 
 .elg-modal-hero-icon {
@@ -1938,6 +2112,10 @@ select::-ms-expand {
 
 .elg-modal.elg-modal:has(.editemail) .elg-modal-foot {
   padding: 18px 24px;
+}
+
+.editemail .elg-field label input[type="checkbox"]{
+  width: auto !important;
 }
 
 .elg-modal:has(.addaccount) .elg-modal-foot,
@@ -4034,7 +4212,7 @@ input[type="number"] {
   }
 
   .elg-filterbar:not(.elg-reports-filterbar)>.elg-select,
-  .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-range-field,
+  .elg-filterbar:not(.elg-reports-filterbar)>.elg-rangefield,
   .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-field {
     display: none !important;
   }
@@ -4055,12 +4233,12 @@ input[type="number"] {
     flex: 1;
   }
 
-  .elg-reports-filterbar>.elg-date-range-field {
+  .elg-reports-filterbar>.elg-rangefield {
     display: flex !important;
     width: 100%;
   }
 
-  .elg-reports-filterbar>.elg-date-range-field .elg-input {
+  .elg-reports-filterbar>.elg-rangefield .elg-rangefield-trigger {
     flex: 1;
   }
 

@@ -16,11 +16,19 @@ router.post('/', requireAuth, requireAdmin, validateBody(companyEmailSchema), as
   const email = req.body.email.trim().toLowerCase();
   const clash = await prisma.companyEmail.findUnique({ where: { email } });
   if (clash) return res.status(409).json({ error: 'That email is already in the pool.' });
-  if (req.body.employeeId != null) {
-    const employee = await prisma.employee.findUnique({ where: { id: req.body.employeeId } });
-    if (!employee) return res.status(400).json({ error: 'Employee not found.' });
+
+  const employeeIds = req.body.employeeIds || [];
+  if (employeeIds.length) {
+    const found = await prisma.employee.findMany({ where: { id: { in: employeeIds } }, select: { id: true } });
+    if (found.length !== employeeIds.length) return res.status(400).json({ error: 'Employee not found.' });
   }
-  await prisma.companyEmail.create({ data: { email, employeeId: req.body.employeeId ?? null } });
+
+  await prisma.companyEmail.create({
+    data: {
+      email,
+      employees: employeeIds.length ? { connect: employeeIds.map((id) => ({ id })) } : undefined
+    }
+  });
   const emails = await prisma.companyEmail.findMany({ orderBy: { id: 'asc' } });
   res.status(201).json(emails.map((e) => e.email));
 }));
@@ -39,12 +47,15 @@ router.patch('/:email', requireAuth, requireAdmin, validateBody(companyEmailUpda
       data.email = nextEmail;
     }
   }
-  if (req.body.employeeId !== undefined) {
-    if (req.body.employeeId != null) {
-      const employee = await prisma.employee.findUnique({ where: { id: req.body.employeeId } });
-      if (!employee) return res.status(400).json({ error: 'Employee not found.' });
+  if (req.body.employeeIds !== undefined) {
+    const employeeIds = req.body.employeeIds;
+    if (employeeIds.length) {
+      const found = await prisma.employee.findMany({ where: { id: { in: employeeIds } }, select: { id: true } });
+      if (found.length !== employeeIds.length) return res.status(400).json({ error: 'Employee not found.' });
     }
-    data.employeeId = req.body.employeeId;
+    // `set` fully replaces who this email is connected to, so it can be
+    // cleared back down to one owner or extended to several in one call.
+    data.employees = { set: employeeIds.map((id) => ({ id })) };
   }
 
   await prisma.companyEmail.update({ where: { email: currentEmail }, data });

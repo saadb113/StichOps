@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useUi } from '../../store/UiContext';
 import { CloseIcon } from '../icons/Icon';
+import RangeDateField from '../common/RangeDateField';
 
 // Mobile-only "filter sheet" opened from the funnel-icon button next to
 // search on Orders/Invoices — desktop shows these as inline selects, mobile
@@ -38,11 +39,11 @@ export default function MobileFilterModal({ title = 'Filters', fields, values, o
           <div className="elg-field" key={f.key} style={{ marginBottom: 0 }}>
             <label>{f.label}</label>
             {f.type === 'dateRange' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="date" className="elg-input" style={{ flex: 1, minWidth: 0 }} value={draft[f.fromKey] || ''} onChange={(e) => update(f.fromKey, e.target.value)} />
-                <span style={{ color: 'var(--elg-ink-3)', fontSize: 13, flexShrink: 0 }}>to</span>
-                <input type="date" className="elg-input" style={{ flex: 1, minWidth: 0 }} value={draft[f.toKey] || ''} onChange={(e) => update(f.toKey, e.target.value)} />
-              </div>
+              <RangeDateField
+                from={draft[f.fromKey] || ''}
+                to={draft[f.toKey] || ''}
+                onChange={(r) => setDraft((d) => ({ ...d, [f.fromKey]: r.from, [f.toKey]: r.to }))}
+              />
             ) : (
               <select className="elg-select" style={{ width: '100%' }} value={draft[f.key] || ''} onChange={(e) => update(f.key, e.target.value)}>
                 <option value="">{f.allLabel}</option>

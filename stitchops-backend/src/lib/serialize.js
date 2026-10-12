@@ -45,7 +45,7 @@ function serializeCustomer(customer) {
     email: customer.email,
     emailClient: customer.emailClient,
     contact: customer.contact,
-    salesperson: customer.salesperson.name,
+    salesperson: customer.salesperson ? customer.salesperson.name : null,
     receivedEmail: customer.receivedEmail,
     status: customer.status,
     invoiceDay: customer.invoiceDay,

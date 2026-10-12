@@ -3,6 +3,7 @@ import { useUi } from '../../store/UiContext';
 import { fmt, paymentBadge } from '../../lib/helpers';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from '../invoices/EditInvoiceOrdersModal';
+import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
 import { DownloadIcon, PencilIcon } from '../icons/Icon';
 
 function invoiceBadgeInfo(inv) {
@@ -25,9 +26,13 @@ export default function InvoiceHistoryTab({ customer }) {
     return <div className="elg-panel"><div className="elg-empty">No invoices yet — approved invoices for {customer.company} will appear here.</div></div>;
   }
 
-  async function handleToggle(id) {
+  async function handleToggle(inv) {
+    if (inv.paymentStatus !== 'Completed') {
+      openModal(<ConfirmMarkPaidModal invoice={inv} customerName={customer.company} />, { variant: 'elegant' });
+      return;
+    }
     try {
-      const next = await togglePaymentStatus(id);
+      const next = await togglePaymentStatus(inv.id);
       toast('Payment marked as ' + next + '.');
     } catch (e) {
       toast(e.message);
@@ -58,7 +63,7 @@ export default function InvoiceHistoryTab({ customer }) {
               <div className="elg-mobile-card-2col">
                 <div className="elg-mobile-card-row">Status: <span className={`elg-badge ${i.status === 'approved' ? 'elg-badge-completed' : 'elg-badge-pending-pay'}`}>{i.status === 'approved' ? 'Approved' : 'Pending Review'}</span></div>
                 <div className="elg-mobile-card-row">
-                  Payment: {i.status === 'approved' ? <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle">{bi.label}</span> : '—'}
+                  Payment: {i.status === 'approved' ? <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title="Click to toggle">{bi.label}</span> : '—'}
                 </div>
               </div>
               {i.status === 'approved' && (
@@ -83,7 +88,7 @@ export default function InvoiceHistoryTab({ customer }) {
                 <td>{i.approvedDate || '—'}</td>
                 <td>{fmt(i.total, i.currency)}</td>
                 <td><span className={`elg-badge ${i.status === 'approved' ? 'elg-badge-completed' : 'elg-badge-pending-pay'}`}>{i.status === 'approved' ? 'Approved' : 'Pending Review'}</span></td>
-                <td>{i.status === 'approved' ? <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i.id)} title="Click to toggle">{bi.label}</span> : '—'}</td>
+                <td>{i.status === 'approved' ? <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title="Click to toggle">{bi.label}</span> : '—'}</td>
                 <td>
                   {i.status === 'approved' && (
                     <div className="elg-row-actions">

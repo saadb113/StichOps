@@ -34,8 +34,8 @@ export default function AssignedEmailsTab() {
   const { companyEmails, employees } = useAppState();
   const { openModal } = useUi();
 
-  function ownerOf(em) {
-    return employees.find((e) => e.emails && e.emails.includes(em));
+  function ownersOf(em) {
+    return employees.filter((e) => e.emails && e.emails.includes(em));
   }
 
   return (
@@ -48,14 +48,14 @@ export default function AssignedEmailsTab() {
           <tbody>
             {companyEmails.length === 0 && <tr><td colSpan={3} className="elg-empty">No emails in the pool yet.</td></tr>}
             {companyEmails.map((em) => {
-              const owner = ownerOf(em);
+              const owners = ownersOf(em);
               return (
                 <tr key={em}>
                   <td>{em}</td>
-                  <td>{owner ? owner.name : '—'}</td>
+                  <td>{owners.length ? owners.map((o) => o.name).join(', ') : '—'}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: 8 }}>
-                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<EditEmailModal email={em} employeeId={owner ? owner.id : null} />, { variant: 'elegant' })}>
+                      <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<EditEmailModal email={em} employeeIds={owners.map((o) => o.id)} />, { variant: 'elegant' })}>
                         <img src='/images/edit.svg' width="14px" height="14px" />
                       </button>
                       <button className="elg-icon-sq" title="Delete" onClick={() => openModal(<ConfirmDeleteEmailModal email={em} />, { variant: 'elegant' })}>

@@ -352,9 +352,9 @@ export function AppStateProvider({ children }) {
     setCompany(updated);
     return updated;
   }
-  async function addCompanyEmail(email, employeeId) {
+  async function addCompanyEmail(email, employeeIds = []) {
     try {
-      await api.post('/company-emails', { email, employeeId: employeeId ?? null });
+      await api.post('/company-emails', { email, employeeIds });
     } catch (e) {
       return { ok: false, error: e.message };
     }

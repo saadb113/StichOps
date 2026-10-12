@@ -6,12 +6,12 @@ const categorySchema = z.object({
 
 const companyEmailSchema = z.object({
   email: z.string().trim().min(3, 'Enter an email first.'),
-  employeeId: z.number().int().nullable().optional()
+  employeeIds: z.array(z.number().int()).optional().default([])
 });
 
 const companyEmailUpdateSchema = z.object({
   email: z.string().trim().min(3).optional(),
-  employeeId: z.number().int().nullable().optional()
+  employeeIds: z.array(z.number().int()).optional()
 });
 
 const companyUpdateSchema = z.object({

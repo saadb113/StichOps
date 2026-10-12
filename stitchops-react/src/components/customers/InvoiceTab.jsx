@@ -140,7 +140,11 @@ export default function InvoiceTab({ customer, orders }) {
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ fontSize: 14, color: 'var(--elg-ink-2)' }}>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)', fontWeight: 500 }}>{fmt(commTotal, customer.currency)}</strong></div>
+        <div style={{ fontSize: 14, color: 'var(--elg-ink-2)' }}>
+          {customer.salesperson
+            ? <>Commission for {customer.salesperson} on this invoice: <strong style={{ color: 'var(--elg-ink)', fontWeight: 500 }}>{fmt(commTotal, customer.currency)}</strong></>
+            : <>No salesperson assigned — this account is company-owned.</>}
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           {editMode ? (
             <>

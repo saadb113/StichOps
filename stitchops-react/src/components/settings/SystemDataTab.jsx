@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
+import RangeDateField from '../common/RangeDateField';
 
 const UPLOAD_PAGES = [
   { key: 'orders', label: 'Orders' },
@@ -96,16 +97,7 @@ function ExportRow({ page, range, onRangeChange }) {
     <tr>
       <td>{page.label}</td>
       <td>
-        <span className="elg-input">
-          <input type="date" style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }}  value={range.from} onChange={(e) => onRangeChange({ ...range, from: e.target.value })} />
-          <img src="/images/calender.svg" alt="" />
-        </span>
-      </td>
-      <td>
-        <span className="elg-input">
-          <input type="date" style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }}  value={range.to} onChange={(e) => onRangeChange({ ...range, to: e.target.value })} />
-          <img src="/images/calender.svg" alt="" />
-        </span>
+        <RangeDateField from={range.from} to={range.to} onChange={(r) => onRangeChange(r)} />
       </td>
       <td style={{ textAlign: 'right' }}>
         <button className="elg-icon-sq" title={`Export ${page.label}`} disabled={busy} onClick={handleExport}>
@@ -195,21 +187,11 @@ export default function SystemDataTab() {
       <div className="elg-settings-card">
         <div className="elg-settings-card-title" style={{ justifyContent: 'space-between' }}>
           <h2>Export Data</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--elg-ink-3)' }}>
-            <span className="elg-input">
-              <input type="date" style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }}  value={globalRange.from} onChange={(e) => applyGlobalRange({ ...globalRange, from: e.target.value })} />
-              <img src="/images/calender.svg" alt="" />
-            </span>
-            to
-            <span className="elg-input">
-              <input type="date" style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} value={globalRange.to} onChange={(e) => applyGlobalRange({ ...globalRange, to: e.target.value })} />
-              <img src="/images/calender.svg" alt="" />
-            </span>
-          </div>
+          <RangeDateField from={globalRange.from} to={globalRange.to} onChange={(r) => applyGlobalRange(r)} align="right" />
         </div>
         <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8 }}>
           <table className="elg-table">
-            <thead><tr><th>Pages</th><th>From</th><th>To</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
+            <thead><tr><th>Pages</th><th>Date Range</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
             <tbody>
               {EXPORT_PAGES.map((p) => (
                 <ExportRow

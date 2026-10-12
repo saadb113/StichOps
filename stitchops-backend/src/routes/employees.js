@@ -44,11 +44,17 @@ router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), 
       }
     });
 
+    // Only emails already in the shared pool are connectable — an unknown
+    // string here is silently ignored, same as before. A single email can
+    // now be connected to more than one employee (no exclusivity check).
     if (body.emails && body.emails.length) {
-      await tx.companyEmail.updateMany({
-        where: { email: { in: body.emails }, employeeId: null },
-        data: { employeeId: employee.id }
-      });
+      const matched = await tx.companyEmail.findMany({ where: { email: { in: body.emails } }, select: { email: true } });
+      if (matched.length) {
+        await tx.employee.update({
+          where: { id: employee.id },
+          data: { companyEmails: { connect: matched.map((m) => ({ email: m.email })) } }
+        });
+      }
     }
 
     // Every employee gets a self-service login now, not just Salespeople —
@@ -110,14 +116,17 @@ router.patch('/:id', requireAuth, requireAdmin, validateBody(updateEmployeeSchem
       if (user) await tx.user.update({ where: { id: user.id }, data: { email: body.email.toLowerCase() } });
     }
 
+    // `set` fully replaces this employee's connected emails with whatever
+    // was submitted — same as the old disconnect-all-then-reconnect, but a
+    // single email can now stay connected to other employees too.
     if (body.emails !== undefined) {
-      await tx.companyEmail.updateMany({ where: { employeeId: id }, data: { employeeId: null } });
-      if (body.emails.length) {
-        await tx.companyEmail.updateMany({
-          where: { email: { in: body.emails }, employeeId: null },
-          data: { employeeId: id }
-        });
-      }
+      const matched = body.emails.length
+        ? await tx.companyEmail.findMany({ where: { email: { in: body.emails } }, select: { email: true } })
+        : [];
+      await tx.employee.update({
+        where: { id },
+        data: { companyEmails: { set: matched.map((m) => ({ email: m.email })) } }
+      });
     }
   });
 

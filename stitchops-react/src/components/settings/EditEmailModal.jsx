@@ -3,19 +3,23 @@ import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { CloseIcon } from '../icons/Icon';
 
-export default function EditEmailModal({ email, employeeId }) {
+export default function EditEmailModal({ email, employeeIds = [] }) {
   const { employees, updateCompanyEmail, removeCompanyEmail } = useAppState();
   const { closeModal, toast } = useUi();
 
   const [newEmail, setNewEmail] = useState(email);
-  const [assignedTo, setAssignedTo] = useState(employeeId ? String(employeeId) : '');
+  const [assignedTo, setAssignedTo] = useState(employeeIds);
+
+  function toggleEmployee(id) {
+    setAssignedTo((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
 
   async function handleSave() {
     const trimmed = newEmail.trim().toLowerCase();
     if (!trimmed || !trimmed.includes('@')) { toast('Enter a valid email.'); return; }
     const res = await updateCompanyEmail(email, {
       email: trimmed,
-      employeeId: assignedTo ? Number(assignedTo) : null
+      employeeIds: assignedTo
     });
     if (!res.ok) { toast(res.error); return; }
     toast('Email updated.');
@@ -45,10 +49,16 @@ export default function EditEmailModal({ email, employeeId }) {
         </div>
         <div className="elg-field" style={{ marginBottom: 0 }}>
           <label>Assigned to</label>
-          <select className="elg-select" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
-            <option value="">Unassigned</option>
-            {employees.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-          </select>
+          <div style={{ border: '1px solid var(--elg-line)', borderRadius: 8, maxHeight: 180, overflowY: 'auto', padding: '6px 10px' }}>
+            {employees.length === 0 && <div style={{ fontSize: 13, color: 'var(--elg-ink-3)', padding: '6px 0' }}>No employees yet.</div>}
+            {employees.map((e) => (
+              <label key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13.5, cursor: 'pointer' }}>
+                <input type="checkbox" checked={assignedTo.includes(e.id)} onChange={() => toggleEmployee(e.id)} />
+                {e.name}
+              </label>
+            ))}
+          </div>
+          <div className="hint" style={{ fontSize: 11.5, color: 'var(--elg-ink-3)', marginTop: 4 }}>Select one or more employees — the same email can be shared.</div>
         </div>
       </div>
 

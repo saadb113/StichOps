@@ -11,7 +11,10 @@ const createCustomerSchema = z.object({
   email: z.string().trim().default(''),
   emailClient: z.string().min(1),
   contact: z.string().trim().default(''),
-  salesperson: z.string().min(1, 'Salesperson is required.'),
+  // Optional — an admin can leave a customer company-owned with no
+  // individual salesperson. A salesperson creating their own customer is
+  // always forced to themselves server-side regardless of what's sent here.
+  salesperson: z.string().trim().nullable().optional(),
   receivedEmail: z.string().nullable().optional(),
   invoiceDay: z.number().int().min(1).max(31).nullable().optional(),
   notes: z.string().trim().default(''),

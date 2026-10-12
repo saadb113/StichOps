@@ -9,6 +9,7 @@ import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
 import CustomerFormModal from '../customers/CustomerFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFab from '../layout/MobileFab';
+import RangeDateField from '../common/RangeDateField';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 
 function greetingFor() {
@@ -93,17 +94,7 @@ export default function Dashboard() {
       <div className="elg-page-head" style={{ paddingBottom: 24, borderBottom : "1px solid #E8E8E8", marginBottom : 24}}>
         <div className="elg-greeting">{greetingFor(to)} <span>👋</span></div>
         <div className="elg-greeting elg-greeting-mobile">Dashboard</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-        </div>
+        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
       </div>
 
       {payoutsSoon.length > 0 && (

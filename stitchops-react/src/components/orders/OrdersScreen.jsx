@@ -10,6 +10,7 @@ import CustomerFormModal from '../customers/CustomerFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
+import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
@@ -101,18 +102,7 @@ export default function OrdersScreen() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search order or customer" value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
-        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" alt="" />
-          </span>
-          {(from || to) && <button className="elg-date-clear" title="Clear dates" onClick={() => { setFrom(''); setTo(''); }}>&times;</button>}
-        </div>
+        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
         <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All Status</option>
           {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}

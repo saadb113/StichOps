@@ -119,11 +119,13 @@ model Employee {
   updatedAt DateTime @updatedAt
 }
 
+// Many-to-many: the same shared inbox can be watched by more than one
+// employee (e.g. a team inbox two or three salespeople all monitor), so
+// this is no longer a single employeeId FK.
 model CompanyEmail {
-  id         Int       @id @default(autoincrement())
-  email      String    @unique
-  employeeId Int?
-  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  employees Employee[]
 }
 
 model User {
@@ -152,8 +154,12 @@ model Customer {
   email         String
   emailClient   String
   contact       String
-  salespersonId Int
-  salesperson   Employee @relation("CustomerSalesperson", fields: [salespersonId], references: [id])
+  // Nullable — some customers are the company's own (no individual
+  // salesperson owns them). A salesperson creating their own customer is
+  // always assigned to themselves server-side; only admin can leave this
+  // blank.
+  salespersonId Int?
+  salesperson   Employee? @relation("CustomerSalesperson", fields: [salespersonId], references: [id])
   receivedEmail String?
   status        String   @default("Free Trial")
   invoiceDay    Int?

@@ -215,7 +215,7 @@ export default function CustomerProfile() {
             <div className="elg-panel-head"><h3>Salesperson</h3></div>
             <div className="elg-panel-body">
               <div className="elg-kv">
-                <div className="elg-kv-row"><span className="k">Name</span><span className="v">{c.salesperson}</span></div>
+                <div className="elg-kv-row"><span className="k">Name</span><span className="v">{c.salesperson || 'Unassigned (Company)'}</span></div>
                 <div className="elg-kv-row"><span className="k">Commission</span><span className="v">{(() => {
                   let total = 0; let unknown = false;
                   os.forEach((o) => {

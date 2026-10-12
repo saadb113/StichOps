@@ -5,7 +5,7 @@ import { CCY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CloseIcon, UserPlusIcon } from '../icons/Icon';
 
 export default function CustomerFormModal({ customer = null }) {
-  const { customers, employees, isAdmin, isSalesperson, currentEmployee, nextCustomerCode, addCustomer, updateCustomer } = useAppState();
+  const { customers, employees, companyEmails, isAdmin, isSalesperson, currentEmployee, nextCustomerCode, addCustomer, updateCustomer } = useAppState();
   const { closeModal, toast } = useUi();
 
   const countries = Object.keys(CCY);
@@ -25,7 +25,7 @@ export default function CustomerFormModal({ customer = null }) {
   const salespeople = isSalesperson
     ? (currentEmployee ? [currentEmployee] : [])
     : employees.filter((e) => e.role === 'Salesperson');
-  const defaultSalesperson = c ? c.salesperson : (isSalesperson && currentEmployee ? currentEmployee.name : (salespeople[0]?.name || ''));
+  const defaultSalesperson = c ? (c.salesperson || '') : (isSalesperson && currentEmployee ? currentEmployee.name : (salespeople[0]?.name || ''));
   const [salesperson, setSalesperson] = useState(defaultSalesperson);
   const [receivedEmail, setReceivedEmail] = useState(c ? (c.receivedEmail || '') : '');
   const [invoiceDay, setInvoiceDay] = useState(c ? (c.invoiceDay || '') : 5);
@@ -82,16 +82,20 @@ export default function CustomerFormModal({ customer = null }) {
   }
 
   const selectedSalesperson = employees.find((e) => e.name === salesperson);
+  // No salesperson picked (company-owned customer, admin only) — offer the
+  // whole shared email pool instead of hiding the field entirely, so admin
+  // can still log which inbox the client came in on.
   const receivedEmailOptions = isSalesperson
     ? (currentEmployee?.emails || [])
-    : (selectedSalesperson?.emails || []);
+    : (salesperson ? (selectedSalesperson?.emails || []) : companyEmails);
   const showReceivedEmail = receivedEmailOptions.length > 0;
 
   function handleSalespersonChange(name) {
     setSalesperson(name);
-    // A previously-picked email may belong to the old salesperson, not this
-    // one — clear it rather than silently keeping a mismatched selection.
-    const emails = employees.find((e) => e.name === name)?.emails || [];
+    // A previously-picked email may not belong to the new selection (old
+    // salesperson, or outside the full pool when clearing to none) — clear
+    // it rather than silently keeping a mismatched selection.
+    const emails = name ? (employees.find((e) => e.name === name)?.emails || []) : companyEmails;
     if (!emails.includes(receivedEmail)) setReceivedEmail('');
   }
 
@@ -164,6 +168,7 @@ export default function CustomerFormModal({ customer = null }) {
           <div className="elg-field">
             <label>Salesperson</label>
             <select value={salesperson} onChange={(e) => handleSalespersonChange(e.target.value)} disabled={isSalesperson}>
+              {isAdmin && <option value="">No Salesperson (Company)</option>}
               {salespeople.map((e) => <option key={e.id}>{e.name}</option>)}
             </select>
           </div>
@@ -178,7 +183,11 @@ export default function CustomerFormModal({ customer = null }) {
           <div className="elg-field">
             <label>Client on Email</label>
             <select value={receivedEmail} onChange={(e) => setReceivedEmail(e.target.value)}>
-              <option value="">{isSalesperson ? 'Select which of your emails this client came in on' : `Select which of ${salesperson}'s emails this client came in on`}</option>
+              <option value="">
+                {isSalesperson
+                  ? 'Select which of your emails this client came in on'
+                  : (salesperson ? `Select which of ${salesperson}'s emails this client came in on` : 'Select which email this client came in on')}
+              </option>
               {receivedEmailOptions.map((em) => <option key={em} value={em}>{em}</option>)}
             </select>
           </div>

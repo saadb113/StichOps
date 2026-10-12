@@ -12,7 +12,11 @@ const { isForeignKeyViolation } = require('../lib/prismaErrors');
 
 const router = express.Router();
 
+// Returns null for a blank name — some customers are company-owned with no
+// individual salesperson assigned (admin-only; a salesperson creating their
+// own customer always passes their own name, never blank).
 async function resolveSalesperson(name) {
+  if (!name) return null;
   const employee = await prisma.employee.findFirst({ where: { name, role: 'Salesperson' } });
   if (!employee) {
     const err = new Error(`No salesperson named "${name}" was found.`);
@@ -81,7 +85,7 @@ router.post('/', requireAuth, validateBody(createCustomerSchema), asyncHandler(a
         email: body.email || '',
         emailClient: body.emailClient,
         contact: body.contact || '',
-        salespersonId: salesperson.id,
+        salespersonId: salesperson ? salesperson.id : null,
         receivedEmail: body.receivedEmail || null,
         status: 'Free Trial',
         invoiceDay: isSales ? null : (body.invoiceDay ?? null),
@@ -145,7 +149,7 @@ router.patch('/:id', requireAuth, validateBody(updateCustomerSchema), asyncHandl
     if (body.status !== undefined) data.status = body.status;
     if (body.salesperson !== undefined) {
       const salesperson = await resolveSalesperson(body.salesperson);
-      data.salespersonId = salesperson.id;
+      data.salespersonId = salesperson ? salesperson.id : null;
     }
     if (body.customerCode !== undefined) {
       const code = body.customerCode || null;

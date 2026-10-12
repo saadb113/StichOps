@@ -1,13 +1,9 @@
 import { useAppState } from '../../store/AppStateContext';
 import { PlusIcon, TrashIcon } from '../icons/Icon';
 
-export default function AssignedEmailsField({ employeeId = null, value, onChange }) {
-  const { companyEmails, employees } = useAppState();
+export default function AssignedEmailsField({ value, onChange }) {
+  const { companyEmails } = useAppState();
   const rows = value.length ? value : [''];
-
-  function isTaken(em) {
-    return employees.some((x) => x.id !== employeeId && x.emails && x.emails.includes(em));
-  }
 
   function setRow(idx, em) {
     const next = rows.slice();
@@ -29,7 +25,11 @@ export default function AssignedEmailsField({ employeeId = null, value, onChange
     <div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
         {rows.map((em, idx) => {
-          const options = companyEmails.filter((ce) => ce === em || (!isTaken(ce) && !rows.includes(ce)));
+          // An email already assigned to another employee can still show up
+          // here — the same inbox can be shared by more than one person.
+          // Only exclude an email this same employee has already picked in
+          // another row, so it isn't listed twice for them.
+          const options = companyEmails.filter((ce) => ce === em || !rows.includes(ce));
           return (
             <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <select className="elg-select" style={{ flex: 1 }} value={em} onChange={(ev) => setRow(idx, ev.target.value)}>

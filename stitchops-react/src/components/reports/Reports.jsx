@@ -5,6 +5,8 @@ import { useUi } from '../../store/UiContext';
 import { fmt, ordersInRange, rangeLengthDays, shiftRange, growthPct, commissionAmt, convertToDefault, paymentBadge } from '../../lib/helpers';
 import {SYMIcon, SYM, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CalendarIcon, BagIcon, CoinIcon } from '../icons/Icon';
+import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
+import RangeDateField from '../common/RangeDateField';
 
 const ORDER_CURRENCIES = CUSTOMER_CURRENCIES;
 
@@ -13,8 +15,8 @@ function fmtRate(v) {
 }
 
 export default function Reports() {
-  const { orders, invoices, currencyRates, company, getCustomer, togglePaymentStatus } = useAppState();
-  const { toast } = useUi();
+  const { orders, invoices, currencyRates, company, getCustomer } = useAppState();
+  const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [period, setPeriod] = useState('day');
   const [from, setFrom] = useState(TODAY);
@@ -57,9 +59,12 @@ export default function Reports() {
   curr.forEach((o) => {
     const c = getCustomer(o.customerId);
     if (!c) return;
-    if (!bySales[c.salesperson]) bySales[c.salesperson] = { count: 0, commission: {} };
-    bySales[c.salesperson].count++;
-    bySales[c.salesperson].commission[o.currency] = (bySales[c.salesperson].commission[o.currency] || 0) + commissionAmt(o);
+    // Company-owned customers have no assigned salesperson — bucket their
+    // orders separately instead of under a literal "null" label.
+    const salesKey = c.salesperson || 'Unassigned (Company)';
+    if (!bySales[salesKey]) bySales[salesKey] = { count: 0, commission: {} };
+    bySales[salesKey].count++;
+    bySales[salesKey].commission[o.currency] = (bySales[salesKey].commission[o.currency] || 0) + commissionAmt(o);
   });
 
   function convertedTotal(byCcy) {
@@ -75,13 +80,11 @@ export default function Reports() {
 
   const unpaidInvoices = invoices.filter((i) => i.status === 'approved' && i.paymentStatus !== 'Completed');
 
-  async function handleToggle(id) {
-    try {
-      const next = await togglePaymentStatus(id);
-      toast('Payment marked as ' + next + '.');
-    } catch (e) {
-      toast(e.message);
-    }
+  // Everything in unpaidInvoices is, by definition, not yet Paid — so every
+  // click here is a mark-as-paid action and always gets confirmed first.
+  function handleToggle(inv) {
+    const c = getCustomer(inv.customerId);
+    openModal(<ConfirmMarkPaidModal invoice={inv} customerName={c?.company} />, { variant: 'elegant' });
   }
 
   return (
@@ -105,17 +108,7 @@ export default function Reports() {
           <button className={`elg-btn ${period === 'month' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('month')}>This Month</button>
           <button className={`elg-btn ${period === 'year' ? 'elg-btn-primary' : ''}`} style={{ width: 'auto' }} onClick={() => setPeriodRange('year')}>This Year</button>
         </div>
-        <div className="elg-date-range-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-            <img src="/images/calender.svg" style={{right : "12px"}} alt="" />
-          </span>
-          <span style={{ color: 'var(--elg-ink-3)', fontSize: 13 }}>to</span>
-          <span className="elg-input" style={{ display: 'flex', alignItems: 'center', gap: 8, width: 'auto' }}>
-            <input type="date" value={to} onChange={(e) => { setTo(e.target.value); setPeriod(''); }} style={{ border: 'none', outline: 'none', fontFamily: 'var(--elg-font-sans)', fontSize: 13, background: 'transparent' }} />
-                        <img src="/images/calender.svg" style={{right : "12px"}} alt="" />
-          </span>
-        </div>
+        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); setPeriod(''); }} align="right" />
       </div>
 
       <div className="elg-metric-grid">
@@ -234,7 +227,7 @@ export default function Reports() {
                 <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{i.generatedDate}</div>
                 <div className="elg-mobile-card-foot">
                   <span className="elg-badge elg-badge-unpaid">{pb.label}</span>
-                  <button className="elg-btn elg-btn-sm" style={{ width: 'auto' }} onClick={() => handleToggle(i.id)}>Mark as Paid</button>
+                  <button className="elg-btn elg-btn-sm" style={{ width: 'auto' }} onClick={() => handleToggle(i)}>Mark as Paid</button>
                 </div>
               </div>
             );
@@ -256,7 +249,7 @@ export default function Reports() {
                   <td>{i.total.toFixed(2)}</td>
                   <td><span className={`elg-badge elg-badge-unpaid`}>{pb.label}</span></td>
                   <td style={{ textAlign: 'right' }}>
-                    <button className="elg-btn elg-btn-sm" style={{marginLeft : "auto", width: 'auto' }} onClick={() => handleToggle(i.id)}>
+                    <button className="elg-btn elg-btn-sm" style={{marginLeft : "auto", width: 'auto' }} onClick={() => handleToggle(i)}>
                       Mark as Paid
                     </button>
                   </td>

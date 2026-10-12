@@ -204,7 +204,7 @@ export default function EmployeeFormModal({ employee = null, defaultCategory }) 
         {showEmailPool && (
           <div className="elg-field assignedEmails">
             <label className="elg-label">Assigned Client-Facing Emails</label>
-            <AssignedEmailsField employeeId={e ? e.id : null} value={emails} onChange={setEmails} />
+            <AssignedEmailsField value={emails} onChange={setEmails} />
           </div>
         )}
       </div>

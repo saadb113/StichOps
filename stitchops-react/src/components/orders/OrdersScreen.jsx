@@ -56,8 +56,11 @@ export default function OrdersScreen() {
     });
   }
   list = list.sort((a, b) => {
-    // Rush orders are pinned above everything else.
-    const rank = (s) => (s === 'Rush' ? -1 : ORDER_STATUSES.indexOf(s));
+    // Rush, then Pending, are pinned above everything else regardless of
+    // date. Every other status shares one rank so the rest of the list
+    // keeps its (newest-first) order — cycling an order between Completed /
+    // On hold / Cancelled must not reshuffle its position among them.
+    const rank = (s) => (s === 'Rush' ? 0 : s === 'Pending' ? 1 : 2);
     const statusDiff = rank(a.status) - rank(b.status);
     return statusDiff !== 0 ? statusDiff : b.id - a.id;
   });

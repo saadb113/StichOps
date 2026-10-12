@@ -22,12 +22,9 @@ export default function ConfirmMarkPaidModal({ invoice, customerName }) {
   }
 
   return (
-    <div className="elg-modal" style={{ maxWidth: 440 }}>
+    <div className="elg-modal">
       <div className="elg-modal-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--elg-line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ color: 'var(--elg-primary)', display: 'flex', alignItems: 'center' }}>
-            <CheckIcon width={20} height={20} />
-          </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--elg-ink)' }}>Mark Invoice as Paid</div>
         </div>
         <button

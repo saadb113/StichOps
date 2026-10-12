@@ -145,10 +145,10 @@ export default function EarningsTab({ employee: e, orders: os }) {
                     const isLast = idx === cOrders.length - 1;
                     return (
                       <tr key={o.id} className={`elg-earnings-order-row ${isLast ? 'elg-earnings-order-last' : ''}`}>
-                        <td style={{ paddingLeft: 34, color: 'var(--elg-ink-3)' }}>{o.name}</td>
+                        <td style={{ paddingLeft: 34, color: 'var(--elg-ink-1)' }}>{o.name}</td>
                         <td></td>
-                        <td style={{ color: 'var(--elg-ink-3)' }}>{isSales ? fmt(amt, cc) : (orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency))}</td>
-                        {isSales && <td style={{ color: 'var(--elg-ink-3)' }}>{orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</td>}
+                        <td style={{ color: 'var(--elg-ink-1)' }}>{isSales ? fmt(amt, cc) : (orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency))}</td>
+                        {isSales && <td style={{ color: 'var(--elg-ink-1)' }}>{orderConverted == null ? '—' : fmt(orderConverted, defaultCurrency)}</td>}
                         <td></td>
                       </tr>
                     );

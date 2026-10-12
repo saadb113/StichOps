@@ -101,6 +101,12 @@ export default function RangeDateField({ from, to, onChange, placeholder = 'Sele
             <button type="button" onClick={() => applyPreset(startOfYear(todayISO()), todayISO())}>This Year</button>
             <button type="button" className="clear" onClick={() => applyPreset('', '')}>Clear</button>
           </div>
+          {/* Hover-preview of the in-progress range only works with a mouse —
+              touch devices get this text cue instead so picking the end date
+              after the start tap isn't a guessing game. */}
+          <div className="elg-rangecal-hint">
+            {from && !to ? 'Tap an end date to complete the range' : 'Tap a start date, then an end date'}
+          </div>
           <RangeCalendar
             from={from}
             to={to}

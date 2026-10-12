@@ -48,7 +48,8 @@ async function runCheck() {
           currency: customer.currency,
           generatedDate: todayDate,
           approvedDate: todayDate,
-          paymentStatus: 'Pending'
+          paymentStatus: 'Pending',
+          bankAccountId: customer.preferredBankAccountId
         }
       });
 

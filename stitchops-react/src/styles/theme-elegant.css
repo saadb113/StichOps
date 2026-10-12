@@ -732,6 +732,13 @@ select::-ms-expand {
   margin-bottom: 24px;
 }
 
+/* Desktop already has its own date-range filter inside the filter bar — this
+   copy in the page head only exists for mobile (see the mobile media query),
+   where it replaces the old "open a modal just for dates" pattern. */
+.elg-page-head-range {
+  display: none;
+}
+
 .elg-page-title {
   font-family: var(--elg-font-serif);
   font-size: 32px;
@@ -1137,8 +1144,20 @@ select::-ms-expand {
   cursor: pointer;
 }
 
-.elg-rangecal-day:hover {
-  background: var(--elg-page-bg);
+/* Only apply hover on devices that actually have a mouse — on touch, :hover
+   sticks to whatever you last tapped until you tap elsewhere, which reads as
+   a stuck/selected day that isn't actually selected. */
+@media (hover: hover) and (pointer: fine) {
+  .elg-rangecal-day:hover {
+    background: var(--elg-page-bg);
+  }
+}
+
+.elg-rangecal-hint {
+  font-size: 11.5px;
+  color: var(--elg-ink-3);
+  text-align: center;
+  margin: 2px 0 8px;
 }
 
 .elg-rangecal-day.outside {
@@ -1466,6 +1485,11 @@ select::-ms-expand {
 }
 
 @media (max-width:640px) {
+
+  .elg-rangefield-popover.align-right {
+    left: 0;
+    right: auto;
+  }
 
   #app {
     max-height: max-content !important;
@@ -2114,8 +2138,15 @@ select::-ms-expand {
   padding: 18px 24px;
 }
 
-.editemail .elg-field label input[type="checkbox"]{
+.addemail .elg-field label input[type="checkbox"],
+.editemail .elg-field label input[type="checkbox"] {
   width: auto !important;
+}
+
+
+.addemail .elg-field label:has(input[type="checkbox"]),
+.editemail .elg-field label:has(input[type="checkbox"]) {
+  margin-bottom: 0px;
 }
 
 .elg-modal:has(.addaccount) .elg-modal-foot,
@@ -3673,6 +3704,28 @@ select::-ms-expand {
     align-items: flex-start;
   }
 
+  .elg-page-head-range {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .elg-page-head-range .elg-rangefield-trigger {
+    width: 100%;
+  }
+
+  /* Dashboard's date field is already visible on desktop (it's the page's
+     only filter, not a duplicate of one in a filter bar) — on mobile it just
+     needs to go full-width and sit below the greeting like the others. */
+  .elg-dashboard-range {
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .elg-dashboard-range .elg-rangefield-trigger {
+    width: 100%;
+  }
+
   .elg-account-card-head {
     flex-direction: column;
     align-items: flex-start;
@@ -3833,6 +3886,8 @@ input[type="number"] {
     top: 0;
     width: 100%;
     z-index: 100;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, #FFFFFF 62.34%);
+    backdrop-filter: blur(4px);
   }
 
   .elg-page {

@@ -7,6 +7,7 @@ import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
 import ConfirmMarkPaidModal from './ConfirmMarkPaidModal';
+import SelectBankAccountModal from '../customers/SelectBankAccountModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon } from '../icons/Icon';
@@ -23,7 +24,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, orders, customers, company, bankAccounts, getCustomer, togglePaymentStatus } = useAppState();
+  const { invoices, orders, customers, company, bankAccounts, getCustomer, togglePaymentStatus, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -82,11 +83,32 @@ export default function InvoicesScreen() {
     }
   }
 
+  function invoiceBankAccount(inv) {
+    const customer = getCustomer(inv.customerId);
+    return inv.bankAccountId
+      ? bankAccounts.find((a) => a.id === inv.bankAccountId)
+      : bankAccounts.find((a) => a.currency === customer?.currency);
+  }
+
   function handleDownload(inv) {
     const customer = getCustomer(inv.customerId);
     const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
-    const bankAccount = bankAccounts.find((a) => a.currency === (customer?.currency));
-    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount });
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount: invoiceBankAccount(inv) });
+  }
+
+  async function handleSelectBank(inv, bankAccountId) {
+    try {
+      await setInvoiceBankAccount(inv.id, bankAccountId);
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function openBankModal(inv) {
+    openModal(
+      <SelectBankAccountModal selectedId={invoiceBankAccount(inv)?.id} onSelect={(id) => handleSelectBank(inv, id)} />,
+      { variant: 'elegant' }
+    );
   }
 
   return (
@@ -107,6 +129,9 @@ export default function InvoicesScreen() {
             Showing customers due today &times; Clear filter
           </button>
         )}
+        <div className="elg-page-head-range">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
+        </div>
       </div>
 
       <div className="elg-panel elg-filterbar">
@@ -139,11 +164,10 @@ export default function InvoicesScreen() {
                   { value: 'Overdue1', label: 'Unpaid — 1 month' },
                   { value: 'Overdue2', label: 'Unpaid — 2+ months' }
                 ] },
-                { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) },
-                { type: 'dateRange', key: 'date', label: 'Date', fromKey: 'from', toKey: 'to' }
+                { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) }
               ]}
-              values={{ status, currency, from, to }}
-              onApply={(v) => { setStatus(v.status); setCurrency(v.currency); setFrom(v.from); setTo(v.to); }}
+              values={{ status, currency }}
+              onApply={(v) => { setStatus(v.status); setCurrency(v.currency); }}
             />,
             { variant: 'elegant' }
           )}
@@ -155,7 +179,6 @@ export default function InvoicesScreen() {
       <div className="elg-mobile-filter-chips">
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
         {currency && <span className="elg-mobile-filter-chip">{currency}<button onClick={() => setCurrency('')}>&times;</button></span>}
-        {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
       </div>
 
       <div className="elg-mobile-cards">
@@ -179,6 +202,9 @@ export default function InvoicesScreen() {
                       </button>
                       <button onClick={() => { setOpenMenuId(null); handleDownload(i); }}>
                         <img src="/images/download-invoice.svg" alt="Download" width="14" height="14" /> Download
+                      </button>
+                      <button onClick={() => { setOpenMenuId(null); openBankModal(i); }}>
+                        Select Bank
                       </button>
                     </div>
                   )}
@@ -218,6 +244,9 @@ export default function InvoicesScreen() {
                         <div className="elg-row-menu">
                           <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>
                             <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
+                          </button>
+                          <button onClick={() => { setOpenMenuId(null); openBankModal(i); }}>
+                            Select Bank
                           </button>
                         </div>
                       )}

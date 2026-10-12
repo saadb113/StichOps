@@ -26,4 +26,26 @@ router.patch('/:id/payment', requireAuth, requireAdmin, asyncHandler(async (req,
   res.json(serializeInvoice(updated));
 }));
 
+// Lets admin override which bank account's details appear on an already
+// generated invoice (independent of the customer's preferredBankAccountId,
+// which only seeds new invoices going forward).
+router.patch('/:id/bank-account', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const existing = await prisma.invoice.findUnique({ where: { id } });
+  if (!existing) return res.status(404).json({ error: 'Invoice not found.' });
+
+  const { bankAccountId } = req.body;
+  if (bankAccountId != null) {
+    const account = await prisma.bankAccount.findUnique({ where: { id: Number(bankAccountId) } });
+    if (!account) return res.status(400).json({ error: 'That bank account no longer exists.' });
+  }
+
+  const updated = await prisma.invoice.update({
+    where: { id },
+    data: { bankAccountId: bankAccountId != null ? Number(bankAccountId) : null },
+    include: invoiceInclude
+  });
+  res.json(serializeInvoice(updated));
+}));
+
 module.exports = router;

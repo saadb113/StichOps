@@ -147,6 +147,7 @@ router.patch('/:id', requireAuth, validateBody(updateCustomerSchema), asyncHandl
     if (body.invoiceDay !== undefined) data.invoiceDay = body.invoiceDay;
     if (body.notes !== undefined) data.notes = body.notes;
     if (body.status !== undefined) data.status = body.status;
+    if (body.preferredBankAccountId !== undefined) data.preferredBankAccountId = body.preferredBankAccountId;
     if (body.salesperson !== undefined) {
       const salesperson = await resolveSalesperson(body.salesperson);
       data.salespersonId = salesperson ? salesperson.id : null;

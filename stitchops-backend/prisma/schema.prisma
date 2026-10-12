@@ -67,6 +67,9 @@ model BankAccount {
   address        String @default("")
 
   createdAt DateTime @default(now())
+
+  invoices           Invoice[]
+  preferredByCustomers Customer[]
 }
 
 model CurrencyRate {
@@ -173,6 +176,13 @@ model Customer {
   invoicePrefix  String?
   nextInvoiceSeq Int     @default(1)
 
+  // Admin's manual override of the auto-picked (by customer currency) bank
+  // account, set from the draft invoice's "Payment Details" box. Seeds the
+  // bankAccountId on each new invoice generated for this customer, but
+  // doesn't retroactively change invoices already created.
+  preferredBankAccountId Int?
+  preferredBankAccount   BankAccount? @relation(fields: [preferredBankAccountId], references: [id])
+
   orders   Order[]
   invoices Invoice[]
 
@@ -234,6 +244,13 @@ model Invoice {
   generatedDate DateTime @db.Date
   approvedDate  DateTime @db.Date
   paymentStatus String   @default("Pending")
+
+  // Which bank account's details appear on this invoice's Payment Details /
+  // PDF. Seeded from the customer's preferredBankAccountId at generation
+  // time (see lib/monthlyInvoicing.js), but can be changed per-invoice
+  // afterward independently of that default.
+  bankAccountId Int?
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
 
   orders Order[]
 

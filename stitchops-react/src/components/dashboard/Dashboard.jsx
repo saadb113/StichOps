@@ -52,7 +52,10 @@ export default function Dashboard() {
   const [from, setFrom] = useState(TODAY);
   const [to, setTo] = useState(TODAY);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const refDate = to;
+  // While a range is mid-selection (first day picked, second not yet),
+  // RangeDateField reports to:null — fall back to from/today rather than
+  // crash on it.
+  const refDate = to || from || TODAY;
 
   useEffect(() => {
     function onDocClick(e) { if (!e.target.closest('.elg-row-actions')) setOpenMenuId(null); }
@@ -60,7 +63,7 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const todaysOrders = orders.filter((o) => o.date >= from && o.date <= to);
+  const todaysOrders = orders.filter((o) => o.date >= from && o.date <= (to || refDate));
   const activeCount = customers.filter((c) => isActive(orders, c, refDate)).length;
   const pendingReview = orders.filter((o) => !o.invoiced && o.status === 'Completed').length;
 
@@ -94,7 +97,9 @@ export default function Dashboard() {
       <div className="elg-page-head" style={{ paddingBottom: 24, borderBottom : "1px solid #E8E8E8", marginBottom : 24}}>
         <div className="elg-greeting">{greetingFor(to)} <span>👋</span></div>
         <div className="elg-greeting elg-greeting-mobile">Dashboard</div>
-        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
+        <div className="elg-dashboard-range">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
+        </div>
       </div>
 
       {payoutsSoon.length > 0 && (
@@ -133,7 +138,7 @@ export default function Dashboard() {
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Income</span><span className="elg-metric-icon"><img src="/images/revenue.svg" alt="" /></span></div>
           <div className="elg-metric-value">{totalIncomeStr}</div>
-          <div className="elg-metric-sub">{rangeLabel(from, to)}</div>
+          <div className="elg-metric-sub">{rangeLabel(from, to || refDate)}</div>
         </div>
       </div>
 

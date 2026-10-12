@@ -95,6 +95,9 @@ export default function OrdersScreen() {
           <div className="elg-page-title">Orders</div>
           <div className="elg-page-sub">{list.length} order{list.length === 1 ? '' : 's'} listed</div>
         </div>
+        <div className="elg-page-head-range">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
+        </div>
       </div>
 
       <div className="elg-panel elg-filterbar">
@@ -122,11 +125,10 @@ export default function OrdersScreen() {
               title="Filter Orders"
               fields={[
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: ORDER_STATUSES.map((s) => ({ value: s, label: s })) },
-                { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) },
-                { type: 'dateRange', key: 'date', label: 'Date', fromKey: 'from', toKey: 'to' }
+                { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) }
               ]}
-              values={{ status, currency, from, to }}
-              onApply={(v) => { setStatus(v.status); setCurrency(v.currency); setFrom(v.from); setTo(v.to); }}
+              values={{ status, currency }}
+              onApply={(v) => { setStatus(v.status); setCurrency(v.currency); }}
             />,
             { variant: 'elegant' }
           )}
@@ -138,7 +140,6 @@ export default function OrdersScreen() {
       <div className="elg-mobile-filter-chips">
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
         {currency && <span className="elg-mobile-filter-chip">{currency} {SYM[currency]}<button onClick={() => setCurrency('')}>&times;</button></span>}
-        {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
       </div>
 
       <div className="elg-mobile-cards">

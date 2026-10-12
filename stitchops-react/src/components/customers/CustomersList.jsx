@@ -59,6 +59,9 @@ export default function CustomersList() {
           <div className="elg-page-title">{isAdmin ? 'Customers' : 'My Customers'}</div>
           <div className="elg-page-sub">{isAdmin ? (salesperson ? `${salespersonCount} customer${salespersonCount === 1 ? '' : 's'} from ${salesperson}` : `${customers.length} profile${customers.length === 1 ? '' : 's'} listed`) : `${base.length} customer${base.length === 1 ? '' : 's'} assigned to you`}</div>
         </div>
+        <div className="elg-page-head-range">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
+        </div>
       </div>
 
       <div className="elg-panel elg-filterbar">
@@ -99,11 +102,10 @@ export default function CustomersList() {
               fields={[
                 { key: 'customerType', label: 'Customer Type', allLabel: 'All Customer Types', options: [{ value: 'Free Trial', label: 'Free Trial' }, { value: 'Paid', label: 'Paid' }] },
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }] },
-                ...(isAdmin ? [{ key: 'salesperson', label: 'Salesperson', allLabel: 'All Salespeople', options: salespeople.map((s) => ({ value: s, label: s })) }] : []),
-                { type: 'dateRange', key: 'date', label: 'Added', fromKey: 'from', toKey: 'to' }
+                ...(isAdmin ? [{ key: 'salesperson', label: 'Salesperson', allLabel: 'All Salespeople', options: salespeople.map((s) => ({ value: s, label: s })) }] : [])
               ]}
-              values={{ customerType, status, salesperson, from, to }}
-              onApply={(v) => { setCustomerType(v.customerType); setStatus(v.status); setSalesperson(v.salesperson || ''); setFrom(v.from); setTo(v.to); }}
+              values={{ customerType, status, salesperson }}
+              onApply={(v) => { setCustomerType(v.customerType); setStatus(v.status); setSalesperson(v.salesperson || ''); }}
             />,
             { variant: 'elegant' }
           )}
@@ -123,7 +125,6 @@ export default function CustomersList() {
         {customerType && <span className="elg-mobile-filter-chip">{customerType}<button onClick={() => setCustomerType('')}>&times;</button></span>}
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
         {salesperson && <span className="elg-mobile-filter-chip">{salesperson}<button onClick={() => setSalesperson('')}>&times;</button></span>}
-        {(from || to) && <span className="elg-mobile-filter-chip">{from || '…'} – {to || '…'}<button onClick={() => { setFrom(''); setTo(''); }}>&times;</button></span>}
       </div>
 
       <div className="elg-mobile-cards">

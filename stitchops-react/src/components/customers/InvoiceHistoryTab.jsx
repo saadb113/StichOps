@@ -4,6 +4,7 @@ import { fmt, paymentBadge } from '../../lib/helpers';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from '../invoices/EditInvoiceOrdersModal';
 import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
+import SelectBankAccountModal from './SelectBankAccountModal';
 import { DownloadIcon, PencilIcon } from '../icons/Icon';
 
 function invoiceBadgeInfo(inv) {
@@ -18,7 +19,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoiceHistoryTab({ customer }) {
-  const { invoices, orders, company, bankAccounts, togglePaymentStatus } = useAppState();
+  const { invoices, orders, company, bankAccounts, togglePaymentStatus, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
 
   const invs = invoices.filter((i) => i.customerId === customer.id).sort((a, b) => b.id - a.id);
@@ -39,10 +40,30 @@ export default function InvoiceHistoryTab({ customer }) {
     }
   }
 
+  function invoiceBankAccount(inv) {
+    return inv.bankAccountId
+      ? bankAccounts.find((a) => a.id === inv.bankAccountId)
+      : bankAccounts.find((a) => a.currency === customer.currency);
+  }
+
   function handleDownload(inv) {
     const lineOrders = orders.filter((o) => inv.orderIds.includes(o.id));
-    const bankAccount = bankAccounts.find((a) => a.currency === customer.currency);
-    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount });
+    downloadInvoicePdf({ invoice: inv, customer, company, orders: lineOrders, bankAccount: invoiceBankAccount(inv) });
+  }
+
+  async function handleSelectBank(inv, bankAccountId) {
+    try {
+      await setInvoiceBankAccount(inv.id, bankAccountId);
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function openBankModal(inv) {
+    openModal(
+      <SelectBankAccountModal selectedId={invoiceBankAccount(inv)?.id} onSelect={(id) => handleSelectBank(inv, id)} />,
+      { variant: 'elegant' }
+    );
   }
 
   return (
@@ -67,9 +88,14 @@ export default function InvoiceHistoryTab({ customer }) {
                 </div>
               </div>
               {i.status === 'approved' && (
-                <button className="elg-btn elg-download-btn" style={{ width: '100%', marginTop: 8 }} onClick={() => handleDownload(i)}>
-                  <img src="/images/download-invoice.svg" alt="" width={14} height={14} /> Download
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <button className="elg-btn elg-download-btn" style={{ width: '100%' }} onClick={() => handleDownload(i)}>
+                    <img src="/images/download-invoice.svg" alt="" width={14} height={14} /> Download
+                  </button>
+                  <button className="elg-btn" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openBankModal(i)}>
+                    Bank
+                  </button>
+                </div>
               )}
             </div>
           );
@@ -93,6 +119,7 @@ export default function InvoiceHistoryTab({ customer }) {
                   {i.status === 'approved' && (
                     <div className="elg-row-actions">
                       <button className="elg-btn elg-download-btn" title="Download" onClick={() => handleDownload(i)}><img src="/images/download-invoice.svg" alt="Download" width={14} height={14} />Download</button>
+                      <button className="elg-btn" title="Select Bank Account" style={{ width: 'auto' }} onClick={() => openBankModal(i)}>Bank</button>
                     </div>
                   )}
                 </td>

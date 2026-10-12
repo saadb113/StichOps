@@ -52,6 +52,7 @@ function serializeCustomer(customer) {
     notes: customer.notes,
     invoicePrefix: customer.invoicePrefix,
     nextInvoiceSeq: customer.nextInvoiceSeq,
+    preferredBankAccountId: customer.preferredBankAccountId,
     createdAt: customer.createdAt
   };
 }
@@ -97,7 +98,8 @@ function serializeInvoice(invoice) {
     currency: invoice.currency,
     generatedDate: toDateOnlyString(invoice.generatedDate),
     approvedDate: toDateOnlyString(invoice.approvedDate),
-    paymentStatus: invoice.paymentStatus
+    paymentStatus: invoice.paymentStatus,
+    bankAccountId: invoice.bankAccountId
   };
 }
 

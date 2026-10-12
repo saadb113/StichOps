@@ -18,7 +18,8 @@ const createCustomerSchema = z.object({
   receivedEmail: z.string().nullable().optional(),
   invoiceDay: z.number().int().min(1).max(31).nullable().optional(),
   notes: z.string().trim().default(''),
-  status: z.enum(['Free Trial', 'Paid']).optional()
+  status: z.enum(['Free Trial', 'Paid']).optional(),
+  preferredBankAccountId: z.number().int().nullable().optional()
 });
 
 const updateCustomerSchema = createCustomerSchema.partial();

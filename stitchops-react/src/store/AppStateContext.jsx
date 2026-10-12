@@ -199,6 +199,11 @@ export function AppStateProvider({ children }) {
     await refreshInvoices();
     return updated.paymentStatus;
   }
+  async function setInvoiceBankAccount(id, bankAccountId) {
+    const updated = await api.patch(`/invoices/${id}/bank-account`, { bankAccountId });
+    await refreshInvoices();
+    return updated;
+  }
 
   // ---------- employees / payslips ----------
   async function approveSlip(employeeId, bonuses) {
@@ -477,7 +482,7 @@ export function AppStateProvider({ children }) {
     // mutators
     addCustomer, updateCustomer, setCustomerStatus, deleteCustomer,
     addOrder, updateOrder, deleteOrder, softDeleteOrder, setOrderStatus, addComment,
-    togglePaymentStatus,
+    togglePaymentStatus, setInvoiceBankAccount,
     approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, createLogin, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,

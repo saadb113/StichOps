@@ -25,7 +25,9 @@ export default function CustomerFormModal({ customer = null }) {
   const salespeople = isSalesperson
     ? (currentEmployee ? [currentEmployee] : [])
     : employees.filter((e) => e.role === 'Salesperson');
-  const defaultSalesperson = c ? (c.salesperson || '') : (isSalesperson && currentEmployee ? currentEmployee.name : (salespeople[0]?.name || ''));
+  // Admin-added customers default to no salesperson (company-owned) rather
+  // than silently picking the first name in the list.
+  const defaultSalesperson = c ? (c.salesperson || '') : (isSalesperson && currentEmployee ? currentEmployee.name : '');
   const [salesperson, setSalesperson] = useState(defaultSalesperson);
   const [receivedEmail, setReceivedEmail] = useState(c ? (c.receivedEmail || '') : '');
   const [invoiceDay, setInvoiceDay] = useState(c ? (c.invoiceDay || '') : 5);
@@ -88,7 +90,6 @@ export default function CustomerFormModal({ customer = null }) {
   const receivedEmailOptions = isSalesperson
     ? (currentEmployee?.emails || [])
     : (salesperson ? (selectedSalesperson?.emails || []) : companyEmails);
-  const showReceivedEmail = receivedEmailOptions.length > 0;
 
   function handleSalespersonChange(name) {
     setSalesperson(name);
@@ -179,19 +180,19 @@ export default function CustomerFormModal({ customer = null }) {
             </>
           )}
         </div>
-        {showReceivedEmail && (
-          <div className="elg-field">
-            <label>Client on Email</label>
-            <select value={receivedEmail} onChange={(e) => setReceivedEmail(e.target.value)}>
-              <option value="">
-                {isSalesperson
+        <div className="elg-field">
+          <label>Client on Email</label>
+          <select value={receivedEmail} onChange={(e) => setReceivedEmail(e.target.value)} disabled={receivedEmailOptions.length === 0}>
+            <option value="">
+              {receivedEmailOptions.length === 0
+                ? 'No emails assigned yet'
+                : (isSalesperson
                   ? 'Select which of your emails this client came in on'
-                  : (salesperson ? `Select which of ${salesperson}'s emails this client came in on` : 'Select which email this client came in on')}
-              </option>
-              {receivedEmailOptions.map((em) => <option key={em} value={em}>{em}</option>)}
-            </select>
-          </div>
-        )}
+                  : (salesperson ? `Select which of ${salesperson}'s emails this client came in on` : 'Select which email this client came in on'))}
+            </option>
+            {receivedEmailOptions.map((em) => <option key={em} value={em}>{em}</option>)}
+          </select>
+        </div>
           
         <div className="elg-field"><label>Notes (Optional)</label><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Pricing notes, requirements..." /></div>
       </div>

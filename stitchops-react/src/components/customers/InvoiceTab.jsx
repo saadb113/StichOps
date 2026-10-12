@@ -4,6 +4,7 @@ import { useUi } from '../../store/UiContext';
 import { fmt, commissionAmt, bankAccountLines, guessInvoicePrefix, formatSlipNo } from '../../lib/helpers';
 import { PencilIcon, DownloadIcon } from '../icons/Icon';
 import OrderFormModal from '../orders/OrderFormModal';
+import SelectBankAccountModal from './SelectBankAccountModal';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 
 function InvoiceTabSales({ customer, orders }) {
@@ -51,8 +52,8 @@ function InvoiceTabSales({ customer, orders }) {
 }
 
 export default function InvoiceTab({ customer, orders }) {
-  const { isAdmin, company, bankAccounts } = useAppState();
-  const { openModal } = useUi();
+  const { isAdmin, company, bankAccounts, updateCustomer } = useAppState();
+  const { openModal, toast } = useUi();
   const [editMode, setEditMode] = useState(false);
 
   if (!isAdmin) return <InvoiceTabSales customer={customer} orders={orders} />;
@@ -63,7 +64,21 @@ export default function InvoiceTab({ customer, orders }) {
   }
   const total = draft.reduce((s, o) => s + o.price, 0);
   const commTotal = draft.reduce((s, o) => s + commissionAmt(o), 0);
-  const bankAccount = bankAccounts.find((a) => a.currency === customer.currency);
+  // customer.preferredBankAccountId (saved in the database) overrides the
+  // currency auto-match once admin picks one explicitly from this tab —
+  // this is also the default that seeds the real invoice once it's
+  // auto-generated next month (see monthlyInvoicing.js).
+  const bankAccount = customer.preferredBankAccountId
+    ? bankAccounts.find((a) => a.id === customer.preferredBankAccountId)
+    : bankAccounts.find((a) => a.currency === customer.currency);
+
+  async function handleSelectBank(bankAccountId) {
+    try {
+      await updateCustomer(customer.id, { preferredBankAccountId: bankAccountId });
+    } catch (e) {
+      toast(e.message);
+    }
+  }
 
   function editOrder(o) {
     openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' });
@@ -122,7 +137,17 @@ export default function InvoiceTab({ customer, orders }) {
           </tbody>
         </table>
         <div className="elg-bank-box">
-          <strong>Payment Details</strong><br />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <strong>Payment Details</strong>
+            <button
+              type="button"
+              className="elg-btn elg-btn-primary"
+              style={{ width: 'auto', padding: '4px 12px', fontSize: 12 }}
+              onClick={() => openModal(<SelectBankAccountModal selectedId={bankAccount?.id} onSelect={handleSelectBank} />, { variant: 'elegant' })}
+            >
+              {bankAccount ? 'Change Account' : 'Select Account'}
+            </button>
+          </div>
           {bankAccount ? (
             bankAccountLines(bankAccount).length ? (
               bankAccountLines(bankAccount).map((line) => (

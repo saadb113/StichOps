@@ -4088,6 +4088,10 @@ input[type="number"] {
     box-shadow: 0 10px 24px rgba(66, 77, 199, 0.4);
     z-index: 120;
     cursor: pointer;
+    /* Without this, mobile browsers flash a translucent blue overlay over
+       the whole tap target on touch — it shows through the circular button
+       as a diamond-shaped glow since the highlight is actually rectangular. */
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Admin's speed-dial FAB (Add Order / Add Customer) — the wrap owns the
@@ -4136,6 +4140,7 @@ input[type="number"] {
     box-shadow: 0 6px 18px rgba(20, 20, 40, 0.16);
     white-space: nowrap;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     opacity: 0;
     transform: translateY(10px);
     animation: elg-fab-item-in 0.22s ease forwards;

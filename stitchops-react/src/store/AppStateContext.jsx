@@ -385,6 +385,20 @@ export function AppStateProvider({ children }) {
     return { ok: true };
   }
 
+  // ---------- SMTP settings (Settings > System Data) ----------
+  // Not loaded into global state like company/bankAccounts — it includes a
+  // write-only password, so it's only ever fetched by the settings page
+  // itself, on demand.
+  async function getSmtpSettings() {
+    return api.get('/company/smtp');
+  }
+  async function updateSmtpSettings(data) {
+    return api.patch('/company/smtp', data);
+  }
+  async function sendSmtpTest(to) {
+    return api.post('/company/smtp/test', { to });
+  }
+
   // ---------- bank accounts ----------
   async function addBankAccount(data) {
     const created = await api.post('/bank-accounts', data);
@@ -461,8 +475,25 @@ export function AppStateProvider({ children }) {
     setCurrentEmployee(result.employee);
   }
   async function submitForgotPassword(email) {
+    let result;
     try {
-      await api.post('/auth/forgot-password', { email });
+      result = await api.post('/auth/forgot-password', { email });
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+    return { ok: true, adminRecovery: Boolean(result && result.adminRecovery), emailSent: Boolean(result && result.emailSent) };
+  }
+  async function submitResetPassword(token, password) {
+    try {
+      await api.post('/auth/reset-password', { token, password });
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+    return { ok: true };
+  }
+  async function submitAdminRecovery(email, code, password) {
+    try {
+      await api.post('/auth/admin-recovery', { email, code, password });
     } catch (e) {
       return { ok: false, error: e.message };
     }
@@ -487,11 +518,12 @@ export function AppStateProvider({ children }) {
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, createLogin, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,
     updateCompany, uploadCompanyLogo, deleteCompanyLogo, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
+    getSmtpSettings, updateSmtpSettings, sendSmtpTest,
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
     markNotificationRead, markAllNotificationsRead,
     exportSystemData, exportAllSystemData, importSystemData, importAllSystemData,
-    attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, changePassword
+    attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, submitAdminRecovery, submitResetPassword, changePassword
   };
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

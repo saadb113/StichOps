@@ -3,6 +3,7 @@ import { PublicOnly, ChangePasswordGate, WelcomeGate, RequireAuth, RequireAdmin,
 import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
 import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 import ChangePassword from './components/auth/ChangePassword';
 import Welcome from './components/auth/Welcome';
 import Dashboard from './components/dashboard/Dashboard';
@@ -22,6 +23,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+      <Route path="/reset-password" element={<PublicOnly><ResetPassword /></PublicOnly>} />
       <Route path="/change-password" element={<ChangePasswordGate><ChangePassword /></ChangePasswordGate>} />
       <Route path="/welcome" element={<WelcomeGate><Welcome /></WelcomeGate>} />
 

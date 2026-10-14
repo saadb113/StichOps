@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import RangeDateField from '../common/RangeDateField';
@@ -108,6 +108,135 @@ function ExportRow({ page, range, onRangeChange }) {
   );
 }
 
+// Powers the admin "forgot password" emailed reset link (see
+// ForgotPassword.jsx / lib/mailer.js on the backend). Loaded on demand,
+// not through global app state, since it includes a write-only password
+// the rest of the app has no reason to hold onto.
+function SmtpSettingsCard() {
+  const { getSmtpSettings, updateSmtpSettings, sendSmtpTest } = useAppState();
+  const { toast } = useUi();
+  const [loaded, setLoaded] = useState(false);
+  const [host, setHost] = useState('');
+  const [port, setPort] = useState('');
+  const [user, setUser] = useState('');
+  const [from, setFrom] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passSet, setPassSet] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [testTo, setTestTo] = useState('');
+  const [testing, setTesting] = useState(false);
+
+  useEffect(() => {
+    getSmtpSettings().then((s) => {
+      setHost(s.smtpHost || '');
+      setPort(s.smtpPort || '');
+      setUser(s.smtpUser || '');
+      setFrom(s.smtpFrom || '');
+      setPassSet(s.passSet);
+      setLoaded(true);
+    }).catch((e) => toast(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const data = {
+        smtpHost: host.trim(),
+        smtpPort: port ? Number(port) : null,
+        smtpUser: user.trim(),
+        smtpFrom: from.trim()
+      };
+      // Blank password field means "leave it as-is" — only send the key
+      // (even as "") when the admin actually typed something, so clearing
+      // the field by accident doesn't wipe a saved password.
+      if (password) data.smtpPass = password;
+      const result = await updateSmtpSettings(data);
+      setPassSet(result.passSet);
+      setPassword('');
+      toast('Email settings saved.');
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleTest() {
+    if (!testTo.trim()) { toast('Enter an email to send the test to.'); return; }
+    setTesting(true);
+    try {
+      await sendSmtpTest(testTo.trim());
+      toast(`Test email sent to ${testTo.trim()}.`);
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  if (!loaded) return null;
+
+  return (
+    <div className="elg-settings-card" style={{ marginBottom: 20 }}>
+      <div className="elg-settings-card-title"><h2>Email (SMTP) Settings</h2></div>
+      <div className="elg-hint-line" style={{ marginBottom: 16 }}>
+        Used to send the admin "forgot password" reset link — e.g. a Hostinger mailbox. In hPanel: Emails &gt; your address &gt; Connect Apps &amp; Devices &gt; Manual Configuration gives the host/port/username.
+      </div>
+      <div className="elg-field-row">
+        <div className="elg-field">
+          <label>SMTP Host</label>
+          <input value={host} onChange={(e) => setHost(e.target.value)} placeholder="smtp.hostinger.com" />
+        </div>
+        <div className="elg-field">
+          <label>SMTP Port</label>
+          <input type="number" value={port} onChange={(e) => setPort(e.target.value)} placeholder="465" />
+        </div>
+      </div>
+      <div className="elg-field-row">
+        <div className="elg-field">
+          <label>Username</label>
+          <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="noreply@yourdomain.com" />
+        </div>
+        <div className="elg-field">
+          <label>From (optional)</label>
+          <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={'StitchOps <noreply@yourdomain.com>'} />
+        </div>
+      </div>
+      <div className="elg-field">
+        <label>Password {passSet && !password && <span style={{ fontWeight: 400, color: 'var(--elg-ink-3)' }}>(saved — leave blank to keep it)</span>}</label>
+        <div className="elg-password-field">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={passSet ? '••••••••' : 'Mailbox password'}
+          />
+          <button type="button" className="elg-password-toggle" onClick={() => setShowPassword((v) => !v)} tabIndex={-1}>
+            {showPassword ? <img src="/images/showpwd.svg" alt="" /> : <img src="/images/hidepwd.svg" alt="" />}
+          </button>
+        </div>
+      </div>
+      <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} disabled={saving} onClick={handleSave}>
+        {saving ? 'Saving…' : 'Save Email Settings'}
+      </button>
+
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--elg-line)' }}>
+        <div className="elg-field-row" style={{ alignItems: 'flex-end' }}>
+          <div className="elg-field" style={{ marginBottom: 0 }}>
+            <label>Send Test Email</label>
+            <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@company.com" />
+          </div>
+          <button className="elg-btn" style={{ width: 'auto', whiteSpace: 'nowrap' }} disabled={testing} onClick={handleTest}>
+            {testing ? 'Sending…' : 'Send Test'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SystemDataTab() {
   const { importAllSystemData, exportAllSystemData } = useAppState();
   const { toast } = useUi();
@@ -160,6 +289,8 @@ export default function SystemDataTab() {
 
   return (
     <>
+      <SmtpSettingsCard />
+
       <div className="elg-settings-card" style={{ marginBottom: 20 }}>
         <div className="elg-settings-card-title"><h2>Upload Data</h2></div>
         <div className="elg-table-wrap" style={{ padding: 10, border: '1px solid var(--elg-line)', borderRadius: 8 }}>

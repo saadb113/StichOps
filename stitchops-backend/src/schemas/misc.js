@@ -22,6 +22,21 @@ const companyUpdateSchema = z.object({
   defaultCurrency: z.string().trim().min(1).optional()
 });
 
+const smtpSettingsSchema = z.object({
+  smtpHost: z.string().trim().optional(),
+  smtpPort: z.number().int().positive().nullable().optional(),
+  smtpUser: z.string().trim().optional(),
+  // Omit (don't send the key) to keep the currently saved password — an
+  // empty string explicitly clears it. Matches how the UI never re-displays
+  // the saved password, so "leave blank" has to mean "unchanged".
+  smtpPass: z.string().optional(),
+  smtpFrom: z.string().trim().optional()
+});
+
+const smtpTestSchema = z.object({
+  to: z.string().trim().min(3, 'Enter an email to send the test to.')
+});
+
 const bankAccountSchema = z.object({
   country: z.string().trim().min(1, 'Country is required.'),
   currency: z.string().trim().min(1, 'Currency is required.'),
@@ -56,6 +71,8 @@ module.exports = {
   companyEmailSchema,
   companyEmailUpdateSchema,
   companyUpdateSchema,
+  smtpSettingsSchema,
+  smtpTestSchema,
   bankAccountSchema,
   bankAccountUpdateSchema,
   currencyRateSchema,

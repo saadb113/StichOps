@@ -42,6 +42,16 @@ model Company {
   contact         String @default("")
   defaultCurrency String @default("PKR")
   logo            String?
+
+  // Hostinger (or any SMTP) mailbox used to send the admin password-reset
+  // link — editable from Settings > System Data instead of server env vars,
+  // so swapping the mailbox doesn't need a redeploy. smtpPass is never
+  // serialized back to the client (see serializeCompany).
+  smtpHost String?
+  smtpPort Int?
+  smtpUser String?
+  smtpPass String?
+  smtpFrom String?
 }
 
 // Which fields are meaningful depends on `country` — e.g. sortCode/iban for
@@ -140,6 +150,8 @@ model User {
   employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   mustChangePassword Boolean   @default(false)
   welcomed           Boolean   @default(false)
+
+  resetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -294,6 +306,20 @@ model PasswordResetRequest {
   employeeId  Int
   employee    Employee @relation(fields: [employeeId], references: [id])
   requestedAt DateTime @default(now())
+}
+
+// Admin password reset via emailed link — only the sha256 hash of the token
+// is stored (same pattern as a session token) so a DB read alone can't be
+// used to reset the account. One-time use (usedAt) and short-lived
+// (expiresAt), same as any email-based reset link.
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 // Admin-facing activity feed — e.g. a salesperson adding a customer or

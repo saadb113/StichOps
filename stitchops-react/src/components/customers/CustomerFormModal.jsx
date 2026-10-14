@@ -4,7 +4,7 @@ import { useUi } from '../../store/UiContext';
 import { CCY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CloseIcon, UserPlusIcon } from '../icons/Icon';
 
-export default function CustomerFormModal({ customer = null }) {
+export default function CustomerFormModal({ customer = null, presetSalesperson = null }) {
   const { customers, employees, companyEmails, isAdmin, isSalesperson, currentEmployee, nextCustomerCode, addCustomer, updateCustomer } = useAppState();
   const { closeModal, toast } = useUi();
 
@@ -26,8 +26,10 @@ export default function CustomerFormModal({ customer = null }) {
     ? (currentEmployee ? [currentEmployee] : [])
     : employees.filter((e) => e.role === 'Salesperson');
   // Admin-added customers default to no salesperson (company-owned) rather
-  // than silently picking the first name in the list.
-  const defaultSalesperson = c ? (c.salesperson || '') : (isSalesperson && currentEmployee ? currentEmployee.name : '');
+  // than silently picking the first name in the list — unless opened from a
+  // specific salesperson's own profile page, which preselects (but doesn't
+  // lock) that salesperson.
+  const defaultSalesperson = c ? (c.salesperson || '') : (isSalesperson && currentEmployee ? currentEmployee.name : (presetSalesperson || ''));
   const [salesperson, setSalesperson] = useState(defaultSalesperson);
   const [receivedEmail, setReceivedEmail] = useState(c ? (c.receivedEmail || '') : '');
   const [invoiceDay, setInvoiceDay] = useState(c ? (c.invoiceDay || '') : 5);

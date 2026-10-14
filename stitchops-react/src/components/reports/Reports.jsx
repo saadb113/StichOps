@@ -38,10 +38,14 @@ export default function Reports() {
     setFrom(f); setTo(t);
   }
 
-  const curr = ordersInRange(orders, from, to);
-  const days = rangeLengthDays(from, to);
-  const [pFrom, pTo] = shiftRange(from, to, days);
-  const prev = ordersInRange(orders, pFrom, pTo);
+  // Clearing the date field leaves from/to empty — shiftRange would then
+  // build an Invalid Date and crash on .toISOString(), so fall back to
+  // "all orders, no previous-period comparison" instead of a date-bound range.
+  const hasRange = Boolean(from && to);
+  const curr = hasRange ? ordersInRange(orders, from, to) : orders.slice();
+  const days = hasRange ? rangeLengthDays(from, to) : 0;
+  const [pFrom, pTo] = hasRange ? shiftRange(from, to, days) : ['', ''];
+  const prev = hasRange ? ordersInRange(orders, pFrom, pTo) : [];
 
   const totalsByCcy = {}; curr.forEach((o) => { totalsByCcy[o.currency] = (totalsByCcy[o.currency] || 0) + o.price; });
   const prevTotalsByCcy = {}; prev.forEach((o) => { prevTotalsByCcy[o.currency] = (prevTotalsByCcy[o.currency] || 0) + o.price; });
@@ -163,7 +167,7 @@ export default function Reports() {
         </table>
         </div>
       </div>
-        <div style={{marginBottom: 16,lineHeight : "21px", fontSize: 14, color: '#5C5C5C', borderTop: '1px solid var(--elg-line)' }}>
+        <div style={{marginBottom: 16,lineHeight : "21px", fontSize: 14, color: '#5C5C5C', marginTop: 8}}>
           All totals are converted and displayed in the selected default currency.
         </div>
 

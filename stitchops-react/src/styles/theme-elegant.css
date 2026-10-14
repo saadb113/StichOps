@@ -815,10 +815,24 @@ select::-ms-expand {
   border: 0 !important;
 }
 
+/* Groups every filter control + the Add button as one flex item so they
+   wrap together as a block when the bar runs out of room, instead of each
+   control wrapping individually and stranding the Add button alone on its
+   own line — the search field is the one that gives way to its own row. */
+.elg-filterbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
 .elg-filterbar .elg-btn {
   padding: 8px 16px;
   font-size: 16px;
   font-weight: 500;
+  line-height: 21px;
 }
 
 .elg-filterbar .elg-input:has(input[type="date"]) {
@@ -841,7 +855,7 @@ select::-ms-expand {
 }
 
 .elg-filterbar .elg-select {
-  padding: 11px 14px;
+  padding: 8px 14px;
   font-size: 14px;
   line-height: 21px;
 }
@@ -876,7 +890,7 @@ select::-ms-expand {
 .elg-select {
   border: 1px solid var(--elg-line-strong);
   border-radius: 10px;
-  padding: 9px 15px;
+  padding: 11px 15px;
   font-size: 13px;
   font-family: var(--elg-font-sans);
   color: var(--elg-ink);
@@ -929,7 +943,7 @@ select::-ms-expand {
 
 .elg-field-search {
   flex: 1;
-  min-width: 200px;
+  min-width: 300px;
   max-width: 410px;
   margin-right: auto;
   display: flex;
@@ -1171,7 +1185,6 @@ select::-ms-expand {
 
 .elg-rangecal-day.in-range {
   background: rgba(51, 78, 172, 0.1);
-  border-radius: 0;
 }
 
 .elg-rangecal-day.range-start,
@@ -3711,7 +3724,7 @@ select::-ms-expand {
   }
 
   .elg-page-head-range .elg-rangefield-trigger {
-    width: 100%;
+    width: 220px;
   }
 
   /* Dashboard's date field is already visible on desktop (it's the page's
@@ -3723,7 +3736,7 @@ select::-ms-expand {
   }
 
   .elg-dashboard-range .elg-rangefield-trigger {
-    width: 100%;
+    width: 220px;
   }
 
   .elg-account-card-head {
@@ -3747,13 +3760,13 @@ select::-ms-expand {
     font-size: 12px;
     line-height: 17px;
   }
-
+/* 
   .elg-filterbar>div:nth-child(2) {
     width: 100%;
     padding-bottom: 24px;
     border: 1px solid #E8E8E8;
     margin-bottom: 18px;
-  }
+  } */
 
   .elg-metric-card {
     padding: 14px;
@@ -3886,7 +3899,7 @@ input[type="number"] {
     top: 0;
     width: 100%;
     z-index: 100;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, #FFFFFF 62.34%);
+    background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.4) 62.34%);
     backdrop-filter: blur(4px);
   }
 
@@ -4273,7 +4286,8 @@ input[type="number"] {
 
   .elg-filterbar:not(.elg-reports-filterbar)>.elg-select,
   .elg-filterbar:not(.elg-reports-filterbar)>.elg-rangefield,
-  .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-field {
+  .elg-filterbar:not(.elg-reports-filterbar)>.elg-date-field,
+  .elg-filterbar-actions {
     display: none !important;
   }
 

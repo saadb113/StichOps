@@ -133,7 +133,7 @@ export default function Dashboard() {
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Ready to Invoice</span><span className="elg-metric-icon"><img src="/images/todays-invoice.svg" alt="" /></span></div>
           <div className="elg-metric-value">{pendingReview}</div>
-          <div className="elg-metric-sub">Completed, not yet invoiced</div>
+          <div className="elg-metric-sub">Completed to send customers</div>
         </div>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Income</span><span className="elg-metric-icon"><img src="/images/revenue.svg" alt="" /></span></div>

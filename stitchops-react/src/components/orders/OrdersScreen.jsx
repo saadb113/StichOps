@@ -11,7 +11,7 @@ import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
-import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon } from '../icons/Icon';
+import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -44,17 +44,25 @@ export default function OrdersScreen() {
   // — otherwise the badge points at orders the date filter is hiding.
   const isNeedsAttention = (o) => o.status === 'Pending' || o.status === 'Rush';
 
-  let list = orders.slice();
-  if (from) list = list.filter((o) => o.date >= from || isNeedsAttention(o));
-  if (to) list = list.filter((o) => o.date <= to || isNeedsAttention(o));
-  if (currency) list = list.filter((o) => o.currency === currency);
-  if (status) list = list.filter((o) => o.status === status);
+  // The overview cards summarize the same date/currency/search-filtered set
+  // the table shows, but never the status dropdown — picking a status to
+  // narrow the table shouldn't zero out the other cards' counts.
+  let statsBase = orders.slice();
+  if (from) statsBase = statsBase.filter((o) => o.date >= from || isNeedsAttention(o));
+  if (to) statsBase = statsBase.filter((o) => o.date <= to || isNeedsAttention(o));
+  if (currency) statsBase = statsBase.filter((o) => o.currency === currency);
   if (search) {
-    list = list.filter((o) => {
+    statsBase = statsBase.filter((o) => {
       const c = getCustomer(o.customerId);
       return matchesSearch(search, o.name, c?.company, c?.name, c?.salesperson);
     });
   }
+  const rushCount = statsBase.filter((o) => o.status === 'Rush').length;
+  const pendingCount = statsBase.filter((o) => o.status === 'Pending').length;
+  const onHoldCount = statsBase.filter((o) => o.status === 'On hold').length;
+  const completedCount = statsBase.filter((o) => o.status === 'Completed').length;
+
+  let list = status ? statsBase.filter((o) => o.status === status) : statsBase;
   list = list.sort((a, b) => {
     // Rush, then Pending, are pinned above everything else regardless of
     // date. Every other status shares one rank so the rest of the list
@@ -108,18 +116,20 @@ export default function OrdersScreen() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search order or customer" value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
-        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
-        <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">All Status</option>
-          {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-          <option value="">All Currencies</option>
-          {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-        </select>
-        <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
-          <PlusIcon /> Add Order
-        </button>
+        <div className="elg-filterbar-actions">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
+          <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">All Status</option>
+            {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            <option value="">All Currencies</option>
+            {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+          </select>
+          <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
+            <PlusIcon /> Add Order
+          </button>
+        </div>
         <button
           className="elg-mobile-filter-btn"
           title="Filter"
@@ -143,6 +153,28 @@ export default function OrdersScreen() {
       <div className="elg-mobile-filter-chips">
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
         {currency && <span className="elg-mobile-filter-chip">{currency} {SYM[currency]}<button onClick={() => setCurrency('')}>&times;</button></span>}
+      </div>
+      <div className="elg-metric-grid">
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Total Orders</span><span className="elg-metric-icon"><img src="/images/todays-order.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{statsBase.length}</div>
+          <div className="elg-metric-sub">Across all currencies</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Rush Orders</span><span className="elg-metric-icon"><img src="/images/rush-orders.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{rushCount}</div>
+          <div className="elg-metric-sub">Needs urgent attention</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Pending / On Hold Orders</span><span className="elg-metric-icon"><img src="/images/pending-orders.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{pendingCount + onHoldCount}</div>
+          <div className="elg-metric-sub">{pendingCount} pending &amp; {onHoldCount} on hold</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Completed Orders</span><span className="elg-metric-icon"><img src="/images/completed-orders.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{completedCount}</div>
+          <div className="elg-metric-sub">Across all currencies</div>
+        </div>
       </div>
 
       <div className="elg-mobile-cards">
@@ -184,7 +216,7 @@ export default function OrdersScreen() {
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
-          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th style={{minWidth : "150px"}}>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th>Actions</th></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={8} className="elg-empty">No orders match these filters.</td></tr>}
             {list.map((o) => {

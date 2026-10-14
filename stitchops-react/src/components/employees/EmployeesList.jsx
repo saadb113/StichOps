@@ -337,7 +337,7 @@ export default function EmployeesList() {
               {category === 'Salesperson' && <th>Base Salary</th>}
               <th>Payout Day</th>
               <th>Unpaid Earnings</th>
-              <th style={{minWidth : "150px"}}>Action</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>

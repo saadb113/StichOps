@@ -10,7 +10,7 @@ import ConfirmMarkPaidModal from './ConfirmMarkPaidModal';
 import SelectBankAccountModal from '../customers/SelectBankAccountModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import RangeDateField from '../common/RangeDateField';
-import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon } from '../icons/Icon';
+import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon, DocIcon, CheckIcon, WarningIcon, ClockIcon } from '../icons/Icon';
 
 function invoiceBadgeInfo(inv) {
   const pb = paymentBadge(inv);
@@ -43,14 +43,25 @@ export default function InvoicesScreen() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  let list = invoices.filter((i) => i.status === 'approved');
+  // The overview cards summarize the same date/currency/search-filtered set
+  // the table shows, but never the status dropdown — picking a status to
+  // narrow the table shouldn't zero out the other cards' counts.
+  let statsBase = invoices.filter((i) => i.status === 'approved');
   if (dueToday) {
     const dueCustomerIds = new Set(customers.filter((c) => isInvoiceNotificationDay(c.invoiceDay)).map((c) => c.id));
-    list = list.filter((i) => dueCustomerIds.has(i.customerId));
+    statsBase = statsBase.filter((i) => dueCustomerIds.has(i.customerId));
   }
-  if (from) list = list.filter((i) => i.generatedDate >= from);
-  if (to) list = list.filter((i) => i.generatedDate <= to);
-  if (currency) list = list.filter((i) => i.currency === currency);
+  if (from) statsBase = statsBase.filter((i) => i.generatedDate >= from);
+  if (to) statsBase = statsBase.filter((i) => i.generatedDate <= to);
+  if (currency) statsBase = statsBase.filter((i) => i.currency === currency);
+  if (search) {
+    statsBase = statsBase.filter((i) => { const c = getCustomer(i.customerId); return matchesSearch(search, i.invoiceNo, c?.company, c?.name, c?.salesperson); });
+  }
+  const paidCount = statsBase.filter((i) => paymentBadge(i).label === 'Paid').length;
+  const overdueCount = statsBase.filter((i) => paymentBadge(i).cls === 'b-unpaid').length;
+  const unpaidCount = statsBase.length - paidCount;
+
+  let list = statsBase;
   if (status) {
     list = list.filter((i) => {
       const pb = paymentBadge(i);
@@ -61,10 +72,7 @@ export default function InvoicesScreen() {
       return true;
     });
   }
-  if (search) {
-    list = list.filter((i) => { const c = getCustomer(i.customerId); return matchesSearch(search, i.invoiceNo, c?.company, c?.name, c?.salesperson); });
-  }
-  list = list.sort((a, b) => b.id - a.id);
+  list = list.slice().sort((a, b) => b.id - a.id);
 
   async function handleToggle(inv) {
     // Marking an invoice Paid is a billing event — confirm it first. Reverting
@@ -139,18 +147,20 @@ export default function InvoicesScreen() {
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           <input placeholder="Search invoices or customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
-        <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">All Status</option>
-          <option value="Paid">Paid</option>
-          <option value="Pending">Pending (under 1 month)</option>
-          <option value="Overdue1">Unpaid — 1 month</option>
-          <option value="Overdue2">Unpaid — 2+ months</option>
-        </select>
-        <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-          <option value="">All Currencies</option>
-          {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
-        </select>
+        <div className="elg-filterbar-actions">
+          <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
+          <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending (under 1 month)</option>
+            <option value="Overdue1">Unpaid — 1 month</option>
+            <option value="Overdue2">Unpaid — 2+ months</option>
+          </select>
+          <select className="elg-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            <option value="">All Currencies</option>
+            {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
+          </select>
+        </div>
         <button
           className="elg-mobile-filter-btn"
           title="Filter"
@@ -179,6 +189,29 @@ export default function InvoicesScreen() {
       <div className="elg-mobile-filter-chips">
         {status && <span className="elg-mobile-filter-chip">{status}<button onClick={() => setStatus('')}>&times;</button></span>}
         {currency && <span className="elg-mobile-filter-chip">{currency}<button onClick={() => setCurrency('')}>&times;</button></span>}
+      </div>
+
+      <div className="elg-metric-grid">
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Total Invoices</span><span className="elg-metric-icon"><img src="/images/todays-invoice.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{statsBase.length}</div>
+          <div className="elg-metric-sub">Across all currencies</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Paid Invoices</span><span className="elg-metric-icon"><img src="/images/paid-invoices.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{paidCount}</div>
+          <div className="elg-metric-sub">Across all currencies</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Unpaid Invoices</span><span className="elg-metric-icon"><img src="/images/unpaid-invoices.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{unpaidCount}</div>
+          <div className="elg-metric-sub">Pending or overdue</div>
+        </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Overdue Invoices</span><span className="elg-metric-icon"><img src="/images/overdue-invoices.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{overdueCount}</div>
+          <div className="elg-metric-sub">Across all currencies</div>
+        </div>
       </div>
 
       <div className="elg-mobile-cards">
@@ -222,7 +255,7 @@ export default function InvoicesScreen() {
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
-          <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Currency</th><th>Price</th><th>Status</th><th style={{minWidth : "150px"}}>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Currency</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
             {list.map((i) => {

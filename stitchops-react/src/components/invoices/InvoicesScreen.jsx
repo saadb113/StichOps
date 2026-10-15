@@ -261,11 +261,6 @@ export default function InvoicesScreen() {
           <div className="elg-metric-value">{overdueCount}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
-        <div className="elg-metric-card">
-          <div className="elg-metric-head"><span className="elg-metric-label">Outstanding</span><span className="elg-metric-icon"><img src="/images/unpaid-invoices.svg" alt="" /></span></div>
-          <div className="elg-metric-value">{outstandingHasUnknownRate ? '—' : fmt(outstandingConverted, defaultCurrency)}</div>
-          <div className="elg-metric-sub">Unpaid, in {defaultCurrency}</div>
-        </div>
       </div>
 
       <div className="elg-panel" style={{ padding: '14px 20px', marginBottom: 16 }}>

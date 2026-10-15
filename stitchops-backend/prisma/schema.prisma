@@ -264,6 +264,15 @@ model Invoice {
   bankAccountId Int?
   bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
 
+  // Filled in by the Mark-as-Paid popup: when/how the customer actually paid.
+  paidDate      DateTime? @db.Date
+  paymentMethod String?
+  paymentNote   String?
+
+  // Manual payment reminders emailed to the customer (routes/invoices.js).
+  lastReminderAt DateTime?
+  reminderCount  Int       @default(0)
+
   orders Order[]
 
   createdAt DateTime @default(now())
@@ -334,4 +343,16 @@ model Notification {
   employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   read       Boolean   @default(false)
   createdAt  DateTime  @default(now())
+}
+
+// Month-level extra costs entered on the Reports page (rent, tools, ...).
+// Amounts are in the company default currency; month is "YYYY-MM".
+model Expense {
+  id        Int      @id @default(autoincrement())
+  month     String
+  label     String
+  amount    Float
+  createdAt DateTime @default(now())
+
+  @@index([month])
 }

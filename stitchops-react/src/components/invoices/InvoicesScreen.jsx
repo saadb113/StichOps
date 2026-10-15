@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { paymentBadge, isInvoiceNotificationDay, matchesSearch } from '../../lib/helpers';
+import { paymentBadge, isInvoiceNotificationDay, matchesSearch, fmt, convertToDefault } from '../../lib/helpers';
 import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
@@ -24,7 +24,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, orders, customers, company, bankAccounts, getCustomer, togglePaymentStatus, setInvoiceBankAccount } = useAppState();
+  const { invoices, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +61,36 @@ export default function InvoicesScreen() {
   const overdueCount = statsBase.filter((i) => paymentBadge(i).cls === 'b-unpaid').length;
   const unpaidCount = statsBase.length - paidCount;
 
+  // Outstanding = everything not yet paid, kept per currency (each customer
+  // is billed in their own currency) plus one converted total.
+  const outstandingByCcy = {};
+  statsBase.filter((i) => paymentBadge(i).label !== 'Paid').forEach((i) => {
+    outstandingByCcy[i.currency] = (outstandingByCcy[i.currency] || 0) + i.total;
+  });
+  const defaultCurrency = company?.defaultCurrency || 'PKR';
+  let outstandingConverted = 0;
+  let outstandingHasUnknownRate = false;
+  Object.entries(outstandingByCcy).forEach(([cc, v]) => {
+    const converted = convertToDefault(v, cc, currencyRates || [], defaultCurrency);
+    if (converted == null) outstandingHasUnknownRate = true;
+    else outstandingConverted += converted;
+  });
+
+  // Month quick-filter: choosing a month sets the date range to that whole
+  // month, so the table and every card above follow it.
+  const monthKeys = [...new Set(invoices.filter((i) => i.status === 'approved').map((i) => i.generatedDate.slice(0, 7)))].sort().reverse();
+  const monthLabel = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const lastDayOf = (key) => {
+    const [y, m] = key.split('-').map(Number);
+    return key + '-' + String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0');
+  };
+  const selectedMonth = monthKeys.find((k) => from === k + '-01' && to === lastDayOf(k)) || '';
+  function handleMonthChange(key) {
+    if (!key) { setFrom(''); setTo(''); return; }
+    setFrom(key + '-01');
+    setTo(lastDayOf(key));
+  }
+
   let list = statsBase;
   if (status) {
     list = list.filter((i) => {
@@ -89,6 +119,21 @@ export default function InvoicesScreen() {
     } catch (e) {
       toast(e.message);
     }
+  }
+
+  async function handleRemind(inv) {
+    try {
+      await sendInvoiceReminder(inv.id);
+      const c = getCustomer(inv.customerId);
+      toast('Reminder for ' + inv.invoiceNo + ' sent to ' + (c?.email || 'the customer') + '.');
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function paidInfo(inv) {
+    if (inv.paymentStatus !== 'Completed') return '';
+    return [inv.paidDate, inv.paymentMethod].filter(Boolean).join(' · ');
   }
 
   function invoiceBankAccount(inv) {
@@ -149,6 +194,10 @@ export default function InvoicesScreen() {
         </div>
         <div className="elg-filterbar-actions">
           <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
+          <select className="elg-select" value={selectedMonth} onChange={(e) => handleMonthChange(e.target.value)}>
+            <option value="">All Months</option>
+            {monthKeys.map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
+          </select>
           <select className="elg-select" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All Status</option>
             <option value="Paid">Paid</option>
@@ -212,6 +261,20 @@ export default function InvoicesScreen() {
           <div className="elg-metric-value">{overdueCount}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
+        <div className="elg-metric-card">
+          <div className="elg-metric-head"><span className="elg-metric-label">Outstanding</span><span className="elg-metric-icon"><img src="/images/unpaid-invoices.svg" alt="" /></span></div>
+          <div className="elg-metric-value">{outstandingHasUnknownRate ? '—' : fmt(outstandingConverted, defaultCurrency)}</div>
+          <div className="elg-metric-sub">Unpaid, in {defaultCurrency}</div>
+        </div>
+      </div>
+
+      <div className="elg-panel" style={{ padding: '14px 20px', marginBottom: 16 }}>
+        <div className="elg-section-title" style={{ marginBottom: 10 }}>Outstanding by currency</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 28px', fontSize: 14, color: 'var(--elg-ink)' }}>
+          {CUSTOMER_CURRENCIES.map((cc) => (
+            <span key={cc}><span style={{ color: 'var(--elg-ink-3)' }}>{cc}</span> <strong style={{ fontWeight: 500 }}>{fmt(outstandingByCcy[cc] || 0, cc)}</strong></span>
+          ))}
+        </div>
       </div>
 
       <div className="elg-mobile-cards">
@@ -239,6 +302,9 @@ export default function InvoicesScreen() {
                       <button onClick={() => { setOpenMenuId(null); openBankModal(i); }}>
                         Select Bank
                       </button>
+                      {i.paymentStatus !== 'Completed' && (
+                        <button onClick={() => { setOpenMenuId(null); handleRemind(i); }}>Send Reminder</button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -268,7 +334,11 @@ export default function InvoicesScreen() {
                   <td className="clickable" onClick={() => navigate(`/customers/${i.customerId}`)}>{c ? c.company : '—'}</td>
                   <td>{i.currency}</td>
                   <td>{i.total.toFixed(2)}</td>
-                  <td><span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title="Click to toggle Paid/Unpaid">{bi.label}</span></td>
+                  <td>
+                    <span className={`elg-badge clickable ${bi.cls}`} onClick={() => handleToggle(i)} title={i.paymentNote || 'Click to toggle Paid/Unpaid'}>{bi.label}</span>
+                    {paidInfo(i) && <div style={{ fontSize: 11.5, color: 'var(--elg-ink-3)', marginTop: 4 }}>{paidInfo(i)}</div>}
+                    {i.paymentStatus !== 'Completed' && i.reminderCount > 0 && <div style={{ fontSize: 11.5, color: 'var(--elg-ink-3)', marginTop: 4 }}>Reminded {i.reminderCount}x</div>}
+                  </td>
                   <td>
                     <div className="elg-row-actions">
                       <button className="elg-icon-sq" title="Download" onClick={() => handleDownload(i)}><img src="/images/download-invoice.svg"/></button>
@@ -281,6 +351,9 @@ export default function InvoicesScreen() {
                           <button onClick={() => { setOpenMenuId(null); openBankModal(i); }}>
                             Select Bank
                           </button>
+                          {i.paymentStatus !== 'Completed' && (
+                            <button onClick={() => { setOpenMenuId(null); handleRemind(i); }}>Send Reminder</button>
+                          )}
                         </div>
                       )}
                     </div>

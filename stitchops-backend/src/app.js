@@ -18,6 +18,7 @@ const bankAccountRoutes = require('./routes/bankAccounts');
 const currencyRateRoutes = require('./routes/currencyRates');
 const metaRoutes = require('./routes/meta');
 const notificationRoutes = require('./routes/notifications');
+const expenseRoutes = require('./routes/expenses');
 const systemDataRoutes = require('./routes/systemData');
 const { UPLOAD_DIR } = require('./lib/upload');
 
@@ -45,6 +46,7 @@ app.use('/api/currency-rates', currencyRateRoutes);
 app.use('/api/meta', metaRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/system-data', systemDataRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

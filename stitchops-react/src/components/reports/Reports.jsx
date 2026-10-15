@@ -7,6 +7,7 @@ import {SYMIcon, SYM, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { CalendarIcon, BagIcon, CoinIcon } from '../icons/Icon';
 import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
 import RangeDateField from '../common/RangeDateField';
+import MonthlyReport from './MonthlyReport';
 
 const ORDER_CURRENCIES = CUSTOMER_CURRENCIES;
 
@@ -264,6 +265,8 @@ export default function Reports() {
         </table>
         </div>
       </div>
+
+      <MonthlyReport />
     </div>
   );
 }

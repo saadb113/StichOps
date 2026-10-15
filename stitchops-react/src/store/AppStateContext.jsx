@@ -194,10 +194,15 @@ export function AppStateProvider({ children }) {
   // Invoices are no longer approved manually from here — the backend bundles
   // each customer's completed orders into one auto-approved invoice on the
   // 1st of the month (see stitchops-backend/src/lib/monthlyInvoicing.js).
-  async function togglePaymentStatus(id) {
-    const updated = await api.patch(`/invoices/${id}/payment`);
+  async function togglePaymentStatus(id, details) {
+    const updated = await api.patch(`/invoices/${id}/payment`, details || {});
     await refreshInvoices();
     return updated.paymentStatus;
+  }
+  async function sendInvoiceReminder(id) {
+    const updated = await api.post(`/invoices/${id}/remind`);
+    await refreshInvoices();
+    return updated;
   }
   async function setInvoiceBankAccount(id, bankAccountId) {
     const updated = await api.patch(`/invoices/${id}/bank-account`, { bankAccountId });
@@ -513,7 +518,7 @@ export function AppStateProvider({ children }) {
     // mutators
     addCustomer, updateCustomer, setCustomerStatus, deleteCustomer,
     addOrder, updateOrder, deleteOrder, softDeleteOrder, setOrderStatus, addComment,
-    togglePaymentStatus, setInvoiceBankAccount,
+    togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount,
     approveSlip, toggleCustomerEarningsPaid, togglePayslipPayment,
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, createLogin, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,

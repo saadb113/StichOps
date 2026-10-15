@@ -23,7 +23,7 @@
                            content above is short */
     margin: 40px auto;
     background: #fff;
-    padding: 40px 48px 32px;
+    padding: 28px 40px 20px;
     display: flex;
     flex-direction: column;
   }
@@ -33,7 +33,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
   .invoice-logo {
@@ -54,7 +54,7 @@
   }
 
   .invoice-no {
-    font-family: Georgia, "STK Bureau Serif", serif;
+    font-family: "STK Bureau Serif", Georgia, serif;
     font-size: 22px;
     font-weight: 400;
     color: #191919;
@@ -72,7 +72,7 @@
 
   /* ---------- section title + label/value rows ---------- */
   .invoice-section-title {
-    font-family: Georgia, "STK Bureau Serif", serif;
+    font-family: "STK Bureau Serif", Georgia, serif;
     font-size: 14px;
     font-weight: 400;
     margin-bottom: 8px;
@@ -101,7 +101,7 @@
   .invoice-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 24px;
+    margin-bottom: 41px;
     font-size: 13px;
   }
 
@@ -115,7 +115,7 @@
     color: #5C5C5C;
     font-weight: 600;
     text-align: left;
-    padding: 12px 14px;
+    padding: 7px 14px;
     font-size: 12px;
   }
   
@@ -130,7 +130,7 @@
   }
 
   .invoice-table tbody td {
-    padding: 12px 14px;
+    padding: 8px 14px;
     color: #191919;
   }
 
@@ -139,7 +139,7 @@
   }
 
   .invoice-table tfoot .invoice-total-row td {
-    padding: 14px 14px 4px;
+    padding: 10px 14px 2px;
     border-top: 1px solid #DEDEDE;
     font-weight: 500;
     font-size: 15px;
@@ -154,8 +154,8 @@
     background: #F9F9F9;
     border: 1px solid #E8E8E8;
     border-radius: 8px;
-    padding: 15px 16px;
-    margin-bottom: 28px;
+    padding: 12px 16px;
+    margin-bottom: 39px;
   }
 
   /* ---------- thank you ---------- */
@@ -165,7 +165,7 @@
   }
 
   .invoice-thank-you-title {
-    font-family: Georgia, "STK Bureau Serif", serif;
+    font-family: "STK Bureau Serif", Georgia, serif;
     font-size: 16px;
     font-weight: 400;
     margin-bottom: 6px;
@@ -180,10 +180,10 @@
   }
 
   /* ---------- footer ---------- */
-  /* Thank You + footer always sit at the very bottom of the LAST page only
-     (invoicePdf.js paginates and attaches this block to the final page). */
+  /* Thank You + footer sit at the bottom of the (single) page. */
   .invoice-closing {
     margin-top: auto;
+    padding-top: 4px;
   }
 
   .invoice-doc > * {
@@ -192,7 +192,7 @@
 
   .invoice-footer {
     border-top: 1px solid #E5E5E5;
-    padding-top: 16px;
+    padding-top: 12px;
     text-align: center;
     font-size: 12px;
     color: #383838;

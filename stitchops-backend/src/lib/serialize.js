@@ -99,7 +99,12 @@ function serializeInvoice(invoice) {
     generatedDate: toDateOnlyString(invoice.generatedDate),
     approvedDate: toDateOnlyString(invoice.approvedDate),
     paymentStatus: invoice.paymentStatus,
-    bankAccountId: invoice.bankAccountId
+    bankAccountId: invoice.bankAccountId,
+    paidDate: invoice.paidDate ? toDateOnlyString(invoice.paidDate) : null,
+    paymentMethod: invoice.paymentMethod,
+    paymentNote: invoice.paymentNote,
+    lastReminderAt: invoice.lastReminderAt ? invoice.lastReminderAt.toISOString() : null,
+    reminderCount: invoice.reminderCount
   };
 }
 

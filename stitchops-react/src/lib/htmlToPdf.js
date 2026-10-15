@@ -17,11 +17,10 @@ async function loadTemplate(path) {
   return templateCache[path];
 }
 
-// `paginate(root)` is optional: when given, it splits the populated root into
-// an array of fixed-height page elements (already attached to the same
-// container), and each one becomes exactly one PDF page. Without it the root
-// is rasterized once and sliced at page height (used by the payslip).
-export async function renderTemplateToPdf({ templatePath, rootSelector, populate, paginate, filename }) {
+// `singlePage`: the PDF page keeps A4 width but takes whatever height the
+// content needs — one continuous page, never split. Without it the root is
+// rasterized once and sliced at A4 page height (used by the payslip).
+export async function renderTemplateToPdf({ templatePath, rootSelector, populate, singlePage, filename }) {
   const html = await loadTemplate(templatePath);
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const styleText = [...parsed.querySelectorAll('style')].map((s) => s.textContent).join('\n');
@@ -42,6 +41,19 @@ export async function renderTemplateToPdf({ templatePath, rootSelector, populate
 
   populate(root);
 
+  // Web fonts load lazily — make sure the serif/sans faces are ready or the
+  // rasterized PDF silently falls back to a system font.
+  if (document.fonts) {
+    try {
+      await Promise.all([
+        document.fonts.load('22px "STK Bureau Serif"'),
+        document.fonts.load('12px "Inter Display"'),
+        document.fonts.load('600 12px "Inter Display"')
+      ]);
+      await document.fonts.ready;
+    } catch { /* fall back to whatever is available */ }
+  }
+
   const img = root.querySelector('img');
   if (img && !img.complete) {
     await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
@@ -52,14 +64,12 @@ export async function renderTemplateToPdf({ templatePath, rootSelector, populate
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    if (paginate) {
-      const pages = paginate(root);
-      for (let i = 0; i < pages.length; i += 1) {
-        const pageCanvas = await html2canvas(pages[i], { scale: 2, backgroundColor: '#ffffff', useCORS: true });
-        if (i > 0) pdf.addPage();
-        pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, pageHeight);
-      }
-      pdf.save(filename);
+    if (singlePage) {
+      const pageCanvas = await html2canvas(root, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const fullHeight = (pageCanvas.height * pageWidth) / pageCanvas.width;
+      const single = new jsPDF({ unit: 'pt', format: [pageWidth, fullHeight] });
+      single.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageWidth, fullHeight);
+      single.save(filename);
       return;
     }
 

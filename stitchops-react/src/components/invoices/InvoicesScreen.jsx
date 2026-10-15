@@ -262,16 +262,6 @@ export default function InvoicesScreen() {
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
       </div>
-
-      <div className="elg-panel" style={{ padding: '14px 20px', marginBottom: 16 }}>
-        <div className="elg-section-title" style={{ marginBottom: 10 }}>Outstanding by currency</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 28px', fontSize: 14, color: 'var(--elg-ink)' }}>
-          {CUSTOMER_CURRENCIES.map((cc) => (
-            <span key={cc}><span style={{ color: 'var(--elg-ink-3)' }}>{cc}</span> <strong style={{ fontWeight: 500 }}>{fmt(outstandingByCcy[cc] || 0, cc)}</strong></span>
-          ))}
-        </div>
-      </div>
-
       <div className="elg-mobile-cards">
         {list.length === 0 && <div className="elg-empty">No invoices match these filters.</div>}
         {list.map((i) => {

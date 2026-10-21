@@ -22,6 +22,15 @@ export function matchesSearch(query, ...fields) {
   return fields.some((f) => f && (' ' + normSearch(f)).includes(' ' + q));
 }
 
+// Displays a stored YYYY-MM-DD date as "04 Oct 2026" wherever a date is
+// shown to users (tables, cards) instead of the raw ISO string.
+export function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00.000Z');
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
 export function fmt(amount, ccy) {
   return SYM[ccy] + ' ' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

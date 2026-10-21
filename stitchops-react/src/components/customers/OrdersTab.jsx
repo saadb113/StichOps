@@ -1,11 +1,11 @@
 import { Fragment, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
+import { fmt, convertToDefault, formatDate } from '../../lib/helpers';
 import { ORDER_STATUSES } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
-import { PencilIcon, KebabIcon, MessageIcon, CoinIcon, CalendarIcon, PersonIcon, DocIcon } from '../icons/Icon';
+import { PencilIcon, KebabIcon, MessageIcon, CalendarIcon, PersonIcon, DocIcon } from '../icons/Icon';
 
 function statusPillStyle(status) {
   const map = {
@@ -71,7 +71,6 @@ export default function OrdersTab({ customer, orders: rawOrders }) {
       <div className="elg-mobile-cards">
         {orders.map((o) => {
           const prodCostConverted = convertToDefault(o.productionCost, o.productionCostCurrency || o.currency, currencyRates, defaultCurrency);
-          const commissionConverted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
           return (
             <div key={o.id} className="elg-mobile-card">
               <div className="elg-mobile-card-head">
@@ -94,11 +93,7 @@ export default function OrdersTab({ customer, orders: rawOrders }) {
                   </div>
                 )}
               </div>
-              <div className="elg-mobile-card-row">
-                <CoinIcon width={14} height={14} />
-                {commissionConverted == null ? '—' : fmt(commissionConverted, defaultCurrency)} Commission ({o.commissionRate}%)
-              </div>
-              <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{o.date}</div>
+              <div className="elg-mobile-card-row"><CalendarIcon width={14} height={14} />{formatDate(o.date)}</div>
               <div className="elg-mobile-card-2col">
                 <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{o.designer}</div>
                 <div className="elg-mobile-card-row"><DocIcon width={14} height={14} />{prodCostConverted == null ? '—' : fmt(prodCostConverted, defaultCurrency)}</div>
@@ -121,22 +116,20 @@ export default function OrdersTab({ customer, orders: rawOrders }) {
       </div>
       <div className="elg-table-wrap">
       <table className="elg-table">
-        <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. Cost</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Order</th><th>Date</th><th>Price</th><th>Designer</th><th>Prod. Cost</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
           {orders.map((o) => {
             const commentOpen = openCommentId === o.id;
             const count = o.comments.length;
             const prodCostConverted = convertToDefault(o.productionCost, o.productionCostCurrency || o.currency, currencyRates, defaultCurrency);
-            const commissionConverted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
             return (
               <Fragment key={o.id}>
                 <tr>
                   <td>{o.name}</td>
-                  <td>{o.date}</td>
+                  <td>{formatDate(o.date)}</td>
                   <td>{fmt(o.price, o.currency)} {o.currency !== customer.currency && <span style={{ color: 'var(--elg-ink-3)', fontSize: 11 }}>· overridden</span>}</td>
                   <td>{o.designer}</td>
                   <td>{prodCostConverted == null ? '—' : fmt(prodCostConverted, defaultCurrency)}</td>
-                  <td>{commissionConverted == null ? '—' : fmt(commissionConverted, defaultCurrency)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <span
                       className={`elg-badge ${elgStatusClass(o.status)} ${isAdmin ? 'clickable' : ''}`}

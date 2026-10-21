@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { commissionAmt, matchesSearch } from '../../lib/helpers';
+import { matchesSearch, formatDate } from '../../lib/helpers';
 import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
@@ -11,7 +11,7 @@ import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
-import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, CoinIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
+import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -197,8 +197,7 @@ export default function OrdersScreen() {
                   )}
                 </div>
               </div>
-              <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? c.company : '—'}</div>
-              <div className="elg-mobile-card-row"><CoinIcon width={14} height={14} />{SYM[o.currency]}{commissionAmt(o).toFixed(2)} Commission ({o.commissionRate}%)</div>
+              <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? `${c.company} · ${c.name}` : '—'}</div>
               <div className="elg-mobile-card-foot">
                 <span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span>
                 <span className="elg-mobile-card-price">{SYM[o.currency]}{o.price.toFixed(2)}</span>
@@ -216,20 +215,19 @@ export default function OrdersScreen() {
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
-          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Actions</th></tr></thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={8} className="elg-empty">No orders match these filters.</td></tr>}
+            {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
             {list.map((o) => {
               const c = getCustomer(o.customerId);
               return (
                 <tr key={o.id} className="clickable">
-                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.date}</td>
-                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{formatDate(o.date)}</td>
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? `${c.company} · ${c.name}` : '—'}</td>
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
                   <td><span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span></td>
                   <td>{o.currency} {SYM[o.currency]}</td>
                   <td>{o.price.toFixed(2)}</td>
-                  <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                   <td>
                     <div className="elg-row-actions">
                       <button className="elg-icon-sq" title="Edit" onClick={() => openModal(<OrderFormModal customerId={o.customerId} order={o} />, { variant: 'elegant' })}><img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /></button>

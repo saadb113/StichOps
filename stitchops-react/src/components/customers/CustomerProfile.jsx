@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, ordersFor, isActive, commissionAmt, customerOverdueInvoices, paymentBadge, convertToDefault } from '../../lib/helpers';
+import { fmt, ordersFor, isActive, customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
 import OrderFormModal from '../orders/OrderFormModal';
 import CustomerFormModal from './CustomerFormModal';
 import ConfirmDeleteCustomerModal from './ConfirmDeleteCustomerModal';
@@ -20,14 +20,13 @@ function elgStatusClass(status) {
 export default function CustomerProfile() {
   const { customerId } = useParams();
   const id = Number(customerId);
-  const { getCustomer, orders, invoices, isAdmin, company, currencyRates, setCustomerStatus } = useAppState();
+  const { getCustomer, orders, invoices, isAdmin, setCustomerStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('orders');
   const [mobileView, setMobileView] = useState('content');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   useEffect(() => {
     function onDocClick(ev) { if (!ev.target.closest('.elg-row-actions')) setMenuOpen(false); }
@@ -216,15 +215,6 @@ export default function CustomerProfile() {
             <div className="elg-panel-body">
               <div className="elg-kv">
                 <div className="elg-kv-row"><span className="k">Name</span><span className="v">{c.salesperson || 'Unassigned (Company)'}</span></div>
-                <div className="elg-kv-row"><span className="k">Commission</span><span className="v">{(() => {
-                  let total = 0; let unknown = false;
-                  os.forEach((o) => {
-                    const converted = convertToDefault(commissionAmt(o), o.currency, currencyRates, defaultCurrency);
-                    if (converted == null) unknown = true;
-                    else total += converted;
-                  });
-                  return unknown ? '—' : fmt(total, defaultCurrency);
-                })()}</span></div>
               </div>
             </div>
           </div>

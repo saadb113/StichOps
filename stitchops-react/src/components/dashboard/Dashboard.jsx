@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, commissionAmt, isActive, paymentBadge, convertToDefault } from '../../lib/helpers';
+import { fmt, isActive, paymentBadge, convertToDefault } from '../../lib/helpers';
 import { TODAY, SYM } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
@@ -10,7 +10,7 @@ import CustomerFormModal from '../customers/CustomerFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
-import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon, CoinIcon } from '../icons/Icon';
+import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon } from '../icons/Icon';
 
 function greetingFor() {
   const hStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
@@ -173,8 +173,7 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
-                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? c.company : '—'}</div>
-                <div className="elg-mobile-card-row"><CoinIcon width={14} height={14} />{SYM[o.currency]}{commissionAmt(o).toFixed(2)} Commission ({o.commissionRate}%)</div>
+                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? `${c.company} · ${c.name}` : '—'}</div>
                 <div className="elg-mobile-card-foot">
                   <span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span>
                   <span className="elg-mobile-card-price">{SYM[o.currency]}{o.price.toFixed(2)}</span>
@@ -185,19 +184,18 @@ export default function Dashboard() {
         </div>
         <div className="elg-table-wrap">
           <table className="elg-table">
-            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Commission</th><th  style={{minWidth : "150px"}}>Action</th></tr></thead>
+            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th  style={{minWidth : "150px"}}>Action</th></tr></thead>
             <tbody>
-              {recent.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders yet.</td></tr>}
+              {recent.length === 0 && <tr><td colSpan={6} className="elg-empty">No orders yet.</td></tr>}
               {recent.map((o) => {
                 const c = getCustomer(o.customerId);
                 return (
                   <tr key={o.id} className="clickable">
                     <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
-                    <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? c.company : '—'}</td>
+                    <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? `${c.company} · ${c.name}` : '—'}</td>
                     <td><span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span></td>
                     <td>{o.currency}</td>
                     <td>{o.price.toFixed(2)}</td>
-                    <td>{commissionAmt(o).toFixed(2)} <span className="elg-comm-pct">({o.commissionRate}%)</span></td>
                     <td>
                       <div className="elg-row-actions">
                         <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === o.id ? null : o.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>

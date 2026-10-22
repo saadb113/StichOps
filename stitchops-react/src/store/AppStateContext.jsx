@@ -14,6 +14,7 @@ export function AppStateProvider({ children }) {
   const [invoices, setInvoices] = useState([]);
   const [payslips, setPayslips] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [designers, setDesigners] = useState([]);
   const [employeeCategories, setEmployeeCategories] = useState([]);
   const [companyEmails, setCompanyEmails] = useState([]);
   const [company, setCompany] = useState(null);
@@ -36,6 +37,10 @@ export function AppStateProvider({ children }) {
   const refreshInvoices = async () => setInvoices(await api.get('/invoices'));
   const refreshPayslips = async () => setPayslips(await api.get('/payslips'));
   const refreshEmployees = async () => setEmployees(await api.get('/employees'));
+  // Unlike /employees (admin-only, full payroll data), /employees/designers
+  // is just id/name and is available to every logged-in role — it's what
+  // populates the Designer picker on the Add Order form for salespeople too.
+  const refreshDesigners = async () => setDesigners(await api.get('/employees/designers'));
   const refreshEmployeeCategories = async () => setEmployeeCategories(await api.get('/employee-categories'));
   const refreshCompanyEmails = async () => setCompanyEmails(await api.get('/company-emails'));
   const refreshBankAccounts = async () => setBankAccounts(await api.get('/bank-accounts'));
@@ -52,7 +57,7 @@ export function AppStateProvider({ children }) {
     // company + currency rates are needed by both roles — salespeople rely
     // on defaultCurrency to display their own pay/commission figures the
     // same way the admin side does.
-    const tasks = [refreshCustomers(), refreshOrders(), refreshPayslips(), api.get('/company').then(setCompany), refreshCurrencyRates()];
+    const tasks = [refreshCustomers(), refreshOrders(), refreshPayslips(), api.get('/company').then(setCompany), refreshCurrencyRates(), refreshDesigners()];
     if (role === 'admin') {
       tasks.push(
         refreshInvoices(),
@@ -72,7 +77,7 @@ export function AppStateProvider({ children }) {
     setCurrentUser(null);
     setCurrentEmployee(null);
     setCustomers([]); setOrders([]); setInvoices([]); setPayslips([]);
-    setEmployees([]); setEmployeeCategories([]); setCompanyEmails([]);
+    setEmployees([]); setDesigners([]); setEmployeeCategories([]); setCompanyEmails([]);
     setCompany(null); setBankAccounts([]); setCurrencyRates([]);
     setPasswordResetRequests([]); setNotifications([]);
     setNextInvoiceNo(null); setNextCustomerCode(null);
@@ -231,17 +236,17 @@ export function AppStateProvider({ children }) {
   }
   async function addEmployee(data) {
     const result = await api.post('/employees', data);
-    await Promise.all([refreshEmployees(), refreshCompanyEmails()]);
+    await Promise.all([refreshEmployees(), refreshDesigners(), refreshCompanyEmails()]);
     return result; // { employee, credentials, needsEmailWarning }
   }
   async function updateEmployee(id, data) {
     const updated = await api.patch(`/employees/${id}`, data);
-    await Promise.all([refreshEmployees(), refreshCompanyEmails(), refreshCustomers(), refreshOrders()]);
+    await Promise.all([refreshEmployees(), refreshDesigners(), refreshCompanyEmails(), refreshCustomers(), refreshOrders()]);
     return updated;
   }
   async function deleteEmployee(id) {
     await api.delete(`/employees/${id}`);
-    await Promise.all([refreshEmployees(), refreshCompanyEmails()]);
+    await Promise.all([refreshEmployees(), refreshDesigners(), refreshCompanyEmails()]);
   }
   async function uploadEmployeePhoto(id, file) {
     const updated = await api.upload(`/employees/${id}/photo`, file);
@@ -509,7 +514,7 @@ export function AppStateProvider({ children }) {
     // status
     authLoading,
     // data
-    customers, orders, invoices, payslips, employees, employeeCategories,
+    customers, orders, invoices, payslips, employees, designers, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,
     notifications,
     currentUser, isAdmin, isSalesperson, isEmployee, currentEmployee,

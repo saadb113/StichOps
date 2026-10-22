@@ -37,7 +37,7 @@ async function main() {
 
   console.log('Seeding admin-only data...');
 
-  for (const name of ['Salesperson', 'Designers']) {
+  for (const name of ['Salesperson', 'Designer']) {
     await prisma.employeeCategory.upsert({ where: { name }, update: {}, create: { name } });
   }
 

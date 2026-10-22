@@ -22,6 +22,18 @@ router.get('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   res.json(employees.map(serializeEmployee));
 }));
 
+// Salespeople need to pick a designer when creating an order for their own
+// customers, but the full /employees list (salary, commission, etc.) is
+// admin-only — this exposes just id/name for the designer picker.
+router.get('/designers', requireAuth, asyncHandler(async (req, res) => {
+  const designers = await prisma.employee.findMany({
+    where: { role: 'Designer' },
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' }
+  });
+  res.json(designers);
+}));
+
 router.post('/', requireAuth, requireAdmin, validateBody(createEmployeeSchema), asyncHandler(async (req, res) => {
   const body = req.body;
   // Base salary is always reported in the company's default currency —

@@ -109,10 +109,8 @@ function StatusDropdown({ value, onChange }) {
 }
 
 export default function OrderFormModal({ customerId = null, order = null, allowCompanyPicker = false }) {
-  const { customers, employees, company, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
+  const { customers, employees, designers, company, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
   const { closeModal, toast } = useUi();
-
-  const designers = employees.filter((e) => e.role === 'Designer');
   const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const [selectedCustomerId, setSelectedCustomerId] = useState(customerId || '');

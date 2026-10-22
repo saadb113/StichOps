@@ -95,6 +95,11 @@ export default function CustomersList() {
         </div>
         <div className="elg-filterbar-actions">
           <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
+          <select className="elg-select" value={customerType} onChange={(e) => setCustomerType(e.target.value)}>
+            <option value="">All Customer Types</option>
+            <option value="Paid">Paid</option>
+            <option value="Free Trial">Free Trial</option>
+          </select>
           <select className="elg-select" value={status} onChange={(e) => handleStatusChange(e.target.value)}>
             <option value="">All Status</option>
             <option value="Active">Active</option>

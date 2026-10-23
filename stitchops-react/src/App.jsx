@@ -15,6 +15,7 @@ import EmployeesList from './components/employees/EmployeesList';
 import EmployeeProfile from './components/employees/EmployeeProfile';
 import Reports from './components/reports/Reports';
 import CompanySettings from './components/settings/CompanySettings';
+import ImportDataPage from './components/settings/ImportDataPage';
 import MyPayslip from './components/sales/MyPayslip';
 import MyInfo from './components/sales/MyInfo';
 
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="employees/:employeeId" element={<RequireAdmin><EmployeeProfile /></RequireAdmin>} />
         <Route path="reports" element={<RequireAdmin><Reports /></RequireAdmin>} />
         <Route path="settings" element={<RequireAdmin><CompanySettings /></RequireAdmin>} />
+        <Route path="settings/import/:model" element={<RequireAdmin><ImportDataPage /></RequireAdmin>} />
 
         <Route path="my-customers" element={<RequireSalesperson><CustomersList /></RequireSalesperson>} />
         <Route path="my-customers/:customerId" element={<RequireSalesperson><CustomerProfile /></RequireSalesperson>} />

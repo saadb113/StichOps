@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import RangeDateField from '../common/RangeDateField';
-import ImportMappingModal, { ImportResultsModal } from './ImportMappingModal';
+import { useNavigate } from 'react-router-dom';
+import { ImportResultsModal } from './ImportResults';
 
-const IMPORT_ACCEPT = '.xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 const UPLOAD_PAGES = [
   { key: 'employees', label: 'Employees' },
@@ -39,38 +39,13 @@ function DownloadIcon({ color = 'var(--elg-ink-2)' }) {
 }
 
 function UploadRow({ page }) {
-  const { previewImport } = useAppState();
-  const { toast, openModal } = useUi();
-  const [busy, setBusy] = useState(false);
-  const inputRef = useRef(null);
-
-  async function handleFile(file) {
-    if (!file) return;
-    setBusy(true);
-    try {
-      const preview = await previewImport(page.key, file);
-      if (!preview.headers.length) { toast('That file has no header row to map.'); return; }
-      openModal(<ImportMappingModal page={page} file={file} preview={preview} />, { variant: 'elegant' });
-    } catch (e) {
-      toast(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
+  const navigate = useNavigate();
   return (
     <tr>
       <td>{page.label}</td>
       <td style={{ textAlign: 'right' }}>
-        <input
-          ref={inputRef}
-          type="file"
-          accept={IMPORT_ACCEPT}
-          style={{ display: 'none' }}
-          onChange={(e) => { handleFile(e.target.files[0]); e.target.value = ''; }}
-        />
-        <button className="elg-icon-sq" title={`Upload ${page.label}`} disabled={busy} onClick={() => inputRef.current.click()}>
-          <img alt="Add Order" src="/icons/upload-icon.svg" />
+        <button className="elg-icon-sq" title={`Import ${page.label}`} onClick={() => navigate(`/settings/import/${page.key}`)}>
+          <img alt="" src="/icons/upload-icon.svg" />
         </button>
       </td>
     </tr>
@@ -201,7 +176,7 @@ function SmtpSettingsCard() {
         </div>
         <div className="elg-field">
           <label>From (optional)</label>
-          <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={'StitchOps <noreply@yourdomain.com>'} />
+          <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={'ElegantsDesign <noreply@theelegantsdesign.com>'} />
         </div>
       </div>
       <div className="elg-field">

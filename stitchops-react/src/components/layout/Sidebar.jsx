@@ -126,7 +126,7 @@ export default function Sidebar({ open, onNavigate }) {
   return (
     <div id="sidebar" className={`elg-sidebar ${open ? 'open' : ''}`}>
       <div className="elg-logo">
-        <img src={elegantsLogo} alt="StitchOps" />
+        <img src={elegantsLogo} alt="ElegantsDesign" />
         <button className="elg-sidebar-close" onClick={onNavigate} aria-label="Close menu">
 
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">

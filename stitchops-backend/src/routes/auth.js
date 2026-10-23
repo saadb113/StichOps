@@ -83,9 +83,9 @@ router.post('/forgot-password', validateBody(forgotPasswordSchema), asyncHandler
     const resetUrl = `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/reset-password?token=${token}`;
     await mailer.sendMail({
       to: user.email,
-      subject: 'Reset your StitchOps admin password',
+      subject: 'Reset your ElegantsDesign admin password',
       text: `Reset your password: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
-      html: `<p>Click below to reset your StitchOps admin password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in 1 hour. If you didn't request this, ignore this email.</p>`
+      html: `<p>Click below to reset your ElegantsDesign admin password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in 1 hour. If you didn't request this, ignore this email.</p>`
     });
     return res.json({ ok: true, emailSent: true });
   }

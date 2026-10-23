@@ -4827,10 +4827,6 @@ input[type="number"] {
   padding-bottom: 6px;
 }
 /* ---------- Import column mapping ---------- */
-.elg-import-modal {
-  width: min(760px, 100%);
-}
-
 .elg-import-head {
   display: flex;
   align-items: center;
@@ -4857,18 +4853,6 @@ input[type="number"] {
   gap: 10px;
 }
 
-.elg-import-map {
-  max-height: 50vh;
-  overflow-y: auto;
-  border: 1px solid var(--elg-line);
-  border-radius: 8px;
-}
-
-.elg-import-map .elg-select {
-  width: 100%;
-  min-width: 170px;
-}
-
 .elg-import-errors {
   max-height: 220px;
   overflow-y: auto;
@@ -4879,4 +4863,137 @@ input[type="number"] {
   border: 1px solid var(--elg-line);
   border-radius: 8px;
   padding: 10px 12px;
+}
+
+.elg-import-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.elg-import-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--elg-line);
+  border-radius: 999px;
+  background: var(--elg-surface);
+  font-size: 14px;
+  color: var(--elg-ink-3);
+}
+
+.elg-import-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--elg-line);
+  color: var(--elg-ink-2);
+}
+
+.elg-import-step.active {
+  color: var(--elg-ink);
+  border-color: var(--elg-primary);
+}
+
+.elg-import-step.active .elg-import-step-num,
+.elg-import-step.done .elg-import-step-num {
+  background: var(--elg-primary);
+  color: #fff;
+}
+
+.elg-import-drop {
+  border: 2px dashed var(--elg-line);
+  border-radius: 12px;
+  padding: 48px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.elg-import-drop:hover,
+.elg-import-drop.dragging {
+  border-color: var(--elg-primary);
+  background: var(--elg-surface-2, #fafaf8);
+}
+
+.elg-import-filebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--elg-line);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.elg-import-map-list {
+  border: 1px solid var(--elg-line);
+  border-radius: 8px;
+}
+
+.elg-import-map-row {
+  display: grid;
+  grid-template-columns: 1fr 24px minmax(180px, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--elg-line);
+}
+
+.elg-import-map-row:last-child {
+  border-bottom: 0;
+}
+
+.elg-import-map-col {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.elg-import-map-arrow {
+  color: var(--elg-ink-3);
+  text-align: center;
+}
+
+.elg-import-map-row .elg-select {
+  width: 100%;
+}
+
+.elg-import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .elg-import-map-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .elg-import-map-arrow {
+    display: none;
+  }
+
+  .elg-import-step {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .elg-import-actions .elg-btn {
+    flex: 1 1 auto;
+  }
 }

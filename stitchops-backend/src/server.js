@@ -17,5 +17,5 @@ process.on('unhandledRejection', (reason) => {
 const port = process.env.PORT || 4000;
 
 app.listen(port, () => {
-  console.log(`StitchOps API listening on http://localhost:${port}`);
+  console.log(`ElegantsDesign API listening on http://localhost:${port}`);
 });

@@ -137,7 +137,7 @@ export default function Reports() {
   }
 
   const rangeLabel = hasRange ? `${from} to ${to}` : 'All time';
-  const fileStem = `report-${hasRange ? `${from}_${to}` : 'all-time'}`;
+  const fileStem = `ElegantsDesign_report_${hasRange ? `${from}_${to}` : 'all_time'}`;
 
   async function handleDownload() {
     if (!pageRef.current) return;

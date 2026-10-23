@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { IdCardIcon, BankIcon, MailIcon, ArrowLeftIcon, SearchIcon } from '../icons/Icon';
 import CompanyDetailsTab from './CompanyDetailsTab';
@@ -36,7 +37,8 @@ const TABS = [
   { key: 'systemData', label: 'System Data', icon: "./icons/systemData.svg", activeIcon: "./icons/systemDataFilled.svg" }
 ];
 export default function CompanySettings() {
-  const [tab, setTab] = useState('details');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(() => (TABS.some((t) => t.key === searchParams.get('tab')) ? searchParams.get('tab') : 'details'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const activeTab = TABS.find((t) => t.key === tab);

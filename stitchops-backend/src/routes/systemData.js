@@ -25,14 +25,14 @@ router.get('/export/:model', asyncHandler(async (req, res) => {
   if (!MODELS[model]) return res.status(404).json({ error: 'Unknown data page.' });
   const buffer = await exportModel(model, { from: req.query.from, to: req.query.to });
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename="${model}.xlsx"`);
+  res.setHeader('Content-Disposition', `attachment; filename="ElegantsDesign_${model}.xlsx"`);
   res.send(buffer);
 }));
 
 router.get('/export-all', asyncHandler(async (req, res) => {
   const buffer = await exportAll({ from: req.query.from, to: req.query.to });
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', 'attachment; filename="stitchops-data.xlsx"');
+  res.setHeader('Content-Disposition', 'attachment; filename="ElegantsDesign_all_data.xlsx"');
   res.send(buffer);
 }));
 

@@ -85,9 +85,9 @@ router.post('/smtp/test', requireAuth, requireAdmin, validateBody(smtpTestSchema
   try {
     await mailer.sendMail({
       to: req.body.to,
-      subject: 'StitchOps test email',
-      text: 'This is a test email from StitchOps — your SMTP settings are working.',
-      html: '<p>This is a test email from StitchOps — your SMTP settings are working.</p>'
+      subject: 'ElegantsDesign test email',
+      text: 'This is a test email from ElegantsDesign — your SMTP settings are working.',
+      html: '<p>This is a test email from ElegantsDesign — your SMTP settings are working.</p>'
     });
   } catch (e) {
     return res.status(400).json({ error: `Authenticated, but sending failed: ${e.message}` });

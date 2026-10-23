@@ -319,11 +319,11 @@ export function AppStateProvider({ children }) {
   }
   async function exportSystemData(model, range) {
     const blob = await api.download(`/system-data/export/${model}${buildRangeQuery(range)}`);
-    downloadBlob(blob, `${model}.xlsx`);
+    downloadBlob(blob, `ElegantsDesign_${model}.xlsx`);
   }
   async function exportAllSystemData(range) {
     const blob = await api.download(`/system-data/export-all${buildRangeQuery(range)}`);
-    downloadBlob(blob, 'stitchops-data.xlsx');
+    downloadBlob(blob, 'ElegantsDesign_all_data.xlsx');
   }
   async function refreshAfterImport(model) {
     if (model === 'orders') await refreshOrders();

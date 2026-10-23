@@ -329,15 +329,19 @@ export function AppStateProvider({ children }) {
     if (model === 'orders') await refreshOrders();
     else if (model === 'customers') await refreshCustomers();
     else if (model === 'employees') await refreshEmployees();
+    else if (model === 'invoices') await refreshInvoices();
   }
-  async function importSystemData(model, file) {
-    const result = await api.upload(`/system-data/import/${model}`, file);
+  async function previewImport(model, file) {
+    return api.upload(`/system-data/import/${model}/preview`, file);
+  }
+  async function importSystemData(model, file, mapping) {
+    const result = await api.upload(`/system-data/import/${model}`, file, mapping ? { mapping: JSON.stringify(mapping) } : {});
     await refreshAfterImport(model);
     return result;
   }
   async function importAllSystemData(file) {
     const results = await api.upload('/system-data/import-all', file);
-    await Promise.all([refreshOrders(), refreshCustomers(), refreshEmployees()]);
+    await Promise.all([refreshOrders(), refreshCustomers(), refreshEmployees(), refreshInvoices()]);
     return results;
   }
 
@@ -532,7 +536,7 @@ export function AppStateProvider({ children }) {
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
     markNotificationRead, markAllNotificationsRead,
-    exportSystemData, exportAllSystemData, importSystemData, importAllSystemData,
+    exportSystemData, exportAllSystemData, importSystemData, previewImport, importAllSystemData,
     attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, submitAdminRecovery, submitResetPassword, changePassword
   };
 

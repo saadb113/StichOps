@@ -90,9 +90,10 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body: body ?? {} }),
   patch: (path, body) => request(path, { method: 'PATCH', body: body ?? {} }),
   delete: (path) => request(path, { method: 'DELETE' }),
-  upload: (path, file) => {
+  upload: (path, file, fields = {}) => {
     const form = new FormData();
     form.append('file', file);
+    Object.entries(fields).forEach(([k, v]) => form.append(k, v));
     return request(path, { method: 'POST', body: form });
   },
   download: (path) => downloadRequest(path)

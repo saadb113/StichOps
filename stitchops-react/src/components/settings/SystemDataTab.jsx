@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import RangeDateField from '../common/RangeDateField';
+import ImportMappingModal, { ImportResultsModal } from './ImportMappingModal';
+
+const IMPORT_ACCEPT = '.xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 const UPLOAD_PAGES = [
-  { key: 'orders', label: 'Orders' },
+  { key: 'employees', label: 'Employees' },
   { key: 'customers', label: 'Customers' },
-  { key: 'employees', label: 'Employees' }
+  { key: 'invoices', label: 'Invoices' },
+  { key: 'orders', label: 'Orders' }
 ];
 
 const EXPORT_PAGES = [
@@ -35,8 +39,8 @@ function DownloadIcon({ color = 'var(--elg-ink-2)' }) {
 }
 
 function UploadRow({ page }) {
-  const { importSystemData } = useAppState();
-  const { toast } = useUi();
+  const { previewImport } = useAppState();
+  const { toast, openModal } = useUi();
   const [busy, setBusy] = useState(false);
   const inputRef = useRef(null);
 
@@ -44,13 +48,9 @@ function UploadRow({ page }) {
     if (!file) return;
     setBusy(true);
     try {
-      const result = await importSystemData(page.key, file);
-      const parts = [];
-      if (result.created) parts.push(`${result.created} added`);
-      if (result.updated) parts.push(`${result.updated} updated`);
-      if (result.errors?.length) parts.push(`${result.errors.length} failed`);
-      toast(parts.length ? `${page.label}: ${parts.join(', ')}.` : `${page.label}: nothing to import.`);
-      if (result.errors?.length) console.warn(`${page.label} import errors`, result.errors);
+      const preview = await previewImport(page.key, file);
+      if (!preview.headers.length) { toast('That file has no header row to map.'); return; }
+      openModal(<ImportMappingModal page={page} file={file} preview={preview} />, { variant: 'elegant' });
     } catch (e) {
       toast(e.message);
     } finally {
@@ -65,7 +65,7 @@ function UploadRow({ page }) {
         <input
           ref={inputRef}
           type="file"
-          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept={IMPORT_ACCEPT}
           style={{ display: 'none' }}
           onChange={(e) => { handleFile(e.target.files[0]); e.target.value = ''; }}
         />
@@ -239,7 +239,7 @@ function SmtpSettingsCard() {
 
 export default function SystemDataTab() {
   const { importAllSystemData, exportAllSystemData } = useAppState();
-  const { toast } = useUi();
+  const { toast, openModal } = useUi();
   const allFileRef = useRef(null);
   const [uploadingAll, setUploadingAll] = useState(false);
   const [exportingAll, setExportingAll] = useState(false);
@@ -259,16 +259,8 @@ export default function SystemDataTab() {
     try {
       const results = await importAllSystemData(file);
       const keys = Object.keys(results);
-      if (!keys.length) { toast('No matching sheets found — expected Orders, Customers and/or Employees.'); return; }
-      const summary = keys.map((k) => {
-        const r = results[k];
-        const bits = [];
-        if (r.created) bits.push(`${r.created} added`);
-        if (r.updated) bits.push(`${r.updated} updated`);
-        if (r.errors?.length) bits.push(`${r.errors.length} failed`);
-        return `${k}: ${bits.join(', ') || 'no changes'}`;
-      }).join(' · ');
-      toast(summary);
+      if (!keys.length) { toast('No matching sheets found — expected Employees, Customers, Invoices and/or Orders.'); return; }
+      openModal(<ImportResultsModal results={results} />, { variant: 'elegant' });
     } catch (e) {
       toast(e.message);
     } finally {

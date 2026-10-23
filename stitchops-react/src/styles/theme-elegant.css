@@ -1346,6 +1346,144 @@ select::-ms-expand {
   margin-bottom: 12px;
 }
 
+.elg-bonus-deduction-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.elg-report-group {
+  border: 1px solid var(--elg-line);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.elg-report-group > .elg-panel,
+.elg-report-group > .elg-metric-grid {
+  margin: 0;
+}
+
+.elg-report-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.elg-report-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.elg-mobile-only {
+  display: none;
+}
+
+.elg-report-note {
+  font-size: 14px;
+  line-height: 21px;
+  color: #5C5C5C;
+}
+
+@media (max-width: 768px) {
+  .elg-bonus-deduction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .elg-report-group {
+    padding: 12px;
+  }
+
+  .elg-mobile-cards.elg-outstanding-mobile {
+    gap: 0;
+  }
+
+  .elg-desktop-only {
+    display: none !important;
+  }
+
+  .elg-mobile-only {
+    display: inline !important;
+  }
+
+  .elg-report-group .elg-table tbody td{
+    height: 39px;
+    padding-left: 16px;
+  }
+
+  .elg-report-period-btns {
+    display: none !important;
+  }
+
+  .elg-report-group > .elg-reports-filterbar > .elg-rangefield {
+    width: auto !important;
+    align-self: flex-start;
+  }
+
+  .elg-report-group > .elg-reports-filterbar > .elg-rangefield .elg-rangefield-trigger {
+    flex: 0 0 auto;
+  }
+
+  .elg-report-group .elg-ccy-GBP { order: 1; }
+  .elg-report-group .elg-ccy-USD { order: 2; }
+  .elg-report-group .elg-ccy-EUR { order: 3; }
+  .elg-report-group .elg-ccy-AUD { order: 4; }
+
+  /* Inside a report block, sections sit flat on the block with a divider
+     instead of each being its own bordered panel. */
+  .elg-report-flat {
+    background: transparent !important;
+    border: 0 !important;
+    border-top: 1px solid var(--elg-line) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 14px 0 0 !important;
+  }
+
+  .elg-bonus-deduction-grid {
+    gap: 12px;
+  }
+
+  .elg-report-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+  }
+
+  .elg-report-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--elg-line);
+  }
+
+  .elg-report-row:last-child {
+    border-bottom: 0;
+  }
+
+  .elg-revenue-actions {
+    flex: 0 0 auto !important;
+  }
+
+  .elg-revenue-actions .elg-select {
+    flex: 0 0 auto;
+  }
+
+  .elg-report-group-actions,
+  .elg-report-group-actions .elg-btn {
+    flex: 1 1 auto;
+  }
+}
+
 .elg-metric-card {
   background: var(--elg-surface);
   border: 1px solid var(--elg-line);
@@ -4687,4 +4825,58 @@ input[type="number"] {
 .employeeList .elg-table tbody tr.elg-earnings-order-row.elg-earnings-order-last td {
   border-bottom: 1px solid var(--elg-line);
   padding-bottom: 6px;
+}
+/* ---------- Import column mapping ---------- */
+.elg-import-modal {
+  width: min(760px, 100%);
+}
+
+.elg-import-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--elg-line);
+}
+
+.elg-import-close {
+  width: 32px !important;
+  height: 32px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.elg-import-foot {
+  padding: 16px 24px;
+  border-top: 1px solid var(--elg-line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.elg-import-map {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--elg-line);
+  border-radius: 8px;
+}
+
+.elg-import-map .elg-select {
+  width: 100%;
+  min-width: 170px;
+}
+
+.elg-import-errors {
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--elg-red-ink);
+  background: var(--elg-surface-2, #fafaf8);
+  border: 1px solid var(--elg-line);
+  border-radius: 8px;
+  padding: 10px 12px;
 }

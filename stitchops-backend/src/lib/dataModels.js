@@ -56,7 +56,7 @@ const MODELS = {
     label: 'Invoices',
     prismaModel: 'invoice',
     dateField: 'generatedDate',
-    importable: false,
+    importable: true,
     columns: ['id', 'customerId', 'invoiceNo', 'version', 'total', 'currency', 'generatedDate', 'approvedDate', 'paymentStatus']
   },
   customers: {
@@ -132,6 +132,81 @@ const MODELS = {
   }
 };
 
+// Import runs parents before children so foreign keys always resolve
+// (orders need their customer, designer and invoice to exist first).
+const IMPORT_ORDER = ['employees', 'customers', 'invoices', 'orders'];
+
+// Fields offered on the import-mapping screen. `required` is enforced only
+// when a row creates a new record. `aliases` drive auto-matching of file
+// headers. `lookup` fields let a file reference a parent by name/number
+// instead of by internal id — they resolve to `target` on import.
+const IMPORT_FIELDS = {
+  orders: [
+    { key: 'id', label: 'ID' },
+    { key: 'customerId', label: 'Customer ID', required: 'customer' },
+    { key: 'customerName', label: 'Customer (company or code)', lookup: 'customer', target: 'customerId', aliases: ['customer', 'company', 'client', 'customer name', 'customer code'] },
+    { key: 'name', label: 'Order Name', required: true, aliases: ['order', 'order name', 'order title', 'title', 'design', 'description', 'product'] },
+    { key: 'date', label: 'Order Date', required: true, aliases: ['order date', 'created'] },
+    { key: 'price', label: 'Price', required: true, aliases: ['amount', 'order price', 'value'] },
+    { key: 'currency', label: 'Currency', required: true, aliases: ['ccy'] },
+    { key: 'designerId', label: 'Designer ID', required: 'designer' },
+    { key: 'designerName', label: 'Designer (name)', lookup: 'employee', target: 'designerId', aliases: ['designer', 'designer name'] },
+    { key: 'productionCost', label: 'Production Cost', aliases: ['cost', 'production'] },
+    { key: 'productionCostCurrency', label: 'Production Cost Currency' },
+    { key: 'commissionRate', label: 'Commission Rate (%)', aliases: ['commission'] },
+    { key: 'status', label: 'Status', aliases: ['order status'] },
+    { key: 'commissionPaid', label: 'Commission Paid' },
+    { key: 'productionPaid', label: 'Production Paid' },
+    { key: 'invoiceId', label: 'Invoice ID' },
+    { key: 'invoiceNo', label: 'Invoice No.', lookup: 'invoice', target: 'invoiceId', aliases: ['invoice', 'invoice number'] }
+  ],
+  invoices: [
+    { key: 'id', label: 'ID' },
+    { key: 'customerId', label: 'Customer ID', required: 'customer' },
+    { key: 'customerName', label: 'Customer (company or code)', lookup: 'customer', target: 'customerId', aliases: ['customer', 'company', 'client'] },
+    { key: 'invoiceNo', label: 'Invoice No.', required: true, aliases: ['invoice', 'invoice number', 'number'] },
+    { key: 'version', label: 'Version' },
+    { key: 'total', label: 'Total', required: true, aliases: ['amount', 'invoice total'] },
+    { key: 'currency', label: 'Currency', required: true },
+    { key: 'generatedDate', label: 'Generated Date', required: true, aliases: ['date', 'invoice date', 'issued'] },
+    { key: 'approvedDate', label: 'Approved Date', aliases: ['approved'] },
+    { key: 'paymentStatus', label: 'Payment Status', aliases: ['status', 'paid'] }
+  ],
+  customers: [
+    { key: 'id', label: 'ID' },
+    { key: 'customerCode', label: 'Customer Code', aliases: ['code'] },
+    { key: 'name', label: 'Contact Name', required: true, aliases: ['contact name', 'full name', 'customer name', 'first name'] },
+    { key: 'company', label: 'Company', required: true, aliases: ['company name', 'business', 'business name', 'organization'] },
+    { key: 'country', label: 'Country', required: true },
+    { key: 'currency', label: 'Currency', required: true },
+    { key: 'address', label: 'Address', aliases: ['street', 'address 1'] },
+    { key: 'zip', label: 'ZIP / Postcode', aliases: ['postcode', 'postal code', 'zip code'] },
+    { key: 'email', label: 'Email', aliases: ['email address', 'e-mail'] },
+    { key: 'emailClient', label: 'Email Client' },
+    { key: 'contact', label: 'Phone', aliases: ['phone', 'phone number', 'mobile', 'contact number'] },
+    { key: 'salespersonId', label: 'Salesperson ID' },
+    { key: 'salespersonName', label: 'Salesperson (name)', lookup: 'employee', target: 'salespersonId', aliases: ['salesperson', 'sales rep', 'owner', 'assigned to'] },
+    { key: 'receivedEmail', label: 'Received Email' },
+    { key: 'status', label: 'Status' },
+    { key: 'invoiceDay', label: 'Invoice Day' },
+    { key: 'notes', label: 'Notes', aliases: ['note', 'comments'] },
+    { key: 'createdAt', label: 'Created At', aliases: ['created', 'date added'] }
+  ],
+  employees: [
+    { key: 'id', label: 'ID' },
+    { key: 'name', label: 'Name', required: true, aliases: ['full name', 'employee', 'employee name'] },
+    { key: 'role', label: 'Role', required: true, aliases: ['category', 'type'] },
+    { key: 'designation', label: 'Designation', aliases: ['title', 'job title', 'position'] },
+    { key: 'currency', label: 'Currency', required: true },
+    { key: 'baseSalary', label: 'Base Salary', required: true, aliases: ['salary'] },
+    { key: 'payoutDay', label: 'Payout Day', required: true },
+    { key: 'commissionRate', label: 'Commission Rate (%)', aliases: ['commission'] },
+    { key: 'email', label: 'Email', aliases: ['email address'] },
+    { key: 'contact', label: 'Phone', aliases: ['phone', 'mobile', 'contact number'] },
+    { key: 'createdAt', label: 'Created At', aliases: ['created'] }
+  ]
+};
+
 function coerceIn(col, value) {
   if (value === undefined || value === null || value === '') return null;
   const type = TYPES[col];
@@ -157,4 +232,4 @@ function coerceOut(col, value) {
   return value;
 }
 
-module.exports = { MODELS, coerceIn, coerceOut, prisma };
+module.exports = { MODELS, IMPORT_ORDER, IMPORT_FIELDS, coerceIn, coerceOut, prisma };

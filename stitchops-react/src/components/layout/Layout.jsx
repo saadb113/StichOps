@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import MobileBottomNav from './MobileBottomNav';
 import GlobalSearch from './GlobalSearch';
+import ErrorBoundary from '../common/ErrorBoundary';
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,7 +19,9 @@ export default function Layout() {
       <div className="elg-main-content" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
         <TopBar onToggleMenu={() => setMobileMenuOpen((v) => !v)} />
         <div id="main">
-          <Outlet />
+          <ErrorBoundary resetKey={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </div>
       </div>
       <MobileBottomNav menuOpen={mobileMenuOpen} onToggleMenu={() => setMobileMenuOpen((v) => !v)} />

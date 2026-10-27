@@ -24,6 +24,7 @@ async function runCheck() {
   const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)); // last day of previous month
 
   const counter = await prisma.counter.findUnique({ where: { id: 1 } });
+  if (!counter) return;
   if (counter.lastAutoInvoiceRun && counter.lastAutoInvoiceRun.getTime() >= periodStart.getTime()) return;
 
   const customers = await prisma.customer.findMany();

@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: stitchops
       POSTGRES_USER: stitchops
@@ -17,6 +18,13 @@ services:
     build:
       context: ./stitchops-backend
       dockerfile: Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       db:
         condition: service_healthy
@@ -39,6 +47,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_TARGET: http://backend:4000
+    restart: unless-stopped
     depends_on:
       - backend
     expose:
@@ -46,6 +55,7 @@ services:
 
   adminer:
     image: adminer
+    restart: unless-stopped
     depends_on:
       - db
     expose:

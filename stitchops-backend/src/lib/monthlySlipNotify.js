@@ -17,6 +17,7 @@ async function runCheck() {
   const { periodStart } = previousMonthPeriod();
 
   const counter = await prisma.counter.findUnique({ where: { id: 1 } });
+  if (!counter) return;
   if (counter.lastSlipNotifyRun && counter.lastSlipNotifyRun.getTime() >= periodStart.getTime()) return;
 
   const monthLabel = periodStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });

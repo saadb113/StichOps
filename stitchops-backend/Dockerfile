@@ -16,7 +16,8 @@ COPY src ./src
 RUN npx prisma generate
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Strip Windows line endings — a CRLF shebang makes the container fail to start.
+RUN tr -d '\015' < /usr/local/bin/docker-entrypoint.sh > /tmp/ep.sh && mv /tmp/ep.sh /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 4000
 

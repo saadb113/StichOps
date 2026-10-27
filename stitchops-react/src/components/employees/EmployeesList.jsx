@@ -12,6 +12,7 @@ import CustomerFormModal from '../customers/CustomerFormModal';
 import OrderFormModal from '../orders/OrderFormModal';
 import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon, PersonIcon, CoinIcon } from '../icons/Icon';
+import { SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
   const { rejectPasswordReset } = useAppState();
@@ -65,7 +66,7 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
 }
 
 export default function EmployeesList() {
-  const { employees, employeeCategories, orders, customers, company, currencyRates, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
+  const { dataLoading, employees, employeeCategories, orders, customers, company, currencyRates, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
@@ -269,6 +270,7 @@ export default function EmployeesList() {
       </div>
 
       <div className="elg-mobile-cards">
+        {dataLoading ? (<SkeletonMobileCards subtitle twoCol rows={2} foot="row-price" />) : (<>
         {list.length === 0 && (
           <div className="elg-empty" style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--elg-ink)', marginBottom: 4 }}>No employees in {category} yet</div>
@@ -319,6 +321,7 @@ export default function EmployeesList() {
             </div>
           );
         })}
+        </>)}
       </div>
 
       <MobileFab
@@ -341,6 +344,7 @@ export default function EmployeesList() {
             </tr>
           </thead>
           <tbody>
+            {dataLoading ? (<SkeletonRows cols={7} />) : (<>
             {list.length === 0 && (
               <tr>
                 <td colSpan={category === 'Salesperson' ? 7 : 6} className="elg-empty" style={{ textAlign: 'center', padding: '40px 20px' }}>
@@ -391,6 +395,7 @@ export default function EmployeesList() {
                 </tr>
               );
             })}
+            </>)}
           </tbody>
         </table>
       </div>

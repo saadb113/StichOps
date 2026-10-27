@@ -12,6 +12,7 @@ import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
+import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -22,7 +23,7 @@ function elgStatusClass(status) {
 }
 
 export default function OrdersScreen() {
-  const { orders, getCustomer, setOrderStatus } = useAppState();
+  const { dataLoading, orders, getCustomer, setOrderStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -155,6 +156,7 @@ export default function OrdersScreen() {
         {currency && <span className="elg-mobile-filter-chip">{currency} {SYM[currency]}<button onClick={() => setCurrency('')}>&times;</button></span>}
       </div>
       <div className="elg-metric-grid">
+        {dataLoading ? (<SkeletonMetricCards labels={['Total Orders', 'Rush Orders', 'Pending / On Hold Orders', 'Completed Orders']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Orders</span><span className="elg-metric-icon"><img src="/images/todays-order.svg" alt="" /></span></div>
           <div className="elg-metric-value">{statsBase.length}</div>
@@ -175,9 +177,11 @@ export default function OrdersScreen() {
           <div className="elg-metric-value">{completedCount}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
+        </>)}
       </div>
 
       <div className="elg-mobile-cards">
+        {dataLoading ? (<SkeletonMobileCards />) : (<>
         {list.length === 0 && <div className="elg-empty">No orders match these filters.</div>}
         {list.map((o) => {
           const c = getCustomer(o.customerId);
@@ -205,6 +209,7 @@ export default function OrdersScreen() {
             </div>
           );
         })}
+        </>)}
       </div>
 
       <MobileFab
@@ -217,6 +222,7 @@ export default function OrdersScreen() {
         <table className="elg-table">
           <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Actions</th></tr></thead>
           <tbody>
+            {dataLoading ? (<SkeletonRows cols={7} />) : (<>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
             {list.map((o) => {
               const c = getCustomer(o.customerId);
@@ -242,6 +248,7 @@ export default function OrdersScreen() {
                 </tr>
               );
             })}
+            </>)}
           </tbody>
         </table>
       </div>

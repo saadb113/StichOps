@@ -1,9 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
 
-// "Can't reach database server" / "connection closed" — raised before the
-// query runs, so retrying can never apply a write twice. A serverless
-// database (Neon) waking from idle often fails the first attempt like this.
-const RETRYABLE = new Set(['P1001', 'P1002', 'P1017']);
+// "Can't reach database server" / "connection closed" / "timed out waiting
+// for a free pool connection" — all raised before the query runs, so retrying
+// can never apply a write twice. A serverless database (Neon) waking from
+// idle, or a burst of requests, often fails the first attempt like this.
+const RETRYABLE = new Set(['P1001', 'P1002', 'P1017', 'P2024']);
 const DELAYS_MS = [500, 1500, 3000];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

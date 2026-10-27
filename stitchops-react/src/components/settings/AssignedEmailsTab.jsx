@@ -3,6 +3,7 @@ import { useUi } from '../../store/UiContext';
 import { PencilIcon } from '../icons/Icon';
 import AddEmailModal from './AddEmailModal';
 import EditEmailModal from './EditEmailModal';
+import { SkeletonRows } from '../common/Skeleton';
 
 function ConfirmDeleteEmailModal({ email }) {
   const { removeCompanyEmail } = useAppState();
@@ -31,7 +32,7 @@ function ConfirmDeleteEmailModal({ email }) {
 }
 
 export default function AssignedEmailsTab() {
-  const { companyEmails, employees } = useAppState();
+  const { companyEmails, employees, dataLoading } = useAppState();
   const { openModal } = useUi();
 
   function ownersOf(em) {
@@ -46,7 +47,8 @@ export default function AssignedEmailsTab() {
         <table className="elg-table">
           <thead><tr><th>Emails</th><th>Assigned to</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
           <tbody>
-            {companyEmails.length === 0 && <tr><td colSpan={3} className="elg-empty">No emails in the pool yet.</td></tr>}
+            {dataLoading && companyEmails.length === 0 && <SkeletonRows cols={3} rows={4} />}
+            {!dataLoading && companyEmails.length === 0 && <tr><td colSpan={3} className="elg-empty">No emails in the pool yet.</td></tr>}
             {companyEmails.map((em) => {
               const owners = ownersOf(em);
               return (

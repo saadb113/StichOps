@@ -1,9 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppState } from '../store/AppStateContext';
+import { AppShellSkeleton, AuthCardSkeleton } from '../components/common/Skeleton';
 
-function AuthGateLoading() {
-  return <div className="auth-wrap"><div className="auth-card" style={{ textAlign: 'center' }}>Loading…</div></div>;
-}
+const AuthGateLoading = AuthCardSkeleton;
 
 // Salespeople land on their customer list; every other self-service login
 // (Designer, custom team) has no customers of their own, so they land on
@@ -43,7 +42,7 @@ export function WelcomeGate({ children }) {
 export function RequireAuth({ children }) {
   const { currentUser, authLoading } = useAppState();
   const location = useLocation();
-  if (authLoading) return <AuthGateLoading />;
+  if (authLoading) return <AppShellSkeleton />;
   if (!currentUser) return <Navigate to="/login" replace state={{ from: location }} />;
   if (currentUser.mustChangePassword) return <Navigate to="/change-password" replace />;
   if (!currentUser.welcomed) return <Navigate to="/welcome" replace />;

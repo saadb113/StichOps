@@ -5,6 +5,7 @@ import { PHONE_CODES, splitContact, CCY_NAMES } from '../../lib/constants';
 import { EyeIcon, EyeOffIcon, PencilIcon } from '../icons/Icon';
 import ImageUploadBox from '../common/ImageUploadBox';
 import EditCurrencyModal from './EditCurrencyModal';
+import { Sk, SkField, SettingsCardSkeleton, SkeletonRows } from '../common/Skeleton';
 
 export default function CompanyDetailsTab() {
   const { company, currencyRates, updateCompany, uploadCompanyLogo, deleteCompanyLogo, changePassword } = useAppState();
@@ -67,7 +68,35 @@ export default function CompanyDetailsTab() {
     toast('Password changed.');
   }
 
-  if (!company) return null;
+  if (!company) {
+    return (
+      <>
+        <SettingsCardSkeleton title="Upload Image" className="upload-image-card">
+          <Sk h={160} r={12} />
+        </SettingsCardSkeleton>
+        <SettingsCardSkeleton title="Company Details" rows={[['Company Name', 'Address'], ['Company Email', 'Contact Number']]} />
+        <SettingsCardSkeleton title="Currencies">
+          <SkField label="Default Currency" style={{ marginBottom: 20 }} />
+          <div className="elg-table-wrap" style={{ border: '1px solid var(--elg-line)', borderRadius: 8, padding: 10 }}>
+            <table className="elg-table">
+              <thead><tr><th>Currency</th><th>Current Rates</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
+              <tbody><SkeletonRows cols={3} rows={4} /></tbody>
+            </table>
+          </div>
+        </SettingsCardSkeleton>
+        <SettingsCardSkeleton title="Passwords">
+          <div className="elg-field">
+            <label>Current Password</label>
+            <Sk h={46} r={8} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}><Sk w={130} h={14} /></div>
+          </div>
+          <SkField label="New Password" />
+          <SkField label="Confirm Password" />
+          <Sk w={150} h={40} r={8} />
+        </SettingsCardSkeleton>
+      </>
+    );
+  }
 
   return (
     <>

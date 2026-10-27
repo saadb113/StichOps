@@ -11,6 +11,7 @@ import SelectBankAccountModal from '../customers/SelectBankAccountModal';
 import MobileFilterModal from '../layout/MobileFilterModal';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon, DocIcon, CheckIcon, WarningIcon, ClockIcon } from '../icons/Icon';
+import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 function invoiceBadgeInfo(inv) {
   const pb = paymentBadge(inv);
@@ -24,7 +25,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { invoices, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
+  const { dataLoading, invoices, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -194,7 +195,8 @@ export default function InvoicesScreen() {
         </div>
         <div className="elg-filterbar-actions">
           <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} />
-          <select className="elg-select" value={selectedMonth} onChange={(e) => handleMonthChange(e.target.value)}>
+          {/* Fixed width (fits "September 2026") so the filter row doesn't jump when months load. */}
+          <select className="elg-select" style={{ minWidth: 152 }} value={selectedMonth} onChange={(e) => handleMonthChange(e.target.value)}>
             <option value="">All Months</option>
             {monthKeys.map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
           </select>
@@ -241,6 +243,7 @@ export default function InvoicesScreen() {
       </div>
 
       <div className="elg-metric-grid">
+        {dataLoading ? (<SkeletonMetricCards labels={['Total Invoices', 'Paid Invoices', 'Unpaid Invoices', 'Overdue Invoices']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Invoices</span><span className="elg-metric-icon"><img src="/images/todays-invoice.svg" alt="" /></span></div>
           <div className="elg-metric-value">{statsBase.length}</div>
@@ -261,8 +264,10 @@ export default function InvoicesScreen() {
           <div className="elg-metric-value">{overdueCount}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
+        </>)}
       </div>
       <div className="elg-mobile-cards">
+        {dataLoading ? (<SkeletonMobileCards subtitle />) : (<>
         {list.length === 0 && <div className="elg-empty">No invoices match these filters.</div>}
         {list.map((i) => {
           const c = getCustomer(i.customerId);
@@ -302,12 +307,14 @@ export default function InvoicesScreen() {
             </div>
           );
         })}
+        </>)}
       </div>
 
       <div className="elg-panel elg-table-wrap">
         <table className="elg-table">
           <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Currency</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
+            {dataLoading ? (<SkeletonRows cols={7} />) : (<>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
             {list.map((i) => {
               const c = getCustomer(i.customerId);
@@ -346,6 +353,7 @@ export default function InvoicesScreen() {
                 </tr>
               );
             })}
+            </>)}
           </tbody>
         </table>
       </div>

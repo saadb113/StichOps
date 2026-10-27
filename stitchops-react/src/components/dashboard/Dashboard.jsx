@@ -11,6 +11,7 @@ import EmployeeFormModal from '../employees/EmployeeFormModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { PeopleIcon, BagIcon, DocIcon, TrendUpIcon, CalendarIcon, WarningIcon, PencilIcon, KebabIcon, PersonIcon } from '../icons/Icon';
+import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 function greetingFor() {
   const hStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', hour12: false });
@@ -46,7 +47,7 @@ function elgStatusClass(status) {
 }
 
 export default function Dashboard() {
-  const { customers, orders, employees, invoices, passwordResetRequests, company, currencyRates, getCustomer } = useAppState();
+  const { dataLoading, customers, orders, employees, invoices, passwordResetRequests, company, currencyRates, getCustomer } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [from, setFrom] = useState(TODAY);
@@ -120,6 +121,7 @@ export default function Dashboard() {
       )}
 
       <div className="elg-metric-grid">
+        {dataLoading ? (<SkeletonMetricCards labels={['Active Customers', "Today's Orders", 'Ready to Invoice', 'Total Income']} subs={[null, 'Across all currencies', 'Completed to send customers', null]} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Active Customers</span><span className="elg-metric-icon"><img src="/images/active-customer.svg"   alt="" /></span></div>
           <div className="elg-metric-value">{activeCount}</div>
@@ -140,6 +142,7 @@ export default function Dashboard() {
           <div className="elg-metric-value">{totalIncomeStr}</div>
           <div className="elg-metric-sub">{rangeLabel(from, to || refDate)}</div>
         </div>
+        </>)}
       </div>
 
       <div className="elg-hint-line">
@@ -152,6 +155,7 @@ export default function Dashboard() {
           <button className="elg-btn elg-view-all-btn" style={{ width: 'auto' }} onClick={() => navigate('/orders')}>View All</button>
         </div>
         <div className="elg-mobile-cards">
+          {dataLoading ? (<SkeletonMobileCards count={3} />) : (<>
           {recent.length === 0 && <div className="elg-empty">No orders yet.</div>}
           {recent.map((o) => {
             const c = getCustomer(o.customerId);
@@ -181,11 +185,13 @@ export default function Dashboard() {
               </div>
             );
           })}
+          </>)}
         </div>
         <div className="elg-table-wrap">
           <table className="elg-table">
-            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th  style={{minWidth : "150px"}}>Action</th></tr></thead>
+            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Action</th></tr></thead>
             <tbody>
+              {dataLoading ? (<SkeletonRows cols={6} rows={7} />) : (<>
               {recent.length === 0 && <tr><td colSpan={6} className="elg-empty">No orders yet.</td></tr>}
               {recent.map((o) => {
                 const c = getCustomer(o.customerId);
@@ -214,6 +220,7 @@ export default function Dashboard() {
                   </tr>
                 );
               })}
+              </>)}
             </tbody>
           </table>
         </div>

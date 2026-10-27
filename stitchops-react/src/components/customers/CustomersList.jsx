@@ -10,6 +10,7 @@ import MobileFilterModal from '../layout/MobileFilterModal';
 import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon, PeopleIcon } from '../icons/Icon';
+import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 function initialsFor(name) {
   return name.split(' ').filter((w) => /[a-z0-9]/i.test(w[0])).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -21,7 +22,7 @@ function customerTypeClass(status) {
 }
 
 export default function CustomersList() {
-  const { customers, orders, invoices, isAdmin, currentEmployee } = useAppState();
+  const { dataLoading, customers, orders, invoices, isAdmin, currentEmployee } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -163,6 +164,7 @@ export default function CustomersList() {
       </div>
 
       <div className="elg-metric-grid">
+        {dataLoading ? (<SkeletonMetricCards labels={['Total Customers', 'Active Customers', 'Inactive Customers', 'Free Trial Customers']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Customers</span><span className="elg-metric-icon"><img src="/images/active-customer.svg"   alt="" /></span></div>
           <div className="elg-metric-value">{statsBase.length}</div>
@@ -183,9 +185,11 @@ export default function CustomersList() {
           <div className="elg-metric-value">{freeTrialCount}</div>
           <div className="elg-metric-sub">Across all countries</div>
         </div>
+        </>)}
       </div>
 
       <div className="elg-mobile-cards">
+        {dataLoading ? (<SkeletonMobileCards avatar subtitle right="badge" rows={2} foot={null} />) : (<>
         {list.length === 0 && (
           <div className="elg-empty">
             {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
@@ -210,6 +214,7 @@ export default function CustomersList() {
             </div>
           );
         })}
+        </>)}
       </div>
 
       <MobileFab
@@ -228,6 +233,7 @@ export default function CustomersList() {
             </tr>
           </thead>
           <tbody>
+            {dataLoading ? (<SkeletonRows cols={8} />) : (<>
             {list.length === 0 && (
               <tr><td colSpan={isAdmin ? 8 : 7} className="elg-empty">
                 {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
@@ -248,6 +254,7 @@ export default function CustomersList() {
                 </tr>
               );
             })}
+            </>)}
           </tbody>
         </table>
       </div>

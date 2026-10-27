@@ -6,6 +6,9 @@ const AppStateContext = createContext(null);
 
 export function AppStateProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
+  // True while the signed-in user's collections are still loading — pages
+  // show skeletons instead of empty states during this window.
+  const [dataLoading, setDataLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [currentEmployee, setCurrentEmployee] = useState(null);
 
@@ -54,6 +57,15 @@ export function AppStateProvider({ children }) {
   };
 
   async function loadCollectionsFor(role) {
+    setDataLoading(true);
+    try {
+      await fetchCollectionsFor(role);
+    } finally {
+      setDataLoading(false);
+    }
+  }
+
+  async function fetchCollectionsFor(role) {
     // company + currency rates are needed by both roles — salespeople rely
     // on defaultCurrency to display their own pay/commission figures the
     // same way the admin side does.
@@ -85,12 +97,26 @@ export function AppStateProvider({ children }) {
 
   useEffect(() => {
     setUnauthorizedHandler(() => clearAll());
+    // Only a 401 means "not signed in". A 500 or network blip (server
+    // restarting, database waking up) is retried, so it never logs anyone out.
+    const fetchMe = async () => {
+      const delays = [1000, 2000, 4000, 8000];
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await api.get('/auth/me');
+        } catch (e) {
+          if (e.status === 401 || attempt >= delays.length) throw e;
+          await new Promise((r) => setTimeout(r, delays[attempt]));
+        }
+      }
+    };
     (async () => {
       try {
-        const { user, employee } = await api.get('/auth/me');
+        const { user, employee } = await fetchMe();
         setCurrentUser(user);
         setCurrentEmployee(employee);
-        await loadCollectionsFor(user.role);
+        setAuthLoading(false);
+        loadCollectionsFor(user.role).catch(() => {});
       } catch {
         setCurrentUser(null);
       } finally {
@@ -472,7 +498,7 @@ export function AppStateProvider({ children }) {
     }
     setCurrentUser(result.user);
     setCurrentEmployee(result.employee);
-    await loadCollectionsFor(result.user.role);
+    loadCollectionsFor(result.user.role).catch(() => {});
     return { ok: true, user: result.user };
   }
   async function logout() {
@@ -518,6 +544,7 @@ export function AppStateProvider({ children }) {
   const value = {
     // status
     authLoading,
+    dataLoading,
     // data
     customers, orders, invoices, payslips, employees, designers, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,

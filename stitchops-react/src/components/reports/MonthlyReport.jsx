@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
 import { TODAY } from '../../lib/constants';
 import { CloseIcon, PlusIcon } from '../icons/Icon';
+import { SkText } from '../common/Skeleton';
 
 const monthName = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
 const monthLabel = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -78,17 +79,18 @@ function ExpenseModal({ month, expenses, defaultCcy, onAdded, onRemoved }) {
 // default currency. Salaries count only payslip base salary — commission and
 // production cost come from the orders themselves so they aren't double-counted.
 export function useNetProfit() {
-  const { orders, payslips, currencyRates, company, getCustomer } = useAppState();
+  const { dataLoading, orders, payslips, currencyRates, company, getCustomer } = useAppState();
   const defaultCcy = company?.defaultCurrency || 'PKR';
   const currentMonth = TODAY.slice(0, 7);
   const [mode, setMode] = useState('month');
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(TODAY.slice(0, 4));
   const [expenses, setExpenses] = useState([]);
+  const [expensesLoading, setExpensesLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    api.get('/expenses').then((rows) => { if (!cancelled) setExpenses(rows); }).catch(() => { if (!cancelled) setExpenses([]); });
+    api.get('/expenses').then((rows) => { if (!cancelled) setExpenses(rows); }).catch(() => { if (!cancelled) setExpenses([]); }).finally(() => { if (!cancelled) setExpensesLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -119,6 +121,7 @@ export function useNetProfit() {
   const years = [...new Set([...monthKeys].map((k) => k.slice(0, 4)))].sort().reverse();
 
   return {
+    loading: dataLoading || expensesLoading,
     defaultCcy, mode, setMode, month, setMonth, year, setYear, months, years,
     expenses, setExpenses, periodExpenses, unknownRate,
     rows: { income, salaries, production, commission, otherExpenses, total },
@@ -128,7 +131,7 @@ export function useNetProfit() {
 
 export default function MonthlyReport({ np }) {
   const { openModal } = useUi();
-  const { defaultCcy, mode, setMode, month, setMonth, year, setYear, months, years, expenses, setExpenses, unknownRate, rows } = np;
+  const { loading, defaultCcy, mode, setMode, month, setMonth, year, setYear, months, years, expenses, setExpenses, unknownRate, rows } = np;
 
   function openExpenses() {
     const target = mode === 'month' ? month : TODAY.slice(0, 7);
@@ -147,7 +150,7 @@ export default function MonthlyReport({ np }) {
   const line = (name, value, strong) => (
     <tr style={strong ? { fontWeight: 600 } : undefined}>
       <td>{name}</td>
-      <td>{fmt(value, defaultCcy)}</td>
+      <td>{loading ? <SkText w={90} /> : fmt(value, defaultCcy)}</td>
     </tr>
   );
 

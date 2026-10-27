@@ -1158,6 +1158,13 @@ select::-ms-expand {
   cursor: pointer;
 }
 
+
+@media  screen and (max-width: 1180px) {
+  .elg-profile-grid .elg-metric-grid{
+        grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Only apply hover on devices that actually have a mouse — on touch, :hover
    sticks to whatever you last tapped until you tap elsewhere, which reads as
    a stuck/selected day that isn't actually selected. */
@@ -5060,4 +5067,63 @@ input[type="number"] {
   margin-top: 4px;
   font-size: 12px;
   opacity: 0.75;
+}
+
+/* ---------- Skeleton loaders ---------- */
+.elg-sk {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  background: linear-gradient(90deg, #ececea 25%, #f6f6f4 37%, #ececea 63%);
+  background-size: 400% 100%;
+  animation: elg-sk-shimmer 1.4s ease infinite;
+}
+
+.elg-sk-line {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.elg-sk-row td {
+  pointer-events: none;
+}
+
+.elg-sk-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.elg-sk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@keyframes elg-sk-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elg-sk { animation: none; }
+}
+
+.elg-sk-smtp {
+  margin-bottom: 20px;
+}
+
+.elg-sk-line {
+  height: 1lh;
+}
+
+.elg-sk-mobile-line {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .elg-sk-mobile-line {
+    display: flex;
+  }
 }

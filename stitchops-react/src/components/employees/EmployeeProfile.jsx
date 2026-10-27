@@ -13,11 +13,12 @@ import SlipHistoryTab from './SlipHistoryTab';
 import EmployeeCustomersTab from './EmployeeCustomersTab';
 import Avatar from '../common/Avatar';
 import { ArrowLeftIcon, KeyIcon, TrashIcon, DocIcon, KebabIcon, PlusIcon } from '../icons/Icon';
+import { ProfileSkeleton } from '../common/Skeleton';
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams();
   const id = Number(employeeId);
-  const { getEmployee, orders, customers, company, regenerateCredentials, createLogin } = useAppState();
+  const { dataLoading, getEmployee, orders, customers, company, regenerateCredentials, createLogin } = useAppState();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
@@ -37,6 +38,20 @@ export default function EmployeeProfile() {
   }, []);
 
   const e = getEmployee(id);
+  if (!e && dataLoading) {
+    return (
+      <ProfileSkeleton
+        variant="employee"
+        tabs={4}
+        tabWidths={[119, 106, 166, 122]}
+        panels={[
+          { title: 'Employee Details', rows: ['Name', 'Team', 'Designation', 'Email', 'Contact'] },
+          { title: 'Pay Details', rows: ['Base Salary', 'Currency', 'Payout Day', 'Commission'] },
+          { title: 'Assigned Emails', rows: ['Email'] }
+        ]}
+      />
+    );
+  }
   if (!e) return <div className="elg-page"><div className="elg-empty">Employee not found.</div></div>;
 
   async function handleRegenerate() {

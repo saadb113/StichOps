@@ -10,6 +10,7 @@ import OrdersTab from './OrdersTab';
 import InvoiceTab from './InvoiceTab';
 import InvoiceHistoryTab from './InvoiceHistoryTab';
 import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon, KebabIcon } from '../icons/Icon';
+import { ProfileSkeleton } from '../common/Skeleton';
 
 function elgStatusClass(status) {
   if (status === 'Free Trial') return 'elg-badge-inprogress';
@@ -20,7 +21,7 @@ function elgStatusClass(status) {
 export default function CustomerProfile() {
   const { customerId } = useParams();
   const id = Number(customerId);
-  const { getCustomer, orders, invoices, isAdmin, setCustomerStatus } = useAppState();
+  const { dataLoading, getCustomer, orders, invoices, isAdmin, setCustomerStatus } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [tab, setTab] = useState('orders');
@@ -35,6 +36,19 @@ export default function CustomerProfile() {
   }, []);
 
   const c = getCustomer(id);
+  if (!c && dataLoading) {
+    return (
+      <ProfileSkeleton
+        tabs={isAdmin ? 3 : 0}
+        tabWidths={[113, 147, 142]}
+        panels={[
+          { title: 'Profile Details', rows: ['Customer ID', 'Country', 'Default Currency', 'Contact', "Client's Email", 'Customer Type', ...(isAdmin ? ['Invoice Notification Date'] : [])] },
+          { title: 'Notes', rows: ['—'] },
+          { title: 'Salesperson', rows: ['Name'] }
+        ]}
+      />
+    );
+  }
   if (!c) return <div className="elg-page"><div className="elg-empty">Customer not found.</div></div>;
 
   const os = ordersFor(orders, c.id);

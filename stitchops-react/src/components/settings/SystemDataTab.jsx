@@ -4,6 +4,7 @@ import { useUi } from '../../store/UiContext';
 import RangeDateField from '../common/RangeDateField';
 import { useNavigate } from 'react-router-dom';
 import { ImportResultsModal } from './ImportResults';
+import { Sk, SkField } from '../common/Skeleton';
 
 
 const UPLOAD_PAGES = [
@@ -187,7 +188,32 @@ function SmtpSettingsCard() {
     }
   }
 
-  if (!loaded) return null;
+  if (!loaded) {
+    return (
+      <div className="elg-settings-card elg-sk-smtp" aria-busy="true">
+        <div className="elg-settings-card-title" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+          <h2>Email (SMTP) Settings</h2>
+          <Sk w={96} h={26} r={999} />
+        </div>
+        <div className="elg-hint-line" style={{ marginBottom: 16 }}>
+          Used to send the admin "forgot password" reset link — e.g. a Hostinger mailbox. In hPanel: Emails &gt; your address &gt; Connect Apps &amp; Devices &gt; Manual Configuration gives the host/port/username.
+        </div>
+        <div className="elg-field-row"><SkField label="SMTP Host" /><SkField label="SMTP Port" /></div>
+        <div className="elg-field-row"><SkField label="Username" /><SkField label="From (optional)" /></div>
+        <SkField label="Password" />
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Sk w={214} h={40} r={8} />
+          <Sk w={150} h={40} r={8} />
+        </div>
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--elg-line)' }}>
+          <div className="elg-field-row" style={{ alignItems: 'flex-end' }}>
+            <SkField label="Send Test Email" style={{ marginBottom: 0 }} />
+            <Sk w={104} h={40} r={8} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="elg-settings-card" style={{ marginBottom: 20 }}>

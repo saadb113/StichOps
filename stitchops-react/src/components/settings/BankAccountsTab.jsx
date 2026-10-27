@@ -4,6 +4,7 @@ import { useUi } from '../../store/UiContext';
 import { SYM, BANK_COUNTRIES, PAYMENT_ACCOUNTS } from '../../lib/constants';
 import { PencilIcon } from '../icons/Icon';
 import AddAccountModal from './AddAccountModal';
+import { Sk, SkField } from '../common/Skeleton';
 
 function ConfirmDeleteAccountModal({ account }) {
   const { deleteBankAccount } = useAppState();
@@ -145,13 +146,22 @@ function BankAccountCard({ account }) {
 }
 
 export default function BankAccountsTab() {
-  const { bankAccounts } = useAppState();
+  const { bankAccounts, dataLoading } = useAppState();
   const { openModal } = useUi();
 
   return (
     <div className="elg-settings-card">
       <div className="elg-settings-card-title"><h2>Bank Accounts</h2></div>
 
+      {dataLoading && bankAccounts.length === 0 && [0, 1].map((i) => (
+        <div className="elg-account-card" key={i} aria-busy="true">
+          <div className="elg-account-card-head">
+            <Sk w={70} h={26} r={999} />
+            <Sk w={64} h={34} r={8} />
+          </div>
+          {['Account Name', 'Account Holder', 'Account No.', 'Payment Account'].map((l, j) => <SkField key={l} label={l} style={{ marginBottom: j < 3 ? 16 : 0 }} />)}
+        </div>
+      ))}
       {bankAccounts.map((a) => <BankAccountCard key={a.id} account={a} />)}
 
       <div style={{ textAlign: 'right', marginTop: bankAccounts.length ? 16 : 0 }}>

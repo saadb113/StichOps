@@ -11,6 +11,7 @@ import { CalendarIcon, BagIcon, CoinIcon, DocIcon, ClockIcon, WarningIcon, Downl
 import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
 import RangeDateField from '../common/RangeDateField';
 import MonthlyReport, { useNetProfit } from './MonthlyReport';
+import { Sk, SkText, SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 
 const REPORT_CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR'];
 
@@ -26,7 +27,7 @@ function sumByCcy(list) {
 }
 
 export default function Reports() {
-  const { orders, invoices, payslips, currencyRates, company, getCustomer, getEmployee } = useAppState();
+  const { dataLoading, orders, invoices, payslips, currencyRates, company, getCustomer, getEmployee } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const pageRef = useRef(null);
@@ -248,6 +249,7 @@ export default function Reports() {
         </div>
 
         <div className="elg-metric-grid">
+          {dataLoading ? (<SkeletonMetricCards labels={REPORT_CURRENCIES.map((cc) => `Total ${cc}`)} subs={[2, 2, 2, 2]} />) : (<>
           {REPORT_CURRENCIES.map((cc) => {
             const total = totalsByCcy[cc] || 0;
             const g = growthPct(total, prevTotalsByCcy[cc] || 0);
@@ -262,11 +264,13 @@ export default function Reports() {
               </div>
             );
           })}
+          </>)}
         </div>
 
         <div className="elg-panel elg-report-flat">
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Production Cost by Designer</div>
           <div className="elg-mobile-cards">
+            {dataLoading ? (<SkeletonMobileCards count={2} right="price" foot={null} />) : (<>
             {designerRows.length === 0 && <div className="elg-empty">No orders in this range.</div>}
             {designerRows.map((r) => (
               <div key={r.name} className="elg-mobile-card">
@@ -282,14 +286,17 @@ export default function Reports() {
                 <span>Total</span><span>{money(designerTotal.total)}</span>
               </div>
             )}
+            </>)}
           </div>
           <div className="elg-table-wrap">
             <table className="elg-table">
               <thead><tr><th>Designer</th><th>Total Orders</th><th>Production Cost</th></tr></thead>
               <tbody>
+                {dataLoading ? (<SkeletonRows cols={3} rows={3} />) : (<>
                 {designerRows.length === 0 && emptyRow(3, 'No orders in this range.')}
                 {designerRows.map((r) => <tr key={r.name}><td>{r.name}</td><td>{r.count}</td><td>{money(r.total)}</td></tr>)}
                 {designerRows.length > 0 && <tr style={totalRowStyle}><td>Total</td><td>{designerTotal.count}</td><td>{money(designerTotal.total)}</td></tr>}
+                </>)}
               </tbody>
             </table>
           </div>
@@ -299,6 +306,7 @@ export default function Reports() {
         <div className="elg-panel elg-report-flat">
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Salesperson Commission Summary</div>
           <div className="elg-mobile-cards">
+            {dataLoading ? (<SkeletonMobileCards count={2} right="price" rows={2} foot={null} />) : (<>
             {salesRows.length === 0 && <div className="elg-empty">No orders in this range.</div>}
             {salesRows.map((r) => (
               <div key={r.name} className="elg-mobile-card">
@@ -315,14 +323,17 @@ export default function Reports() {
                 <span>Total</span><span>{money(salesTotal.total)}</span>
               </div>
             )}
+            </>)}
           </div>
           <div className="elg-table-wrap">
             <table className="elg-table">
               <thead><tr><th>Salesperson</th><th>Orders</th><th>Commission Earned</th><th>Commission in {defaultCcy}</th></tr></thead>
               <tbody>
+                {dataLoading ? (<SkeletonRows cols={4} rows={3} />) : (<>
                 {salesRows.length === 0 && emptyRow(4, 'No orders in this range.')}
                 {salesRows.map((r) => <tr key={r.name}><td>{r.name}</td><td>{r.count}</td><td>{r.earned}</td><td>{money(r.total)}</td></tr>)}
                 {salesRows.length > 0 && <tr style={totalRowStyle}><td>Total</td><td>{salesTotal.count}</td><td /><td>{money(salesTotal.total)}</td></tr>}
+                </>)}
               </tbody>
             </table>
           </div>
@@ -336,19 +347,23 @@ export default function Reports() {
             <div className="elg-panel elg-report-flat" style={{ margin: 0 }} key={s.title}>
               <div className="elg-section-title" style={{ marginBottom: 14 }}>{s.title}</div>
               <div className="elg-mobile-cards">
+                {dataLoading ? ([0, 1].map((k) => <div className="elg-mobile-card elg-report-line" key={k} aria-busy="true"><SkText w="45%" /><SkText w={80} style={{ justifyContent: 'flex-end' }} /></div>)) : (<>
                 {s.rows.length === 0 && <div className="elg-empty">{s.empty}</div>}
                 {s.rows.map((r) => (
                   <div key={r.name} className="elg-mobile-card elg-report-line"><span>{r.name}</span><span>{fmt(r.amount, defaultCcy)}</span></div>
                 ))}
                 {s.rows.length > 0 && <div className="elg-mobile-card elg-report-line"><span>Total</span><span>{fmt(s.total, defaultCcy)}</span></div>}
+                </>)}
               </div>
               <div className="elg-table-wrap">
                 <table className="elg-table">
                   <thead><tr><th>Employee</th><th>Amount</th></tr></thead>
                   <tbody>
+                    {dataLoading ? (<SkeletonRows cols={2} rows={3} />) : (<>
                     {s.rows.length === 0 && emptyRow(2, s.empty)}
                     {s.rows.map((r) => <tr key={r.name}><td>{r.name}</td><td>{fmt(r.amount, defaultCcy)}</td></tr>)}
                     {s.rows.length > 0 && <tr style={totalRowStyle}><td>Total</td><td>{fmt(s.total, defaultCcy)}</td></tr>}
+                    </>)}
                   </tbody>
                 </table>
               </div>
@@ -361,6 +376,7 @@ export default function Reports() {
       <div className="elg-report-group">
         <div className="elg-section-title">Invoices</div>
         <div className="elg-metric-grid">
+          {dataLoading ? (<SkeletonMetricCards labels={['Total Invoices', 'Outstanding', <><span className="elg-desktop-only">Payment Received</span><span className="elg-mobile-only">Payment Rec.</span></>, <><span className="elg-desktop-only">Outstanding Payment</span><span className="elg-mobile-only">Outstanding Pay.</span></>]} />) : (<>
           <div className="elg-metric-card">
             <div className="elg-metric-head"><span className="elg-metric-label">Total Invoices</span><span className="elg-metric-icon"><img alt="" src="/images/todays-invoice.svg"/></span></div>
             <div className="elg-metric-value">{approvedInvoices.length}</div>
@@ -381,19 +397,20 @@ export default function Reports() {
             <div className="elg-metric-value">{money(outstandingPaymentTotal)}</div>
             <div className="elg-metric-sub">From Unpaid Invoices ({unpaidInvoices.length})</div>
           </div>
+          </>)}
         </div>
 
         <div className="elg-panel">
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Outstanding Invoices</div>
           <div className="elg-mobile-cards elg-outstanding-mobile">
             {REPORT_CURRENCIES.map((cc) => (
-              <div key={cc} className="elg-report-row"><span>{cc} {SYM[cc]}</span><span>{fmtRate(outstandingByCcy[cc] || 0)}</span></div>
+              <div key={cc} className="elg-report-row"><span>{cc} {SYM[cc]}</span><span>{dataLoading ? <Sk w={50} h={12} /> : fmtRate(outstandingByCcy[cc] || 0)}</span></div>
             ))}
           </div>
           <div className="elg-table-wrap">
             <table className="elg-table">
               <thead><tr>{REPORT_CURRENCIES.map((cc) => <th key={cc}>{cc} {SYM[cc]}</th>)}</tr></thead>
-              <tbody><tr>{REPORT_CURRENCIES.map((cc) => <td key={cc}>{fmtRate(outstandingByCcy[cc] || 0)}</td>)}</tr></tbody>
+              <tbody><tr>{REPORT_CURRENCIES.map((cc) => <td key={cc}>{dataLoading ? <SkText w={50} /> : fmtRate(outstandingByCcy[cc] || 0)}</td>)}</tr></tbody>
             </table>
           </div>
         </div>
@@ -401,6 +418,7 @@ export default function Reports() {
         <div className="elg-panel elg-report-flat">
           <div className="elg-section-title" style={{ marginBottom: 14 }}>Client Payment Status</div>
           <div className="elg-mobile-cards">
+            {dataLoading ? (<SkeletonMobileCards count={2} right="price" subtitle foot="badge-price" />) : (<>
             {unpaidInvoices.length === 0 && <div className="elg-empty">No unpaid invoices — everything's settled.</div>}
             {unpaidInvoices.map((i) => {
               const c = getCustomer(i.customerId);
@@ -419,11 +437,13 @@ export default function Reports() {
                 </div>
               );
             })}
+            </>)}
           </div>
           <div className="elg-table-wrap">
             <table className="elg-table">
               <thead><tr><th>ID</th><th>Customer</th><th>Currency</th><th>Amount</th><th>Payment Status</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
               <tbody>
+                {dataLoading ? (<SkeletonRows cols={6} rows={3} />) : (<>
                 {unpaidInvoices.length === 0 && emptyRow(6, "No unpaid invoices — everything's settled.")}
                 {unpaidInvoices.map((i) => {
                   const c = getCustomer(i.customerId);
@@ -440,6 +460,7 @@ export default function Reports() {
                     </tr>
                   );
                 })}
+                </>)}
               </tbody>
             </table>
           </div>

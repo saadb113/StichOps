@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { fmt, ordersForEmployee, commissionAmt, convertToDefault } from '../../lib/helpers';
+import { SkeletonRows } from '../common/Skeleton';
 
 function EarningsIcon({ active }) {
   const c = active ? '#fff' : '#737373';
@@ -23,7 +24,7 @@ function HistoryIcon({ active }) {
 }
 
 function CurrentEarningsPanel({ emp, os }) {
-  const { getCustomer, company, currencyRates } = useAppState();
+  const { getCustomer, company, currencyRates, dataLoading } = useAppState();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const isSales = emp.role === 'Salesperson';
   const earningLabel = isSales ? 'Commission' : 'Production';
@@ -50,7 +51,8 @@ function CurrentEarningsPanel({ emp, os }) {
         <table className="elg-table">
           <thead><tr><th>Customer</th><th>Orders</th><th>Invoice Total</th><th>{earningLabel}</th></tr></thead>
           <tbody>
-            {Object.keys(byCust).length === 0 && <tr><td colSpan={4} className="elg-empty">No completed orders in this view.</td></tr>}
+            {dataLoading && Object.keys(byCust).length === 0 && <SkeletonRows cols={4} rows={4} />}
+            {!dataLoading && Object.keys(byCust).length === 0 && <tr><td colSpan={4} className="elg-empty">No completed orders in this view.</td></tr>}
             {Object.entries(byCust).map(([custId, cOrders]) => {
               const cust = getCustomer(Number(custId));
               const totals = {}; let rate = isSales ? cOrders[0]?.commissionRate : null;
@@ -95,9 +97,20 @@ function CurrentEarningsPanel({ emp, os }) {
 }
 
 function SlipHistoryPanel({ emp }) {
-  const { payslips } = useAppState();
+  const { payslips, dataLoading } = useAppState();
   const [openSlipId, setOpenSlipId] = useState(null);
   const slips = payslips.filter((s) => s.employeeId === emp.id).sort((a, b) => b.id - a.id);
+
+  if (dataLoading && !slips.length) {
+    return (
+      <div className="elg-panel elg-table-wrap">
+        <table className="elg-table">
+          <thead><tr><th>Slip</th><th>Date</th><th>Total</th></tr></thead>
+          <tbody><SkeletonRows cols={3} rows={4} /></tbody>
+        </table>
+      </div>
+    );
+  }
 
   if (!slips.length) {
     return (

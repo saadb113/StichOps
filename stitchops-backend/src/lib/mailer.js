@@ -39,7 +39,10 @@ function buildTransporter(settings) {
     // Hostinger (and most providers) use implicit TLS on 465, STARTTLS on
     // 587 — secure must match the port or the handshake fails.
     secure: settings.port === 465,
-    auth: { user: settings.user, pass: settings.pass }
+    auth: { user: settings.user, pass: settings.pass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000
   });
 }
 

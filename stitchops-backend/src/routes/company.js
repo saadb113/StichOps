@@ -43,15 +43,51 @@ router.delete('/logo', requireAuth, requireAdmin, asyncHandler(async (req, res) 
 // defaultCurrency), SMTP host/username are internal infra details with no
 // reason to reach a non-admin's screen, and smtpPass never leaves the
 // server at all (passSet tells the UI whether one is already saved).
-router.get('/smtp', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
-  const company = await prisma.company.findUnique({ where: { id: 1 } });
-  res.json({
+function serializeSmtp(company) {
+  return {
     smtpHost: company.smtpHost || '',
     smtpPort: company.smtpPort || null,
     smtpUser: company.smtpUser || '',
     smtpFrom: company.smtpFrom || '',
-    passSet: Boolean(company.smtpPass)
-  });
+    passSet: Boolean(company.smtpPass),
+    status: company.smtpStatus || 'unchecked',
+    checkedAt: company.smtpCheckedAt ? company.smtpCheckedAt.toISOString() : null,
+    error: company.smtpError || null
+  };
+}
+
+function friendlySmtpError(e) {
+  const code = e.code || '';
+  const msg = String(e.message || '');
+  if (code === 'EAUTH' || /535|auth/i.test(msg)) return 'Wrong email or password — the mail server rejected the login.';
+  if (code === 'EDNS' || /ENOTFOUND|getaddrinfo/i.test(msg)) return 'Mail server not found — check the host (e.g. smtp.hostinger.com).';
+  if (['ETIMEDOUT', 'ECONNECTION', 'ESOCKET', 'ECONNREFUSED'].includes(code) || /timeout|ECONNREFUSED/i.test(msg)) {
+    return "Couldn't reach the mail server — check the host and port (465 for SSL, 587 for TLS).";
+  }
+  return msg || 'The mail server refused the connection.';
+}
+
+// Logs in to the SMTP server (no email is sent) and stores the outcome so
+// the settings card can show Connected / Not connected.
+async function checkSmtpConnection() {
+  const settings = await mailer.getSettings();
+  let data;
+  if (!settings) {
+    data = { smtpStatus: 'unchecked', smtpCheckedAt: null, smtpError: null };
+  } else {
+    try {
+      await mailer.verifySettings(settings);
+      data = { smtpStatus: 'connected', smtpCheckedAt: new Date(), smtpError: null };
+    } catch (e) {
+      data = { smtpStatus: 'failed', smtpCheckedAt: new Date(), smtpError: friendlySmtpError(e) };
+    }
+  }
+  return prisma.company.update({ where: { id: 1 }, data });
+}
+
+router.get('/smtp', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const company = await prisma.company.findUnique({ where: { id: 1 } });
+  res.json(serializeSmtp(company));
 }));
 
 router.patch('/smtp', requireAuth, requireAdmin, validateBody(smtpSettingsSchema), asyncHandler(async (req, res) => {
@@ -64,23 +100,23 @@ router.patch('/smtp', requireAuth, requireAdmin, validateBody(smtpSettingsSchema
   if (Object.prototype.hasOwnProperty.call(req.body, 'smtpPass')) {
     data.smtpPass = req.body.smtpPass || null;
   }
-  const company = await prisma.company.update({ where: { id: 1 }, data });
-  res.json({
-    smtpHost: company.smtpHost || '',
-    smtpPort: company.smtpPort || null,
-    smtpUser: company.smtpUser || '',
-    smtpFrom: company.smtpFrom || '',
-    passSet: Boolean(company.smtpPass)
-  });
+  await prisma.company.update({ where: { id: 1 }, data });
+  // Saving always re-checks, so the status never describes old settings.
+  const company = await checkSmtpConnection();
+  res.json(serializeSmtp(company));
+}));
+
+router.post('/smtp/verify', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const company = await checkSmtpConnection();
+  res.json(serializeSmtp(company));
 }));
 
 router.post('/smtp/test', requireAuth, requireAdmin, validateBody(smtpTestSchema), asyncHandler(async (req, res) => {
   const settings = await mailer.getSettings();
   if (!settings) return res.status(400).json({ error: 'Save SMTP settings first.' });
-  try {
-    await mailer.verifySettings(settings);
-  } catch (e) {
-    return res.status(400).json({ error: `Couldn't authenticate with that SMTP server: ${e.message}` });
+  const company = await checkSmtpConnection();
+  if (company.smtpStatus !== 'connected') {
+    return res.status(400).json({ error: company.smtpError, smtp: serializeSmtp(company) });
   }
   try {
     await mailer.sendMail({
@@ -90,9 +126,9 @@ router.post('/smtp/test', requireAuth, requireAdmin, validateBody(smtpTestSchema
       html: '<p>This is a test email from ElegantsDesign — your SMTP settings are working.</p>'
     });
   } catch (e) {
-    return res.status(400).json({ error: `Authenticated, but sending failed: ${e.message}` });
+    return res.status(400).json({ error: `Connected, but sending failed: ${friendlySmtpError(e)}`, smtp: serializeSmtp(company) });
   }
-  res.json({ ok: true });
+  res.json({ ok: true, smtp: serializeSmtp(company) });
 }));
 
 module.exports = router;

@@ -4997,3 +4997,67 @@ input[type="number"] {
     flex: 1 1 auto;
   }
 }
+
+/* ---------- SMTP connection status ---------- */
+.elg-smtp-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.elg-smtp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.elg-smtp-status-ok {
+  color: #15803d;
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.elg-smtp-status-bad {
+  color: var(--elg-red-ink, #b42318);
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+.elg-smtp-status-idle {
+  color: var(--elg-ink-3);
+  background: var(--elg-surface-2, #f5f5f3);
+  border-color: var(--elg-line);
+}
+
+.elg-smtp-status-box {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid;
+}
+
+.elg-smtp-status-box.ok {
+  color: #14532d;
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.elg-smtp-status-box.bad {
+  color: var(--elg-red-ink, #b42318);
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+.elg-smtp-checked {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}

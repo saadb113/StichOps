@@ -87,8 +87,20 @@ function ExportRow({ page, range, onRangeChange }) {
 // ForgotPassword.jsx / lib/mailer.js on the backend). Loaded on demand,
 // not through global app state, since it includes a write-only password
 // the rest of the app has no reason to hold onto.
+const SMTP_STATUS = {
+  connected: { label: 'Connected', cls: 'elg-smtp-status-ok' },
+  failed: { label: 'Not connected', cls: 'elg-smtp-status-bad' },
+  unchecked: { label: 'Not set up', cls: 'elg-smtp-status-idle' }
+};
+
+function SmtpStatus({ status, checking }) {
+  if (checking) return <span className="elg-smtp-status elg-smtp-status-idle"><span className="elg-smtp-dot" />Checking…</span>;
+  const s = SMTP_STATUS[status.status] || SMTP_STATUS.unchecked;
+  return <span className={`elg-smtp-status ${s.cls}`}><span className="elg-smtp-dot" />{s.label}</span>;
+}
+
 function SmtpSettingsCard() {
-  const { getSmtpSettings, updateSmtpSettings, sendSmtpTest } = useAppState();
+  const { getSmtpSettings, updateSmtpSettings, sendSmtpTest, verifySmtp } = useAppState();
   const { toast } = useUi();
   const [loaded, setLoaded] = useState(false);
   const [host, setHost] = useState('');
@@ -101,6 +113,12 @@ function SmtpSettingsCard() {
   const [saving, setSaving] = useState(false);
   const [testTo, setTestTo] = useState('');
   const [testing, setTesting] = useState(false);
+  const [status, setStatus] = useState({ status: 'unchecked', checkedAt: null, error: null });
+  const [checking, setChecking] = useState(false);
+
+  function applyStatus(s) {
+    setStatus({ status: s.status, checkedAt: s.checkedAt, error: s.error });
+  }
 
   useEffect(() => {
     getSmtpSettings().then((s) => {
@@ -109,6 +127,7 @@ function SmtpSettingsCard() {
       setUser(s.smtpUser || '');
       setFrom(s.smtpFrom || '');
       setPassSet(s.passSet);
+      applyStatus(s);
       setLoaded(true);
     }).catch((e) => toast(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,6 +135,7 @@ function SmtpSettingsCard() {
 
   async function handleSave() {
     setSaving(true);
+    setChecking(true);
     try {
       const data = {
         smtpHost: host.trim(),
@@ -130,11 +150,26 @@ function SmtpSettingsCard() {
       const result = await updateSmtpSettings(data);
       setPassSet(result.passSet);
       setPassword('');
-      toast('Email settings saved.');
+      applyStatus(result);
+      toast(result.status === 'connected' ? 'Saved — connected to the mail server.' : result.status === 'failed' ? 'Saved, but the connection failed — see below.' : 'Email settings saved.');
     } catch (e) {
       toast(e.message);
     } finally {
       setSaving(false);
+      setChecking(false);
+    }
+  }
+
+  async function handleCheck() {
+    setChecking(true);
+    try {
+      const result = await verifySmtp();
+      applyStatus(result);
+      toast(result.status === 'connected' ? 'Connected to the mail server.' : result.error || 'Save your SMTP settings first.');
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      setChecking(false);
     }
   }
 
@@ -148,6 +183,7 @@ function SmtpSettingsCard() {
       toast(e.message);
     } finally {
       setTesting(false);
+      getSmtpSettings().then(applyStatus).catch(() => {});
     }
   }
 
@@ -155,7 +191,18 @@ function SmtpSettingsCard() {
 
   return (
     <div className="elg-settings-card" style={{ marginBottom: 20 }}>
-      <div className="elg-settings-card-title"><h2>Email (SMTP) Settings</h2></div>
+      <div className="elg-settings-card-title" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <h2>Email (SMTP) Settings</h2>
+        <SmtpStatus status={status} checking={checking} />
+      </div>
+      {!checking && (status.status !== 'unchecked' || status.error) && (
+        <div className={`elg-smtp-status-box ${status.status === 'connected' ? 'ok' : 'bad'}`}>
+          {status.status === 'connected'
+            ? <>Logged in to <strong>{host}</strong> as <strong>{user}</strong>. Admin password-reset emails will be sent from this mailbox.</>
+            : <>{status.error}</>}
+          {status.checkedAt && <div className="elg-smtp-checked">Last checked {new Date(status.checkedAt).toLocaleString()}</div>}
+        </div>
+      )}
       <div className="elg-hint-line" style={{ marginBottom: 16 }}>
         Used to send the admin "forgot password" reset link — e.g. a Hostinger mailbox. In hPanel: Emails &gt; your address &gt; Connect Apps &amp; Devices &gt; Manual Configuration gives the host/port/username.
       </div>
@@ -193,9 +240,14 @@ function SmtpSettingsCard() {
           </button>
         </div>
       </div>
-      <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} disabled={saving} onClick={handleSave}>
-        {saving ? 'Saving…' : 'Save Email Settings'}
-      </button>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button className="elg-btn elg-btn-primary" style={{ width: 'auto' }} disabled={saving || checking} onClick={handleSave}>
+          {saving ? 'Saving & checking…' : 'Save & Check Connection'}
+        </button>
+        <button className="elg-btn" style={{ width: 'auto' }} disabled={saving || checking || !passSet} onClick={handleCheck} title={passSet ? '' : 'Save your settings first'}>
+          {checking && !saving ? 'Checking…' : 'Check Connection'}
+        </button>
+      </div>
 
       <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--elg-line)' }}>
         <div className="elg-field-row" style={{ alignItems: 'flex-end' }}>

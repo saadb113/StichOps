@@ -409,6 +409,7 @@ export function AppStateProvider({ children }) {
   async function updateSmtpSettings(data) {
     return api.patch('/company/smtp', data);
   }
+  async function verifySmtp() { return api.post('/company/smtp/verify'); }
   async function sendSmtpTest(to) {
     return api.post('/company/smtp/test', { to });
   }
@@ -532,7 +533,7 @@ export function AppStateProvider({ children }) {
     addEmployee, updateEmployee, deleteEmployee, regenerateCredentials, createLogin, addCategory, renameCategory, deleteCategory, approvePasswordReset, rejectPasswordReset,
     uploadEmployeePhoto, deleteEmployeePhoto,
     updateCompany, uploadCompanyLogo, deleteCompanyLogo, addCompanyEmail, updateCompanyEmail, removeCompanyEmail,
-    getSmtpSettings, updateSmtpSettings, sendSmtpTest,
+    getSmtpSettings, updateSmtpSettings, sendSmtpTest, verifySmtp,
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
     markNotificationRead, markAllNotificationsRead,

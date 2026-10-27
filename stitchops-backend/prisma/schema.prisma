@@ -52,6 +52,10 @@ model Company {
   smtpUser String?
   smtpPass String?
   smtpFrom String?
+  // Result of the last login check against the SMTP server.
+  smtpStatus    String?
+  smtpCheckedAt DateTime?
+  smtpError     String?
 }
 
 // Which fields are meaningful depends on `country` — e.g. sortCode/iban for

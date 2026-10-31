@@ -125,6 +125,31 @@ function mapRow(modelKey, row, mapping) {
   return out;
 }
 
+// Registers a newly created/merged-into customer in the shared lookups so
+// later rows in this same import — or a later lookup against another model
+// in the same run — resolve to it instead of missing it or recreating it.
+function registerCustomer(customer, lookups) {
+  [customer.customerCode, customer.name, customer.company].forEach((v) => { if (v) lookups.customer.set(norm(v), customer.id); });
+  lookups.ids.customer.add(customer.id);
+}
+
+async function autoCreateCustomer(rawName, currency, lookups) {
+  if (!rawName) return null;
+  const created = await prisma.customer.create({
+    data: {
+      name: rawName,
+      company: rawName,
+      country: 'Unknown',
+      currency: currency || 'PKR',
+      email: '',
+      emailClient: '',
+      contact: ''
+    }
+  });
+  registerCustomer(created, lookups);
+  return created.id;
+}
+
 async function upsertRow(modelKey, rawRow, lookups) {
   const model = MODELS[modelKey];
   const prismaModel = prisma[model.prismaModel];
@@ -142,7 +167,12 @@ async function upsertRow(modelKey, rawRow, lookups) {
   for (const f of fields.filter((x) => x.lookup)) {
     const raw = rawRow[f.key];
     if (raw === undefined || raw === null || raw === '' || data[f.target] != null) continue;
-    const id = lookups[f.lookup].get(norm(raw));
+    let id = lookups[f.lookup].get(norm(raw));
+    // An orders sheet referencing a customer by name that doesn't exist yet
+    // is the normal shape of a hand-kept monthly log (new clients show up
+    // mixed in with repeat ones) — create a minimal customer for it instead
+    // of failing the row, so it doesn't have to be pre-imported separately.
+    if (!id && f.lookup === 'customer') id = await autoCreateCustomer(String(raw).trim(), data.currency, lookups);
     if (!id) throw new Error(`${LOOKUP_LABEL[f.lookup]} "${raw}" was not found.`);
     data[f.target] = id;
   }
@@ -169,6 +199,21 @@ async function upsertRow(modelKey, rawRow, lookups) {
     return 'updated';
   }
 
+  // No explicit id — for customers, a second file (or a later row in the
+  // same file) often re-enters the same client by hand with a slightly
+  // different spelling/case ("Jason" vs "jason"). Match on the normalized
+  // company/name against what's already in the system (and what this import
+  // run has created so far) and merge into it instead of creating a
+  // duplicate customer.
+  if (modelKey === 'customers' && !id) {
+    const matchId = (data.company && lookups.customer.get(norm(data.company)))
+      || (data.name && lookups.customer.get(norm(data.name)));
+    if (matchId) {
+      await prismaModel.update({ where: { id: matchId }, data });
+      return 'merged';
+    }
+  }
+
   if (modelKey === 'invoices' && !data.approvedDate && data.generatedDate) data.approvedDate = data.generatedDate;
   // ID fields (customerId/designerId) may have been filled by a name lookup above.
   const missing = fields.filter((f) => f.required && data[f.key] == null).map((f) => f.label.replace(' ID', ''));
@@ -178,7 +223,14 @@ async function upsertRow(modelKey, rawRow, lookups) {
     // Blank in older data, but non-null columns in the schema.
     for (const k of ['email', 'contact', 'emailClient']) if (data[k] == null) data[k] = '';
   }
-  await prismaModel.create({ data: id ? { id, ...data } : data });
+  const created = await prismaModel.create({ data: id ? { id, ...data } : data });
+
+  if (modelKey === 'customers') {
+    // So a later row in this same import (or a lookup from an orders sheet
+    // right after) finds this customer too, instead of only ones that were
+    // already in the database when buildLookups() ran.
+    registerCustomer(created, lookups);
+  }
   return 'created';
 }
 
@@ -200,7 +252,7 @@ async function bumpCustomerCodeCounter() {
 }
 
 async function importRows(modelKey, jsonRows, mapping) {
-  const result = { created: 0, updated: 0, skipped: 0, errors: [] };
+  const result = { created: 0, updated: 0, merged: 0, skipped: 0, errors: [] };
   const lookups = await buildLookups();
   for (let i = 0; i < jsonRows.length; i++) {
     const row = mapRow(modelKey, jsonRows[i], mapping);

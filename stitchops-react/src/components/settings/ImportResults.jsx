@@ -10,6 +10,7 @@ export function ImportResults({ title, results }) {
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 14, marginBottom: 8 }}>
             <span>{r.created} added</span>
             <span>{r.updated} updated</span>
+            {r.merged ? <span>{r.merged} merged into an existing customer</span> : null}
             {r.skipped ? <span>{r.skipped} empty rows skipped</span> : null}
             <span style={{ color: r.errors.length ? 'var(--elg-red-ink)' : undefined }}>{r.errors.length} failed</span>
           </div>

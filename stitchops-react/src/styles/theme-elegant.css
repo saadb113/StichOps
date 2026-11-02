@@ -3206,8 +3206,68 @@ select::-ms-expand {
   align-items: center;
   gap: 10px;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--elg-line);
   flex-shrink: 0;
+}
+
+/* Results area under the search bar. Collapsed (0fr) while the bar travels
+   from the header to the centre, then drops open (1fr). The divider lives
+   here so the travelling bar is a clean single box like the header field. */
+.elg-search-drop {
+  display: grid;
+  grid-template-rows: 1fr;
+  min-height: 0;
+  flex: 1 1 auto;
+  border-top: 1px solid var(--elg-line);
+}
+
+.elg-search-drop-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.elg-search-drop-inner > .elg-search-results {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Desktop "glide from the header" mode — JS drives the movement, so the
+   generic pop-in keyframes are switched off. */
+.elg-search-panel.elg-search-flip {
+  animation: none;
+}
+
+.elg-search-overlay.elg-search-flip-overlay {
+  animation: none;
+}
+
+.elg-search-flip .elg-search-drop {
+  grid-template-rows: 0fr;
+  border-top-color: transparent;
+  transition: grid-template-rows 300ms cubic-bezier(0.22, 1, 0.36, 1), border-top-color 150ms ease;
+}
+
+.elg-search-flip .elg-search-drop-inner {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 220ms ease, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.elg-search-flip.expanded .elg-search-drop {
+  grid-template-rows: 1fr;
+  border-top-color: var(--elg-line);
+}
+
+.elg-search-flip.expanded .elg-search-drop-inner {
+  opacity: 1;
+  transform: none;
+  transition-delay: 40ms;
+}
+
+/* The header field "becomes" the panel: hide it while the panel is out. */
+.elg-search.elg-search-lifted {
+  visibility: hidden;
 }
 
 .elg-search-bar input {

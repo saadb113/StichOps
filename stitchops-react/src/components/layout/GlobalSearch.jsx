@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { matchesSearch } from '../../lib/helpers';
@@ -21,11 +21,53 @@ const TAG_LABEL = { customers: 'Customers', employees: 'Employees', invoices: 'I
 
 const matches = matchesSearch;
 
+// Two-stage glide: slide sideways along the top bar to the centre, then
+// move down into place. SLIDE_SHARE = fraction of the time spent sliding.
+const MOVE_MS = 620;
+const CLOSE_MS = 520;
+const SLIDE_SHARE = 0.5;
+const SLIDE_EASE = 'cubic-bezier(0.45, 0, 0.2, 1)';
+const DROP_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const COLLAPSE_MS = 220;
+
+// The header search field, when it's actually on screen (desktop layout).
+function headerField() {
+  const el = document.querySelector('.elg-topbar .elg-search');
+  if (!el || !el.offsetParent) return null;
+  return el.getBoundingClientRect().width > 0 ? el : null;
+}
+
+const prefersReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Visual state of the header field vs. the open panel, for the glide.
+function frame(el, rect, extra) {
+  const cs = getComputedStyle(el);
+  return {
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    borderRadius: cs.borderRadius,
+    backgroundColor: cs.backgroundColor,
+    ...extra
+  };
+}
+
 export default function GlobalSearch() {
   const { customers, orders, invoices, employees, isAdmin, getCustomer } = useAppState();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+  // Desktop glide: the panel starts where the header field is, travels to the
+  // centre, then drops its results open. `flip` = this open uses the glide;
+  // `expanded` = results are dropped open.
+  const [flip, setFlip] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const panelRef = useRef(null);
+  const overlayRef = useRef(null);
+  const openRef = useRef(false);
+  const busyRef = useRef(false);
+  // Mirrors `flip` for the keyboard listener, which is registered once and
+  // would otherwise see a stale value.
+  const flipRef = useRef(false);
   const [q, setQ] = useState('');
   const [activeTag, setActiveTag] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -33,24 +75,83 @@ export default function GlobalSearch() {
 
   const basePath = isAdmin ? '/customers' : '/my-customers';
 
+  function openSearch() {
+    if (openRef.current || busyRef.current) return;
+    openRef.current = true;
+    const glide = Boolean(headerField()) && !prefersReducedMotion();
+    flipRef.current = glide;
+    setFlip(glide);
+    setExpanded(!glide);
+    setClosing(false);
+    setOpen(true);
+  }
+
+  // Runs right after the panel mounts at its final (centred) position, before
+  // the browser paints, so both ends can be measured and the glide starts
+  // exactly on the header field with no visible jump.
+  useLayoutEffect(() => {
+    if (!open || !flip) return undefined;
+    const field = headerField();
+    const panel = panelRef.current;
+    if (!field || !panel) { setExpanded(true); return undefined; }
+    const from = field.getBoundingClientRect();
+    const to = panel.getBoundingClientRect();
+    const end = frame(panel, to, { transform: 'translate(0, 0)', boxShadow: getComputedStyle(panel).boxShadow });
+    // The overlay centres the panel, so at the header field's (narrower) width
+    // its box sits further right by half the difference — compensate for it.
+    const centreShift = (to.width - from.width) / 2;
+    const dy = from.top - to.top;
+    const start = frame(field, from, {
+      transform: `translate(${from.left - to.left - centreShift}px, ${dy}px)`,
+      boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.06)',
+      easing: SLIDE_EASE
+    });
+    // Stage 1 ends here: horizontally centred, still sitting in the top bar.
+    const mid = frame(field, { width: to.width, height: from.height }, {
+      transform: `translate(0px, ${dy}px)`,
+      boxShadow: '0 4px 14px rgba(20, 20, 40, 0.08)',
+      offset: SLIDE_SHARE,
+      easing: DROP_EASE
+    });
+    field.classList.add('elg-search-lifted');
+    busyRef.current = true;
+    const move = panel.animate([start, mid, end], { duration: MOVE_MS });
+    overlayRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOVE_MS, easing: 'ease-out' });
+    // `finish` fires on the next painted frame; the timer is a backup for
+    // background tabs (no frames) so the results always drop open.
+    let done = false;
+    const afterMove = () => {
+      if (done) return;
+      done = true;
+      busyRef.current = false;
+      setExpanded(true);
+    };
+    move.onfinish = afterMove;
+    const backup = setTimeout(afterMove, MOVE_MS + 120);
+    return () => { clearTimeout(backup); move.cancel(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, flip]);
+
   useEffect(() => {
     function onKeyDown(e) {
       const isK = e.key.toLowerCase() === 'k';
       if ((e.metaKey || e.ctrlKey) && isK) {
         e.preventDefault();
-        setOpen((v) => !v);
-      } else if (e.key === 'Escape') {
+        if (openRef.current) closeSearch(); else openSearch();
+      } else if (e.key === 'Escape' && openRef.current) {
         closeSearch();
       }
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    function onOpenRequest() { setOpen(true); }
+    function onOpenRequest() { openSearch(); }
     window.addEventListener('open-global-search', onOpenRequest);
     return () => window.removeEventListener('open-global-search', onOpenRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -89,9 +190,55 @@ export default function GlobalSearch() {
     setActiveIndex(0);
   }
 
+  function finishClose() {
+    document.querySelectorAll('.elg-search-lifted').forEach((el) => el.classList.remove('elg-search-lifted'));
+    openRef.current = false;
+    busyRef.current = false;
+    setOpen(false);
+    setClosing(false);
+    flipRef.current = false;
+    setFlip(false);
+    setExpanded(false);
+  }
+
   function closeSearch() {
-    setClosing(true);
-    setTimeout(() => { setOpen(false); setClosing(false); }, 160);
+    if (!openRef.current || busyRef.current) return;
+    const panel = panelRef.current;
+    const field = document.querySelector('.elg-search-lifted') || headerField();
+    const canGlide = flipRef.current && panel && field && field.getBoundingClientRect().width > 0 && !prefersReducedMotion();
+    busyRef.current = true;
+    if (!canGlide) {
+      setClosing(true);
+      setTimeout(finishClose, 160);
+      return;
+    }
+    // Reverse: fold the results up, then glide back into the header field.
+    setExpanded(false);
+    setTimeout(() => {
+      const from = panel.getBoundingClientRect();
+      const to = field.getBoundingClientRect();
+      const start = frame(panel, from, { transform: 'translate(0, 0)', boxShadow: getComputedStyle(panel).boxShadow });
+      const centreShift = (from.width - to.width) / 2;
+      const dy = to.top - from.top;
+      start.easing = SLIDE_EASE;
+      // Rise back up to the top bar first (still centred), then slide home.
+      const mid = frame(field, { width: from.width, height: to.height }, {
+        transform: `translate(0px, ${dy}px)`,
+        boxShadow: '0 4px 14px rgba(20, 20, 40, 0.08)',
+        offset: 1 - SLIDE_SHARE,
+        easing: SLIDE_EASE
+      });
+      const end = frame(field, to, {
+        transform: `translate(${to.left - from.left - centreShift}px, ${dy}px)`,
+        boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.06)'
+      });
+      const back = panel.animate([start, mid, end], { duration: CLOSE_MS, fill: 'forwards' });
+      overlayRef.current?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: CLOSE_MS, easing: 'ease-in', fill: 'forwards' });
+      let done = false;
+      const afterBack = () => { if (!done) { done = true; finishClose(); } };
+      back.onfinish = afterBack;
+      setTimeout(afterBack, CLOSE_MS + 120);
+    }, COLLAPSE_MS);
   }
 
   function clearTag() {
@@ -200,8 +347,12 @@ export default function GlobalSearch() {
   const showingTagMenu = tagSuggestions.length > 0;
 
   return (
-    <div className={`elg-search-overlay ${closing ? 'closing' : ''}`} onClick={closeSearch}>
-      <div className={`elg-search-panel ${closing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
+    <div ref={overlayRef} className={`elg-search-overlay ${closing ? 'closing' : ''} ${flip ? 'elg-search-flip-overlay' : ''}`} onClick={closeSearch}>
+      <div
+        ref={panelRef}
+        className={`elg-search-panel ${closing ? 'closing' : ''} ${flip ? 'elg-search-flip' : ''} ${expanded ? 'expanded' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="elg-search-bar">
           <img src="/icons/nav-search-icon.svg" alt="Search" />
           {activeTag && (
@@ -222,6 +373,8 @@ export default function GlobalSearch() {
           </button>
         </div>
 
+        <div className="elg-search-drop">
+        <div className="elg-search-drop-inner">
         {showingTagMenu ? (
           <div className="elg-search-results">
             <div className="elg-search-group-label">Filter by</div>
@@ -267,6 +420,8 @@ export default function GlobalSearch() {
             ))}
           </div>
         )}
+        </div>
+        </div>
       </div>
     </div>
   );

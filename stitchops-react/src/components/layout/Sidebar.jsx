@@ -90,7 +90,7 @@ function AttentionCard({ cardKey, dismissed, onDismiss, children }) {
 }
 
 export default function Sidebar({ open, onNavigate }) {
-  const { isAdmin, isSalesperson, orders, employees, passwordResetRequests, logout } = useAppState();
+  const { isAdmin, isSalesperson, orders, employees, passwordResetRequests, logout, newCustomerCount } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'Rush').length;
@@ -116,6 +116,7 @@ export default function Sidebar({ open, onNavigate }) {
               <NavIcon icon={displayIcon} width={17} height={17} />
               {label}
               {path === '/orders' && pendingOrderCount > 0 && <span className="elg-nav-badge">{pendingOrderCount}</span>}
+              {path === '/customers' && isAdmin && newCustomerCount > 0 && <span className="elg-nav-badge" title="New customers added by salespeople">{newCustomerCount}</span>}
             </>
           );
         }}

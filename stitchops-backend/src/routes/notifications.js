@@ -61,6 +61,19 @@ router.patch('/:id/read', requireAuth, requireAdmin, asyncHandler(async (req, re
   res.json(updated);
 }));
 
+// Unread "a salesperson added a customer" notifications — drives the badge on
+// the Customers nav item (counted server-side: the bell only keeps the last 10).
+router.get('/new-customers/count', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const count = await prisma.notification.count({ where: { type: 'new_customer', read: false } });
+  res.json({ count });
+}));
+
+// Opening the Customers page counts as having seen them — clears the badge.
+router.post('/new-customers/read', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  await prisma.notification.updateMany({ where: { type: 'new_customer', read: false }, data: { read: true } });
+  res.json({ ok: true });
+}));
+
 router.post('/read-all', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   await prisma.notification.updateMany({ where: { read: false }, data: { read: true } });
   res.json({ ok: true });

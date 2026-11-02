@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
@@ -22,7 +22,14 @@ function customerTypeClass(status) {
 }
 
 export default function CustomersList() {
-  const { dataLoading, customers, orders, invoices, isAdmin, currentEmployee } = useAppState();
+  const { dataLoading, customers, orders, invoices, isAdmin, currentEmployee, newCustomerCount, markNewCustomersSeen } = useAppState();
+
+  // Opening Customers = the admin has seen any customers salespeople added;
+  // also clears new arrivals while the admin is already on this page.
+  useEffect(() => {
+    if (isAdmin && newCustomerCount > 0) markNewCustomersSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, newCustomerCount]);
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');

@@ -50,6 +50,9 @@ export function AppStateProvider({ children }) {
   const refreshCurrencyRates = async () => setCurrencyRates(await api.get('/currency-rates'));
   const refreshPasswordResetRequests = async () => setPasswordResetRequests(await api.get('/password-reset-requests'));
   const refreshNotifications = async () => setNotifications(await api.get('/notifications'));
+  // Unread "salesperson added a customer" notifications — the Customers nav badge.
+  const [newCustomerCount, setNewCustomerCount] = useState(0);
+  const refreshNewCustomerCount = async () => setNewCustomerCount((await api.get('/notifications/new-customers/count')).count);
   const refreshMeta = async () => {
     const m = await api.get('/meta');
     setNextInvoiceNo(m.nextInvoiceNo);
@@ -79,6 +82,7 @@ export function AppStateProvider({ children }) {
         refreshBankAccounts(),
         refreshPasswordResetRequests(),
         refreshNotifications(),
+        refreshNewCustomerCount(),
         refreshMeta()
       );
     }
@@ -91,7 +95,7 @@ export function AppStateProvider({ children }) {
     setCustomers([]); setOrders([]); setInvoices([]); setPayslips([]);
     setEmployees([]); setDesigners([]); setEmployeeCategories([]); setCompanyEmails([]);
     setCompany(null); setBankAccounts([]); setCurrencyRates([]);
-    setPasswordResetRequests([]); setNotifications([]);
+    setPasswordResetRequests([]); setNotifications([]); setNewCustomerCount(0);
     setNextInvoiceNo(null); setNextCustomerCode(null);
   }
 
@@ -136,7 +140,7 @@ export function AppStateProvider({ children }) {
       try { notification = JSON.parse(e.data); } catch { return; }
       setNotifications((list) => (list.some((n) => n.id === notification.id) ? list : [notification, ...list].slice(0, 10)));
       if (notification.type === 'password_reset_request') refreshPasswordResetRequests();
-      if (notification.type === 'new_customer') refreshCustomers();
+      if (notification.type === 'new_customer') { refreshCustomers(); refreshNewCustomerCount().catch(() => {}); }
       if (notification.type === 'invoice_generated') { refreshInvoices(); refreshOrders(); }
       // The employee behind this notification (their photo, most likely)
       // may be newer than whatever this admin tab last fetched.
@@ -375,10 +379,23 @@ export function AppStateProvider({ children }) {
   async function markNotificationRead(id) {
     const updated = await api.patch(`/notifications/${id}/read`);
     setNotifications((list) => list.map((n) => (n.id === id ? updated : n)));
+    if (updated.type === 'new_customer') refreshNewCustomerCount().catch(() => {});
+  }
+  // Opening the Customers page = the admin has seen the newly added customers.
+  async function markNewCustomersSeen() {
+    if (!newCustomerCount) return;
+    setNewCustomerCount(0);
+    setNotifications((list) => list.map((n) => (n.type === 'new_customer' ? { ...n, read: true } : n)));
+    try {
+      await api.post('/notifications/new-customers/read');
+    } catch {
+      refreshNewCustomerCount().catch(() => {});
+    }
   }
   async function markAllNotificationsRead() {
     await api.post('/notifications/read-all');
     setNotifications((list) => list.map((n) => ({ ...n, read: true })));
+    setNewCustomerCount(0);
   }
 
   // ---------- company settings ----------
@@ -563,7 +580,7 @@ export function AppStateProvider({ children }) {
     getSmtpSettings, updateSmtpSettings, sendSmtpTest, verifySmtp,
     addBankAccount, updateBankAccount, deleteBankAccount,
     addCurrencyRate, updateCurrencyRate, deleteCurrencyRate, fetchMarketRate,
-    markNotificationRead, markAllNotificationsRead,
+    markNotificationRead, markAllNotificationsRead, newCustomerCount, markNewCustomersSeen,
     exportSystemData, exportAllSystemData, importSystemData, previewImport, importAllSystemData,
     attemptLogin, logout, submitNewPassword, markWelcomed, submitForgotPassword, submitAdminRecovery, submitResetPassword, changePassword
   };

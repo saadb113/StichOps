@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
+const compression = require('compression');
 
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
@@ -25,6 +26,11 @@ const { UPLOAD_DIR } = require('./lib/upload');
 const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: true }));
+// Gzip JSON responses (lists shrink ~85-90%). The live notification stream
+// must not be buffered by compression, or events would arrive late.
+app.use(compression({
+  filter: (req, res) => !req.originalUrl.startsWith('/api/notifications/stream') && compression.filter(req, res)
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(UPLOAD_DIR));

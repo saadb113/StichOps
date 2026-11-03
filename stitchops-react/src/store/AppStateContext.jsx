@@ -154,16 +154,27 @@ export function AppStateProvider({ children }) {
   const getCustomer = (id) => customers.find((c) => c.id === id);
   const getEmployee = (id) => employees.find((e) => e.id === id);
 
+  // Saves update just the affected record in memory, using the record the
+  // server returns (same shape as the list endpoints), instead of
+  // re-downloading the whole list after every change.
+  const upsert = (list, item, sort) => {
+    const next = list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [...list, item];
+    return sort ? next.sort(sort) : next;
+  };
+  const byDateDesc = (a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id;
+  const byIdAsc = (a, b) => a.id - b.id;
+  const byIdDesc = (a, b) => b.id - a.id;
+
   // ---------- customers ----------
   async function addCustomer(data) {
     const created = await api.post('/customers', data);
-    await refreshCustomers();
+    setCustomers((list) => upsert(list, created, byIdAsc));
     if (isAdmin && data.customerCode) await refreshMeta();
     return created;
   }
   async function updateCustomer(id, data) {
     const updated = await api.patch(`/customers/${id}`, data);
-    await refreshCustomers();
+    setCustomers((list) => upsert(list, updated, byIdAsc));
     return updated;
   }
   async function setCustomerStatus(id, status) {
@@ -171,23 +182,25 @@ export function AppStateProvider({ children }) {
   }
   async function deleteCustomer(id) {
     await api.delete(`/customers/${id}`);
-    await refreshCustomers();
+    setCustomers((list) => list.filter((c) => c.id !== id));
   }
 
   // ---------- orders ----------
   async function addOrder(data) {
     const result = await api.post('/orders', data);
-    await Promise.all([refreshOrders(), refreshCustomers()]);
+    setOrders((list) => upsert(list, result.order, byDateDesc));
+    // A first order can flip the customer's type (e.g. Free Trial -> Paid).
+    if (result.customer) setCustomers((list) => upsert(list, result.customer, byIdAsc));
     return result; // { order, customer, statusChangedTo }
   }
   async function updateOrder(id, data) {
     const result = await api.patch(`/orders/${id}`, data);
-    await refreshOrders();
+    setOrders((list) => upsert(list, result.order, byDateDesc));
     return result; // { order, wasInvoiced }
   }
   async function deleteOrder(id) {
     await api.delete(`/orders/${id}`);
-    await refreshOrders();
+    setOrders((list) => list.filter((o) => o.id !== id));
   }
 
   // Optimistically hides the order everywhere immediately and only actually
@@ -221,8 +234,8 @@ export function AppStateProvider({ children }) {
     return updateOrder(orderId, { status });
   }
   async function addComment(orderId, text) {
-    await api.post(`/orders/${orderId}/comments`, { text });
-    await refreshOrders();
+    const updated = await api.post(`/orders/${orderId}/comments`, { text });
+    setOrders((list) => upsert(list, updated, byDateDesc));
   }
 
   // ---------- invoices ----------
@@ -231,17 +244,17 @@ export function AppStateProvider({ children }) {
   // 1st of the month (see stitchops-backend/src/lib/monthlyInvoicing.js).
   async function togglePaymentStatus(id, details) {
     const updated = await api.patch(`/invoices/${id}/payment`, details || {});
-    await refreshInvoices();
+    setInvoices((list) => upsert(list, updated, byIdDesc));
     return updated.paymentStatus;
   }
   async function sendInvoiceReminder(id) {
     const updated = await api.post(`/invoices/${id}/remind`);
-    await refreshInvoices();
+    setInvoices((list) => upsert(list, updated, byIdDesc));
     return updated;
   }
   async function setInvoiceBankAccount(id, bankAccountId) {
     const updated = await api.patch(`/invoices/${id}/bank-account`, { bankAccountId });
-    await refreshInvoices();
+    setInvoices((list) => upsert(list, updated, byIdDesc));
     return updated;
   }
 

@@ -20,7 +20,48 @@ function setActiveRequests(delta) {
   loadingListeners.forEach((fn) => fn(activeRequests));
 }
 
+// Saves that are still on their way to the server, keyed by method + path +
+// payload. A double-click (or Enter pressed twice) on the same form sends an
+// identical request; that repeat is turned away while the first is in
+// flight, so it can never create a second order/customer/etc.
+const inFlightWrites = new Set();
+let activeWrites = 0;
+
+function writeKey(method, path, body) {
+  if (body instanceof FormData) {
+    const parts = [];
+    body.forEach((v, k) => parts.push(`${k}=${v instanceof File ? `${v.name}:${v.size}:${v.lastModified}` : v}`));
+    return `${method} ${path} ${parts.join('&')}`;
+  }
+  return `${method} ${path} ${body === undefined ? '' : JSON.stringify(body)}`;
+}
+
+// Marks the page while any save is in flight; CSS uses it to lock save buttons.
+function setActiveWrites(delta) {
+  activeWrites += delta;
+  document.documentElement.toggleAttribute('data-saving', activeWrites > 0);
+}
+
 async function request(path, options = {}) {
+  const method = options.method || 'GET';
+  if (method === 'GET') return send(path, options);
+  const key = writeKey(method, path, options.body);
+  if (inFlightWrites.has(key)) {
+    const err = new Error('Already saving — please wait a moment.');
+    err.duplicate = true;
+    throw err;
+  }
+  inFlightWrites.add(key);
+  setActiveWrites(1);
+  try {
+    return await send(path, options);
+  } finally {
+    inFlightWrites.delete(key);
+    setActiveWrites(-1);
+  }
+}
+
+async function send(path, options = {}) {
   setActiveRequests(1);
   try {
     const isFormData = options.body instanceof FormData;

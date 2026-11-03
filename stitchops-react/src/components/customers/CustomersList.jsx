@@ -11,6 +11,7 @@ import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon, PeopleIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
+import Pagination, { usePagination } from '../common/Pagination';
 
 function initialsFor(name) {
   return name.split(' ').filter((w) => /[a-z0-9]/i.test(w[0])).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -77,6 +78,8 @@ export default function CustomersList() {
   }
 
   const basePath = isAdmin ? '/customers' : '/my-customers';
+
+  const pager = usePagination(list, { storageKey: 'elg.pageSize.customers', resetKey: JSON.stringify([search, customerType, status, country, from, to, salesperson, paymentFilter]) });
 
   return (
     <div className="elg-page">
@@ -202,7 +205,7 @@ export default function CustomersList() {
             {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
           </div>
         )}
-        {list.map((c) => {
+        {pager.pageItems.map((c) => {
           const active = isActive(orders, c);
           return (
             <div key={c.id} className="elg-mobile-card clickable" onClick={() => navigate(`${basePath}/${c.id}`)}>
@@ -246,7 +249,7 @@ export default function CustomersList() {
                 {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
               </td></tr>
             )}
-            {list.map((c) => {
+            {pager.pageItems.map((c) => {
               const active = isActive(orders, c);
               return (
                 <tr className="clickable" key={c.id} onClick={() => navigate(`${basePath}/${c.id}`)}>
@@ -265,6 +268,7 @@ export default function CustomersList() {
           </tbody>
         </table>
       </div>
+      <Pagination pager={pager} label="customers" />
     </div>
   );
 }

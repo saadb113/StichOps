@@ -13,6 +13,7 @@ import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
+import Pagination, { usePagination } from '../common/Pagination';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -93,6 +94,8 @@ export default function OrdersScreen() {
     const next = ORDER_STATUSES[(idx + 1) % ORDER_STATUSES.length];
     setOrderStatus(o.id, next).catch((err) => toast(err.message));
   }
+
+  const pager = usePagination(list, { storageKey: 'elg.pageSize.orders', resetKey: JSON.stringify([from, to, search, currency, status]) });
 
   return (
     <div className="elg-page">
@@ -183,7 +186,7 @@ export default function OrdersScreen() {
       <div className="elg-mobile-cards">
         {dataLoading ? (<SkeletonMobileCards />) : (<>
         {list.length === 0 && <div className="elg-empty">No orders match these filters.</div>}
-        {list.map((o) => {
+        {pager.pageItems.map((o) => {
           const c = getCustomer(o.customerId);
           return (
             <div key={o.id} className="elg-mobile-card">
@@ -224,7 +227,7 @@ export default function OrdersScreen() {
           <tbody>
             {dataLoading ? (<SkeletonRows cols={7} />) : (<>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
-            {list.map((o) => {
+            {pager.pageItems.map((o) => {
               const c = getCustomer(o.customerId);
               return (
                 <tr key={o.id} className="clickable">
@@ -252,6 +255,7 @@ export default function OrdersScreen() {
           </tbody>
         </table>
       </div>
+      <Pagination pager={pager} label="orders" />
     </div>
   );
 }

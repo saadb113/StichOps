@@ -12,6 +12,7 @@ import MobileFilterModal from '../layout/MobileFilterModal';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon, DocIcon, CheckIcon, WarningIcon, ClockIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
+import Pagination, { usePagination } from '../common/Pagination';
 
 function invoiceBadgeInfo(inv) {
   const pb = paymentBadge(inv);
@@ -165,6 +166,8 @@ export default function InvoicesScreen() {
     );
   }
 
+  const pager = usePagination(list, { storageKey: 'elg.pageSize.invoices', resetKey: JSON.stringify([from, to, search, currency, status, dueToday]) });
+
   return (
     <div className="elg-page">
       <div className="elg-crumbs">
@@ -269,7 +272,7 @@ export default function InvoicesScreen() {
       <div className="elg-mobile-cards">
         {dataLoading ? (<SkeletonMobileCards subtitle />) : (<>
         {list.length === 0 && <div className="elg-empty">No invoices match these filters.</div>}
-        {list.map((i) => {
+        {pager.pageItems.map((i) => {
           const c = getCustomer(i.customerId);
           const bi = invoiceBadgeInfo(i);
           return (
@@ -316,7 +319,7 @@ export default function InvoicesScreen() {
           <tbody>
             {dataLoading ? (<SkeletonRows cols={7} />) : (<>
             {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
-            {list.map((i) => {
+            {pager.pageItems.map((i) => {
               const c = getCustomer(i.customerId);
               const bi = invoiceBadgeInfo(i);
               return (
@@ -357,6 +360,7 @@ export default function InvoicesScreen() {
           </tbody>
         </table>
       </div>
+      <Pagination pager={pager} label="invoices" />
     </div>
   );
 }

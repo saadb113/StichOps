@@ -5187,3 +5187,154 @@ input[type="number"] {
     display: flex;
   }
 }
+
+/* ---------- Save in progress ----------
+   Set on <html> by lib/api.js while any create/update/delete request is in
+   flight. Locks the confirm buttons so a save can't be fired twice. */
+html[data-saving] .elg-modal .elg-btn-primary,
+html[data-saving] .modal .elg-btn-primary,
+html[data-saving] .modal .btn-primary,
+html[data-saving] .elg-modal-foot .elg-btn:not(.elg-btn-ghost),
+html[data-saving] .elg-import-actions .elg-btn-primary {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------- Pagination (Orders / Invoices / Customers) ---------- */
+.elg-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--elg-ink-2);
+}
+
+.elg-pagination-info strong {
+  color: var(--elg-ink);
+  font-weight: 600;
+}
+
+.elg-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.elg-pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.elg-pagination-size .elg-select {
+  width: auto;
+  min-width: 72px;
+}
+
+.elg-pagination-pages {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.elg-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--elg-line);
+  border-radius: 8px;
+  background: var(--elg-surface);
+  color: var(--elg-ink);
+  font-family: var(--elg-font-sans);
+  font-size: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.elg-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--elg-page-bg);
+}
+
+.elg-page-btn.active {
+  background: var(--elg-primary);
+  border-color: var(--elg-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: default;
+}
+
+.elg-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.elg-page-gap {
+  min-width: 20px;
+  text-align: center;
+  color: var(--elg-ink-3);
+}
+
+.elg-pagination-compact,
+.elg-pagination-short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Row 1: "1–10 of 77"  ·  Rows [10]      Row 2: ‹ Prev | Page 1 of 8 | Next › */
+  .elg-pagination {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .elg-pagination-showing,
+  .elg-pagination-label,
+  .elg-pagination-pages {
+    display: none;
+  }
+
+  .elg-pagination-short {
+    display: inline;
+  }
+
+  .elg-pagination-info {
+    font-size: 14px;
+  }
+
+  .elg-pagination-size .elg-select {
+    min-width: 68px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .elg-pagination-compact {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .elg-pagination-compact .elg-page-btn {
+    height: 44px;
+    font-weight: 500;
+  }
+
+  .elg-pagination-compact-label {
+    font-size: 14px;
+    color: var(--elg-ink-2);
+    white-space: nowrap;
+  }
+
+  .elg-pagination-compact-label strong {
+    color: var(--elg-ink);
+  }
+}

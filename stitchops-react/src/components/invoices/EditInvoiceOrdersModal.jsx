@@ -1,10 +1,11 @@
-import { useAppState } from '../../store/AppStateContext';
+import { useScope } from '../../store/ScopedData';
 import { useUi } from '../../store/UiContext';
 import OrderFormModal from '../orders/OrderFormModal';
 import { CloseIcon, PencilIcon } from '../icons/Icon';
 
-export default function EditInvoiceOrdersModal({ invoiceId }) {
-  const { invoices, orders, getCustomer } = useAppState();
+export default function EditInvoiceOrdersModal({ invoiceId, customerId }) {
+  // Just this customer's invoices and orders (contains this invoice's lines).
+  const { invoices, orders, getCustomer } = useScope({ customerId, collections: 'orders,invoices' });
   const { closeModal, openModal } = useUi();
 
   const inv = invoices.find((i) => i.id === invoiceId);

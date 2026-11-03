@@ -13,6 +13,7 @@ import OrderFormModal from '../orders/OrderFormModal';
 import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 import { SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
+import { useScope } from '../../store/ScopedData';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
   const { rejectPasswordReset } = useAppState();
@@ -66,7 +67,11 @@ function ConfirmRejectPasswordResetModal({ requestId, name }) {
 }
 
 export default function EmployeesList() {
-  const { dataLoading, employees, employeeCategories, orders, customers, company, currencyRates, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
+  // Unpaid earnings only involve completed orders not yet paid out — fetch
+  // just those (plus their customers) instead of every order.
+  const earningsScope = useScope({ unpaidEarnings: 1, collections: 'orders' });
+  const { orders, customers } = earningsScope;
+  const { dataLoading, employees, employeeCategories, company, currencyRates, passwordResetRequests, getEmployee, approvePasswordReset } = useAppState();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
@@ -280,7 +285,7 @@ export default function EmployeesList() {
         {list.map((e) => {
           const unpaid = unpaidAmountFor(orders, customers, e);
           const unpaidTotal = sumConvertedToDefault(unpaid, currencyRates, defaultCurrency);
-          const unpaidStr = unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
+          const unpaidStr = earningsScope.loading ? '…' : unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
           return (
             <div key={e.id} className="elg-mobile-card clickable" onClick={() => navigate(`/employees/${e.id}`)}>
               <div className="elg-mobile-card-head">
@@ -356,7 +361,7 @@ export default function EmployeesList() {
             {list.map((e) => {
               const unpaid = unpaidAmountFor(orders, customers, e);
               const unpaidTotal = sumConvertedToDefault(unpaid, currencyRates, defaultCurrency);
-              const unpaidStr = unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
+              const unpaidStr = earningsScope.loading ? '…' : unpaidTotal == null ? '—' : fmt(unpaidTotal, defaultCurrency);
               return (
                 <tr className="clickable" key={e.id} onClick={() => navigate(`/employees/${e.id}`)}>
                   <td>

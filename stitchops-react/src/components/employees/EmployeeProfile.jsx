@@ -14,8 +14,9 @@ import EmployeeCustomersTab from './EmployeeCustomersTab';
 import Avatar from '../common/Avatar';
 import { ArrowLeftIcon, KeyIcon, TrashIcon, DocIcon, KebabIcon, PlusIcon } from '../icons/Icon';
 import { ProfileSkeleton } from '../common/Skeleton';
+import ScopedData from '../../store/ScopedData';
 
-export default function EmployeeProfile() {
+function EmployeeProfile() {
   const { employeeId } = useParams();
   const id = Number(employeeId);
   const { dataLoading, getEmployee, orders, customers, company, regenerateCredentials, createLogin } = useAppState();
@@ -38,7 +39,9 @@ export default function EmployeeProfile() {
   }, []);
 
   const e = getEmployee(id);
-  if (!e && dataLoading) {
+  // Also wait for this employee's orders/customers/payslips (their slice), so the
+  // tabs never flash "0 customers" or "no orders" while it loads.
+  if (dataLoading) {
     return (
       <ProfileSkeleton
         variant="employee"
@@ -340,5 +343,16 @@ export default function EmployeeProfile() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loads only this employee's records (see store/ScopedData.jsx) — the
+// page, its tabs and the popups it opens all work on that slice.
+export default function EmployeeProfilePage() {
+  const { employeeId } = useParams();
+  return (
+    <ScopedData query={{ employeeId: Number(employeeId) }}>
+      <EmployeeProfile />
+    </ScopedData>
   );
 }

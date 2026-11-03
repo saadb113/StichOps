@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { onLoadingChange } from '../lib/api';
 
-const UiContext = createContext(null);
+export const UiContext = createContext(null);
 
 export function UiProvider({ children }) {
   const [toastMsg, setToastMsg] = useState('');

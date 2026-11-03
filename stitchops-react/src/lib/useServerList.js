@@ -17,7 +17,7 @@ const SEARCH_DEBOUNCE_MS = 250;
 // - `filters`: the screen's filter values; changing any of them goes back to page 1.
 // - `version`: bump it to refetch the current page (after a save, a live update…).
 // Returns the rows plus a `pager` with the same shape <Pagination> expects.
-export function useServerList(path, filters, { storageKey, version = 0 }) {
+export function useServerList(path, filters, { storageKey, version = 0, hiddenIds = null }) {
   const [pageSize, setPageSizeState] = useState(() => readSize(storageKey));
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
@@ -68,11 +68,13 @@ export function useServerList(path, filters, { storageKey, version = 0 }) {
     try { localStorage.setItem(storageKey, String(size)); } catch { /* storage unavailable */ }
   }
 
-  const total = data?.total ?? 0;
+  // Rows deleted but still inside their undo window are hidden right away.
+  const visibleItems = hiddenIds && hiddenIds.size ? (data?.items ?? []).filter((x) => !hiddenIds.has(x.id)) : (data?.items ?? []);
+  const total = Math.max(0, (data?.total ?? 0) - ((data?.items?.length ?? 0) - visibleItems.length));
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const current = Math.min(effectivePage, pageCount);
   const pager = {
-    pageItems: data?.items ?? [],
+    pageItems: visibleItems,
     page: current,
     pageCount,
     pageSize,
@@ -83,7 +85,7 @@ export function useServerList(path, filters, { storageKey, version = 0 }) {
   };
 
   return {
-    items: data?.items ?? [],
+    items: visibleItems,
     total,
     stats: data?.stats ?? null,
     extra: data ?? {},

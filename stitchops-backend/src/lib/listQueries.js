@@ -73,6 +73,14 @@ async function pageAcrossGroups(model, groups, counts, skip, take, include) {
 
 const and = (...parts) => ({ AND: parts.filter(Boolean) });
 
+// Customers referenced by the rows on the current page (for names, currency…).
+async function customersFor(ids) {
+  const unique = [...new Set(ids)];
+  if (!unique.length) return [];
+  const rows = await prisma.customer.findMany({ where: { id: { in: unique } }, include: customerInclude });
+  return rows.map(serializeCustomer);
+}
+
 // ---------- orders ----------
 const NEEDS_ATTENTION = ['Pending', 'Rush'];
 
@@ -111,7 +119,8 @@ async function listOrders(query, user) {
   const counts = status ? [n(status)] : [stats.rush, stats.pending, stats.total - stats.rush - stats.pending];
   const rows = await pageAcrossGroups(prisma.order, groups, counts, skip, pageSize, orderInclude);
   const total = counts.reduce((a, b) => a + b, 0);
-  return { items: rows.map(serializeOrder), total, page, pageSize, stats };
+  const related = { customers: await customersFor(rows.map((o) => o.customerId)) };
+  return { items: rows.map(serializeOrder), total, page, pageSize, stats, related };
 }
 
 // ---------- invoices ----------
@@ -167,7 +176,21 @@ async function listInvoices(query) {
     outstandingByCurrency: Object.fromEntries(outstanding.map((r) => [r.currency, r._sum.total || 0]))
   };
 
-  return { items: rows.map(serializeInvoice), total: listTotal, page, pageSize, stats, months: monthRows.map((r) => r.m) };
+  // The page's customers and the orders on its invoices (PDF download, edit).
+  const orderIds = [...new Set(rows.flatMap((i) => i.orders.map((o) => o.id)))];
+  const [relCustomers, relOrders] = await Promise.all([
+    customersFor(rows.map((i) => i.customerId)),
+    orderIds.length ? prisma.order.findMany({ where: { id: { in: orderIds } }, include: orderInclude }) : []
+  ]);
+  return {
+    items: rows.map(serializeInvoice),
+    total: listTotal,
+    page,
+    pageSize,
+    stats,
+    months: monthRows.map((r) => r.m),
+    related: { customers: relCustomers, orders: relOrders.map(serializeOrder) }
+  };
 }
 
 // ---------- customers ----------

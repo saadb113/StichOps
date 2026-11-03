@@ -6,6 +6,7 @@ import { fmt, commissionAmt, convertToDefault } from '../../lib/helpers';
 import { TODAY } from '../../lib/constants';
 import { CloseIcon, PlusIcon } from '../icons/Icon';
 import { SkText } from '../common/Skeleton';
+import { useScope } from '../../store/ScopedData';
 
 const monthName = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
 const monthLabel = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -79,12 +80,23 @@ function ExpenseModal({ month, expenses, defaultCcy, onAdded, onRemoved }) {
 // default currency. Salaries count only payslip base salary — commission and
 // production cost come from the orders themselves so they aren't double-counted.
 export function useNetProfit() {
-  const { dataLoading, orders, payslips, currencyRates, company, getCustomer } = useAppState();
+  const { currencyRates, company, listVersion } = useAppState();
   const defaultCcy = company?.defaultCurrency || 'PKR';
   const currentMonth = TODAY.slice(0, 7);
   const [mode, setMode] = useState('month');
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(TODAY.slice(0, 4));
+  // Only the selected year's orders and payslips are fetched (covers both the
+  // month and the year view); the month picker's options come from the server.
+  const { orders, payslips, getCustomer, loading: dataLoading } = useScope({
+    orderFrom: `${year}-01-01`, orderTo: `${year}-12-31`,
+    payslipFrom: `${year}-01-01`, payslipTo: `${year}-12-31`,
+    collections: 'orders,payslips'
+  });
+  const [orderMonths, setOrderMonths] = useState([]);
+  useEffect(() => {
+    api.get('/reports/order-months').then(setOrderMonths).catch(() => {});
+  }, [listVersion]);
   const [expenses, setExpenses] = useState([]);
   const [expensesLoading, setExpensesLoading] = useState(true);
 
@@ -115,7 +127,7 @@ export function useNetProfit() {
   const total = income - salaries - production - commission - otherExpenses;
 
   const monthKeys = new Set([currentMonth]);
-  orders.forEach((o) => monthKeys.add(o.date.slice(0, 7)));
+  orderMonths.forEach((m) => monthKeys.add(m));
   expenses.forEach((e) => monthKeys.add(e.month));
   const months = [...monthKeys].filter((k) => k.startsWith(year)).sort().reverse();
   const years = [...new Set([...monthKeys].map((k) => k.slice(0, 4)))].sort().reverse();

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { api, setUnauthorizedHandler } from '../lib/api';
 import { downloadBlob } from '../lib/helpers';
 
-const AppStateContext = createContext(null);
+export const AppStateContext = createContext(null);
 
 export function AppStateProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
@@ -38,10 +38,16 @@ export function AppStateProvider({ children }) {
   const isEmployee = !!currentUser && !isAdmin;
 
   // ---------- collection fetchers ----------
-  const refreshCustomers = async () => setCustomers(await api.get('/customers'));
-  const refreshOrders = async () => setOrders(await api.get('/orders'));
-  const refreshInvoices = async () => setInvoices(await api.get('/invoices'));
-  const refreshPayslips = async () => setPayslips(await api.get('/payslips'));
+  // Admins never hold the full customer/order/invoice/payslip lists — each
+  // screen fetches just its own slice (paged lists, ScopedData, summaries).
+  // So for an admin, "refresh" means: tell the open screens data changed.
+  // Other roles still hold their own (server-limited) records.
+  const isAdminRef = useRef(false);
+  const bumpLists = () => setListVersion((v) => v + 1);
+  const refreshCustomers = async () => { if (isAdminRef.current) bumpLists(); else setCustomers(await api.get('/customers')); };
+  const refreshOrders = async () => { if (isAdminRef.current) bumpLists(); else setOrders(await api.get('/orders')); };
+  const refreshInvoices = async () => { if (isAdminRef.current) bumpLists(); else setInvoices(await api.get('/invoices')); };
+  const refreshPayslips = async () => { if (isAdminRef.current) bumpLists(); else setPayslips(await api.get('/payslips')); };
   const refreshEmployees = async () => setEmployees(await api.get('/employees'));
   // Unlike /employees (admin-only, full payroll data), /employees/designers
   // is just id/name and is available to every logged-in role — it's what
@@ -67,6 +73,8 @@ export function AppStateProvider({ children }) {
   // changes orders, customers or invoices. Decided at the moment of the
   // update (not in an effect), so the initial login load never counts.
   const [listVersion, setListVersion] = useState(0);
+  // Orders deleted but still inside their undo window — hidden from every list.
+  const [hiddenOrderIds, setHiddenOrderIds] = useState(() => new Set());
   const tracked = (rawSetter) => (update) => {
     rawSetter(update);
     if (!dataLoadingRef.current) setListVersion((v) => v + 1);
@@ -105,10 +113,13 @@ export function AppStateProvider({ children }) {
     // company + currency rates are needed by both roles — salespeople rely
     // on defaultCurrency to display their own pay/commission figures the
     // same way the admin side does.
-    const tasks = [refreshCustomers(), refreshOrders(), refreshPayslips(), api.get('/company').then(setCompany), refreshCurrencyRates(), refreshDesigners()];
-    if (role === 'admin') {
+    isAdminRef.current = role === 'admin';
+    const tasks = [api.get('/company').then(setCompany), refreshCurrencyRates(), refreshDesigners()];
+    if (role !== 'admin') {
+      // A salesperson's / employee's own customers, orders and payslips.
+      tasks.push(refreshCustomers(), refreshOrders(), refreshPayslips());
+    } else {
       tasks.push(
-        refreshInvoices(),
         refreshEmployees(),
         refreshEmployeeCategories(),
         refreshCompanyEmails(),
@@ -123,6 +134,7 @@ export function AppStateProvider({ children }) {
   }
 
   function clearAll() {
+    isAdminRef.current = false;
     setCurrentUser(null);
     setCurrentEmployee(null);
     setCustomers([]); setOrders([]); setInvoices([]); setPayslips([]);
@@ -246,26 +258,30 @@ export function AppStateProvider({ children }) {
   // deletes it on the server after the undo window passes — mirrors an email
   // client's "Undo send". Returns an `undo()` you can wire to a toast action.
   function softDeleteOrder(id, delayMs = 6000) {
-    const snapshot = orders;
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+    // Hidden everywhere straight away (lists filter `hiddenOrderIds`), but
+    // only deleted on the server once the undo window has passed.
+    const unhide = () => setHiddenOrderIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+    setHiddenOrderIds((prev) => new Set(prev).add(id));
     let settled = false;
     const timer = setTimeout(async () => {
       if (settled) return;
       settled = true;
       try {
         await api.delete(`/orders/${id}`);
+        setOrders((prev) => prev.filter((o) => o.id !== id));
       } catch {
-        // Couldn't actually delete it server-side — put it back rather than
-        // silently losing it from view.
-        await refreshOrders();
+        // Couldn't actually delete it server-side — show it again rather
+        // than silently losing it from view.
       }
+      unhide();
+      setListVersion((v) => v + 1);
     }, delayMs);
     return {
       undo: () => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        setOrders(snapshot);
+        unhide();
       }
     };
   }
@@ -615,6 +631,7 @@ export function AppStateProvider({ children }) {
     authLoading,
     dataLoading,
     listVersion,
+    hiddenOrderIds,
     pendingOrderCount,
     // data
     customers, orders, invoices, payslips, employees, designers, employeeCategories,

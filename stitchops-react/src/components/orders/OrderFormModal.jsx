@@ -2,16 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import { SYM, ORDER_STATUSES, TODAY, CUSTOMER_CURRENCIES } from '../../lib/constants';
-import { customerOverdueInvoices, paymentBadge, matchesSearch } from '../../lib/helpers';
+import { customerOverdueInvoices, paymentBadge } from '../../lib/helpers';
+import { api } from '../../lib/api';
+import { useScope } from '../../store/ScopedData';
 import { BagIcon, CloseIcon, WarningIcon, ChevronDownIcon } from '../icons/Icon';
 const addOrderImg = '/images/addOrder.svg';
 
-function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
+// Searches customers on the server as you type (first 20 matches), so the
+// picker works the same with 50 customers or 50,000.
+function CustomerPicker({ selected, onSelect, danger }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   const ref = useRef(null);
-
-  const selected = customers.find((c) => c.id === Number(selectedCustomerId));
+  const seq = useRef(0);
 
   useEffect(() => {
     function onDocClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
@@ -19,13 +24,23 @@ function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? customers.filter((c) => matchesSearch(q, c.company, c.name, c.salesperson))
-    : customers;
+  useEffect(() => {
+    if (!open) return undefined;
+    const n = ++seq.current;
+    setSearching(true);
+    const t = setTimeout(() => {
+      const params = new URLSearchParams({ page: '1', pageSize: '20' });
+      if (query.trim()) params.set('search', query.trim());
+      api.get(`/customers?${params.toString()}`)
+        .then((r) => { if (n === seq.current) setResults(r.items); })
+        .catch(() => { if (n === seq.current) setResults([]); })
+        .finally(() => { if (n === seq.current) setSearching(false); });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [open, query]);
 
   function pick(c) {
-    onSelect(c.id);
+    onSelect(c);
     setQuery('');
     setOpen(false);
   }
@@ -43,11 +58,13 @@ function CustomerPicker({ customers, selectedCustomerId, onSelect, danger }) {
       </div>
       {open && (
         <div className="elg-customer-picker-list">
-          {filtered.length === 0 && <div className="elg-customer-picker-empty">No customers match "{query}".</div>}
-          {filtered.map((c) => (
+          {results.length === 0 && (
+            <div className="elg-customer-picker-empty">{searching ? 'Searching…' : query ? `No customers match "${query}".` : 'No customers yet.'}</div>
+          )}
+          {results.map((c) => (
             <div
               key={c.id}
-              className={`elg-customer-picker-item ${c.id === Number(selectedCustomerId) ? 'active' : ''}`}
+              className={`elg-customer-picker-item ${selected && c.id === selected.id ? 'active' : ''}`}
               onClick={() => pick(c)}
             >
               <span className="elg-customer-picker-item-name">{c.company}</span>
@@ -109,12 +126,17 @@ function StatusDropdown({ value, onChange }) {
 }
 
 export default function OrderFormModal({ customerId = null, order = null, allowCompanyPicker = false }) {
-  const { customers, employees, designers, company, getCustomer, invoices, addOrder, updateOrder, deleteOrder } = useAppState();
+  const { employees, designers, company, addOrder, updateOrder, deleteOrder } = useAppState();
   const { closeModal, toast } = useUi();
   const defaultCurrency = company?.defaultCurrency || 'PKR';
 
   const [selectedCustomerId, setSelectedCustomerId] = useState(customerId || '');
-  const cust = selectedCustomerId ? getCustomer(Number(selectedCustomerId)) : null;
+  // Just this customer and their invoices (for the overdue warning).
+  const scope = useScope(selectedCustomerId ? { customerId: Number(selectedCustomerId), collections: 'invoices' } : null);
+  const [pickedCustomer, setPickedCustomer] = useState(null);
+  const cust = scope.getCustomer(Number(selectedCustomerId))
+    || (pickedCustomer && pickedCustomer.id === Number(selectedCustomerId) ? pickedCustomer : null);
+  const invoices = scope.invoices;
 
   const [name, setName] = useState(order ? order.name : '');
   const [date, setDate] = useState(order ? order.date : TODAY);
@@ -131,9 +153,21 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
 
   const showPicker = allowCompanyPicker && !order;
 
-  function handleCompanyChange(id) {
-    setSelectedCustomerId(id);
-    const c = getCustomer(Number(id));
+  // A preset customer (e.g. "Add Order" on their profile) arrives after the
+  // form opens — fill in their currency and commission once it does.
+  const filledFor = useRef(order ? Number(selectedCustomerId) : null);
+  useEffect(() => {
+    if (!cust || order || filledFor.current === cust.id) return;
+    filledFor.current = cust.id;
+    setCurrency(cust.currency);
+    const salespersonEmp = employees.find((emp) => emp.name === cust.salesperson);
+    setCommission(salespersonEmp ? salespersonEmp.commissionRate : 10);
+  }, [cust, order, employees]);
+
+  function handleCompanyChange(c) {
+    setPickedCustomer(c);
+    setSelectedCustomerId(c.id);
+    filledFor.current = c.id;
     if (c) {
       setCurrency(c.currency);
       // Commission is the salesperson's own configured rate — never a value
@@ -202,8 +236,7 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
           <div className="elg-field">
             <label>Company Name</label>
             <CustomerPicker
-              customers={customers}
-              selectedCustomerId={selectedCustomerId}
+              selected={cust}
               onSelect={handleCompanyChange}
               danger={overdue.length > 0}
             />

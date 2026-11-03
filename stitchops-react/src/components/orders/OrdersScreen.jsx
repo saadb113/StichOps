@@ -25,7 +25,7 @@ function elgStatusClass(status) {
 }
 
 export default function OrdersScreen() {
-  const { getCustomer, setOrderStatus, listVersion } = useAppState();
+  const { setOrderStatus, listVersion, hiddenOrderIds } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -44,11 +44,14 @@ export default function OrdersScreen() {
 
   // Filtering, sorting (Rush/Pending pinned on top), paging and the card
   // counts all happen on the server — only the visible page is downloaded.
-  const { stats, total, initialLoading, refreshing, pager } = useServerList(
+  const { stats, total, initialLoading, refreshing, pager, extra } = useServerList(
     '/orders',
     { from, to, search, currency, status },
-    { storageKey: 'elg.pageSize.orders', version: listVersion }
+    { storageKey: 'elg.pageSize.orders', version: listVersion, hiddenIds: hiddenOrderIds }
   );
+  // Customers of the rows on this page come with the page itself.
+  const pageCustomers = new Map((extra.related?.customers ?? []).map((c) => [c.id, c]));
+  const getCustomer = (id) => pageCustomers.get(id);
   const rushCount = stats?.rush ?? 0;
   const pendingCount = stats?.pending ?? 0;
   const onHoldCount = stats?.onHold ?? 0;

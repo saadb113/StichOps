@@ -12,6 +12,7 @@ import ConfirmMarkPaidModal from '../invoices/ConfirmMarkPaidModal';
 import RangeDateField from '../common/RangeDateField';
 import MonthlyReport, { useNetProfit } from './MonthlyReport';
 import { Sk, SkText, SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
+import { useScope } from '../../store/ScopedData';
 
 const REPORT_CURRENCIES = ['AUD', 'USD', 'GBP', 'EUR'];
 
@@ -27,7 +28,7 @@ function sumByCcy(list) {
 }
 
 export default function Reports() {
-  const { dataLoading, orders, invoices, payslips, currencyRates, company, getCustomer, getEmployee } = useAppState();
+  const { currencyRates, company, getEmployee } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const pageRef = useRef(null);
@@ -35,6 +36,16 @@ export default function Reports() {
   const [from, setFrom] = useState(TODAY);
   const [to, setTo] = useState(TODAY);
   const [exporting, setExporting] = useState(false);
+
+  // Only this range's records (and the equal-length period before it, for
+  // the growth comparison) are fetched — not the whole database. With the
+  // range cleared, the report covers all time, so everything is requested.
+  const scopeQuery = (() => {
+    if (!(from && to)) return { all: 1 };
+    const [prevFrom] = shiftRange(from, to, rangeLengthDays(from, to));
+    return { orderFrom: prevFrom, orderTo: to, invoiceFrom: from, invoiceTo: to, payslipFrom: from, payslipTo: to };
+  })();
+  const { orders, invoices, payslips, getCustomer, loading: dataLoading } = useScope(scopeQuery);
   const np = useNetProfit();
 
   const defaultCcy = company?.defaultCurrency || 'PKR';

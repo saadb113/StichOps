@@ -11,6 +11,7 @@ import InvoiceTab from './InvoiceTab';
 import InvoiceHistoryTab from './InvoiceHistoryTab';
 import { ArrowLeftIcon, PlusIcon, PencilIcon, BagOutlineSmallIcon, DocIcon, ClockIcon, WarningIcon, KebabIcon } from '../icons/Icon';
 import { ProfileSkeleton } from '../common/Skeleton';
+import ScopedData from '../../store/ScopedData';
 
 function elgStatusClass(status) {
   if (status === 'Free Trial') return 'elg-badge-inprogress';
@@ -18,7 +19,7 @@ function elgStatusClass(status) {
   return 'elg-badge-cancelled';
 }
 
-export default function CustomerProfile() {
+function CustomerProfile() {
   const { customerId } = useParams();
   const id = Number(customerId);
   const { dataLoading, getCustomer, orders, invoices, isAdmin, setCustomerStatus } = useAppState();
@@ -235,5 +236,16 @@ export default function CustomerProfile() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loads only this customer's records (see store/ScopedData.jsx) — the
+// page, its tabs and the popups it opens all work on that slice.
+export default function CustomerProfilePage() {
+  const { customerId } = useParams();
+  return (
+    <ScopedData query={{ customerId: Number(customerId) }}>
+      <CustomerProfile />
+    </ScopedData>
   );
 }

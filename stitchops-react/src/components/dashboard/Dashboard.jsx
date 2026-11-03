@@ -48,7 +48,7 @@ function elgStatusClass(status) {
 }
 
 export default function Dashboard() {
-  const { employees, passwordResetRequests, company, currencyRates, listVersion } = useAppState();
+  const { employees, passwordResetRequests, company, currencyRates, listVersion, hiddenOrderIds } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [from, setFrom] = useState(TODAY);
@@ -106,7 +106,7 @@ export default function Dashboard() {
   });
   const overdueInvoices = summary?.overdueInvoices ?? [];
 
-  const recent = summary?.recentOrders ?? [];
+  const recent = (summary?.recentOrders ?? []).filter((o) => !hiddenOrderIds.has(o.id));
 
   return (
     <div className="elg-page">

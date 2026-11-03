@@ -27,7 +27,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { listVersion, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
+  const { listVersion, company, bankAccounts, currencyRates, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -53,6 +53,10 @@ export default function InvoicesScreen() {
     { from, to, search, currency, status, dueToday: dueToday ? '1' : '' },
     { storageKey: 'elg.pageSize.invoices', version: listVersion }
   );
+  // The page's customers and the orders on its invoices come with the page.
+  const pageCustomers = new Map((extra.related?.customers ?? []).map((c) => [c.id, c]));
+  const getCustomer = (id) => pageCustomers.get(id);
+  const orders = extra.related?.orders ?? [];
   const paidCount = stats?.paid ?? 0;
   const overdueCount = stats?.overdue ?? 0;
   const unpaidCount = stats?.unpaid ?? 0;
@@ -264,7 +268,7 @@ export default function InvoicesScreen() {
                   <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
                   {openMenuId === i.id && (
                     <div className="elg-row-menu">
-                      <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>
+                      <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} customerId={i.customerId} />, { variant: 'elegant' }); }}>
                         <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
                       </button>
                       <button onClick={() => { setOpenMenuId(null); handleDownload(i); }}>
@@ -318,7 +322,7 @@ export default function InvoicesScreen() {
                       <button className="elg-icon-sq" title="More" onClick={() => setOpenMenuId(openMenuId === i.id ? null : i.id)}><img src="/icons/filter-actions-dot-icon.svg" alt="More" /></button>
                       {openMenuId === i.id && (
                         <div className="elg-row-menu">
-                          <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} />, { variant: 'elegant' }); }}>
+                          <button onClick={() => { setOpenMenuId(null); openModal(<EditInvoiceOrdersModal invoiceId={i.id} customerId={i.customerId} />, { variant: 'elegant' }); }}>
                             <img src="/icons/pencil-icon.svg" alt="Edit" width="14" height="14" /> Edit
                           </button>
                           <button onClick={() => { setOpenMenuId(null); openBankModal(i); }}>

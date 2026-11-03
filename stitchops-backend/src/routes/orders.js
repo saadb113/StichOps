@@ -8,6 +8,7 @@ const { orderInclude, customerInclude } = require('../lib/includes');
 const { createOrderSchema, updateOrderSchema, commentSchema } = require('../schemas/order');
 const { parseDateOnly, today } = require('../lib/date');
 const { getDefaultCurrency } = require('../lib/currency');
+const { listOrders } = require('../lib/listQueries');
 
 const router = express.Router();
 
@@ -28,6 +29,8 @@ async function loadOrderOr404(id, res) {
 }
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
+  // ?page=… → one page + summary counts (Orders screen); otherwise the full list.
+  if (req.query.page) return res.json(await listOrders(req.query, req.user));
   const where = req.user.role === 'SALESPERSON' ? { customer: { salespersonId: req.user.employeeId } } : {};
   const orders = await prisma.order.findMany({ where, include: orderInclude, orderBy: { date: 'desc' } });
   res.json(orders.map(serializeOrder));

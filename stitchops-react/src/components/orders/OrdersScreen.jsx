@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { matchesSearch, formatDate } from '../../lib/helpers';
+import { formatDate } from '../../lib/helpers';
 import { SYM, TODAY, ORDER_STATUSES, CUSTOMER_CURRENCIES } from '../../lib/constants';
 import OrderFormModal from './OrderFormModal';
 import ConfirmDeleteOrderModal from './ConfirmDeleteOrderModal';
@@ -13,7 +13,8 @@ import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, FilterIcon, BagIcon, WarningIcon, ClockIcon, CheckIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
-import Pagination, { usePagination } from '../common/Pagination';
+import Pagination from '../common/Pagination';
+import { useServerList } from '../../lib/useServerList';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -24,7 +25,7 @@ function elgStatusClass(status) {
 }
 
 export default function OrdersScreen() {
-  const { dataLoading, orders, getCustomer, setOrderStatus } = useAppState();
+  const { getCustomer, setOrderStatus, listVersion } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
 
@@ -41,39 +42,17 @@ export default function OrdersScreen() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  // Pending/in-progress orders are what the sidebar's Orders badge counts,
-  // so they need to stay visible here regardless of the selected date range
-  // — otherwise the badge points at orders the date filter is hiding.
-  const isNeedsAttention = (o) => o.status === 'Pending' || o.status === 'Rush';
-
-  // The overview cards summarize the same date/currency/search-filtered set
-  // the table shows, but never the status dropdown — picking a status to
-  // narrow the table shouldn't zero out the other cards' counts.
-  let statsBase = orders.slice();
-  if (from) statsBase = statsBase.filter((o) => o.date >= from || isNeedsAttention(o));
-  if (to) statsBase = statsBase.filter((o) => o.date <= to || isNeedsAttention(o));
-  if (currency) statsBase = statsBase.filter((o) => o.currency === currency);
-  if (search) {
-    statsBase = statsBase.filter((o) => {
-      const c = getCustomer(o.customerId);
-      return matchesSearch(search, o.name, c?.company, c?.name, c?.salesperson);
-    });
-  }
-  const rushCount = statsBase.filter((o) => o.status === 'Rush').length;
-  const pendingCount = statsBase.filter((o) => o.status === 'Pending').length;
-  const onHoldCount = statsBase.filter((o) => o.status === 'On hold').length;
-  const completedCount = statsBase.filter((o) => o.status === 'Completed').length;
-
-  let list = status ? statsBase.filter((o) => o.status === status) : statsBase;
-  list = list.sort((a, b) => {
-    // Rush, then Pending, are pinned above everything else regardless of
-    // date. Every other status shares one rank so the rest of the list
-    // keeps its (newest-first) order — cycling an order between Completed /
-    // On hold / Cancelled must not reshuffle its position among them.
-    const rank = (s) => (s === 'Rush' ? 0 : s === 'Pending' ? 1 : 2);
-    const statusDiff = rank(a.status) - rank(b.status);
-    return statusDiff !== 0 ? statusDiff : b.id - a.id;
-  });
+  // Filtering, sorting (Rush/Pending pinned on top), paging and the card
+  // counts all happen on the server — only the visible page is downloaded.
+  const { stats, total, initialLoading, refreshing, pager } = useServerList(
+    '/orders',
+    { from, to, search, currency, status },
+    { storageKey: 'elg.pageSize.orders', version: listVersion }
+  );
+  const rushCount = stats?.rush ?? 0;
+  const pendingCount = stats?.pending ?? 0;
+  const onHoldCount = stats?.onHold ?? 0;
+  const completedCount = stats?.completed ?? 0;
 
   // Starting a fresh search clears the date range so results aren't
   // silently narrowed to whatever range happens to be selected — matching
@@ -95,7 +74,6 @@ export default function OrdersScreen() {
     setOrderStatus(o.id, next).catch((err) => toast(err.message));
   }
 
-  const pager = usePagination(list, { storageKey: 'elg.pageSize.orders', resetKey: JSON.stringify([from, to, search, currency, status]) });
 
   return (
     <div className="elg-page">
@@ -108,7 +86,7 @@ export default function OrdersScreen() {
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">Orders</div>
-          <div className="elg-page-sub">{list.length} order{list.length === 1 ? '' : 's'} listed</div>
+          <div className="elg-page-sub">{total} order{total === 1 ? '' : 's'} listed</div>
         </div>
         <div className="elg-page-head-range">
           <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
@@ -159,10 +137,10 @@ export default function OrdersScreen() {
         {currency && <span className="elg-mobile-filter-chip">{currency} {SYM[currency]}<button onClick={() => setCurrency('')}>&times;</button></span>}
       </div>
       <div className="elg-metric-grid">
-        {dataLoading ? (<SkeletonMetricCards labels={['Total Orders', 'Rush Orders', 'Pending / On Hold Orders', 'Completed Orders']} />) : (<>
+        {initialLoading ? (<SkeletonMetricCards labels={['Total Orders', 'Rush Orders', 'Pending / On Hold Orders', 'Completed Orders']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Orders</span><span className="elg-metric-icon"><img src="/images/todays-order.svg" alt="" /></span></div>
-          <div className="elg-metric-value">{statsBase.length}</div>
+          <div className="elg-metric-value">{stats?.total ?? 0}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
         <div className="elg-metric-card">
@@ -183,9 +161,9 @@ export default function OrdersScreen() {
         </>)}
       </div>
 
-      <div className="elg-mobile-cards">
-        {dataLoading ? (<SkeletonMobileCards />) : (<>
-        {list.length === 0 && <div className="elg-empty">No orders match these filters.</div>}
+      <div className={`elg-mobile-cards ${refreshing ? 'elg-list-refreshing' : ''}`}>
+        {initialLoading ? (<SkeletonMobileCards />) : (<>
+        {total === 0 && <div className="elg-empty">No orders match these filters.</div>}
         {pager.pageItems.map((o) => {
           const c = getCustomer(o.customerId);
           return (
@@ -221,12 +199,12 @@ export default function OrdersScreen() {
         onAddEmployee={() => openModal(<EmployeeFormModal />, { variant: 'elegant' })}
       />
 
-      <div className="elg-panel elg-table-wrap">
+      <div className={`elg-panel elg-table-wrap ${refreshing ? 'elg-list-refreshing' : ''}`}>
         <table className="elg-table">
           <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Actions</th></tr></thead>
           <tbody>
-            {dataLoading ? (<SkeletonRows cols={7} />) : (<>
-            {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
+            {initialLoading ? (<SkeletonRows cols={7} />) : (<>
+            {total === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
             {pager.pageItems.map((o) => {
               const c = getCustomer(o.customerId);
               return (

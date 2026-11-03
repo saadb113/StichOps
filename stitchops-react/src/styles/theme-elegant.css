@@ -5338,3 +5338,10 @@ html[data-saving] .elg-import-actions .elg-btn-primary {
     color: var(--elg-ink);
   }
 }
+
+/* Server-paged lists: keep the current rows visible (slightly dimmed)
+   while the next page or filter result loads, instead of flashing empty. */
+.elg-list-refreshing {
+  opacity: 0.55;
+  transition: opacity 120ms ease;
+}

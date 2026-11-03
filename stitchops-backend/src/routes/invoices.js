@@ -5,10 +5,12 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { serializeInvoice } = require('../lib/serialize');
 const { invoiceInclude } = require('../lib/includes');
 const { sendMail } = require('../lib/mailer');
+const { listInvoices } = require('../lib/listQueries');
 
 const router = express.Router();
 
 router.get('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  if (req.query.page) return res.json(await listInvoices(req.query));
   const invoices = await prisma.invoice.findMany({ include: invoiceInclude, orderBy: { id: 'desc' } });
   res.json(invoices.map(serializeInvoice));
 }));

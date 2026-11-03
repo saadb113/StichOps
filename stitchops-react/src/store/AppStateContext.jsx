@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { api, setUnauthorizedHandler } from '../lib/api';
 import { downloadBlob } from '../lib/helpers';
 
@@ -9,12 +9,15 @@ export function AppStateProvider({ children }) {
   // True while the signed-in user's collections are still loading — pages
   // show skeletons instead of empty states during this window.
   const [dataLoading, setDataLoading] = useState(false);
+  // Updated synchronously when a load starts/ends (not only on render), so
+  // state updates made by the load itself are recognised as part of it.
+  const dataLoadingRef = useRef(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [currentEmployee, setCurrentEmployee] = useState(null);
 
-  const [customers, setCustomers] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [invoices, setInvoices] = useState([]);
+  const [customers, setCustomersRaw] = useState([]);
+  const [orders, setOrdersRaw] = useState([]);
+  const [invoices, setInvoicesRaw] = useState([]);
   const [payslips, setPayslips] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [designers, setDesigners] = useState([]);
@@ -59,12 +62,34 @@ export function AppStateProvider({ children }) {
     setNextCustomerCode(m.nextCustomerCode);
   };
 
+  // Server-paged lists (Orders/Invoices/Customers screens) refetch their
+  // current page whenever this ticks — after any save or live update that
+  // changes orders, customers or invoices. Decided at the moment of the
+  // update (not in an effect), so the initial login load never counts.
+  const [listVersion, setListVersion] = useState(0);
+  const tracked = (rawSetter) => (update) => {
+    rawSetter(update);
+    if (!dataLoadingRef.current) setListVersion((v) => v + 1);
+  };
+  const setOrders = tracked(setOrdersRaw);
+  const setCustomers = tracked(setCustomersRaw);
+  const setInvoices = tracked(setInvoicesRaw);
+
+  // Counter, not a boolean: overlapping loads must not mark loading as done
+  // while another is still filling in data.
+  const activeLoads = useRef(0);
   async function loadCollectionsFor(role) {
+    activeLoads.current += 1;
+    dataLoadingRef.current = true;
     setDataLoading(true);
     try {
       await fetchCollectionsFor(role);
     } finally {
-      setDataLoading(false);
+      activeLoads.current -= 1;
+      if (activeLoads.current === 0) {
+        dataLoadingRef.current = false;
+        setDataLoading(false);
+      }
     }
   }
 
@@ -99,8 +124,13 @@ export function AppStateProvider({ children }) {
     setNextInvoiceNo(null); setNextCustomerCode(null);
   }
 
+  // Guard: React StrictMode (development) runs mount effects twice — the
+  // session check and initial data load must only ever happen once.
+  const bootstrapped = useRef(false);
   useEffect(() => {
     setUnauthorizedHandler(() => clearAll());
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
     // Only a 401 means "not signed in". A 500 or network blip (server
     // restarting, database waking up) is retried, so it never logs anyone out.
     const fetchMe = async () => {
@@ -149,6 +179,7 @@ export function AppStateProvider({ children }) {
     return () => es.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
+
 
   // ---------- lookups ----------
   const getCustomer = (id) => customers.find((c) => c.id === id);
@@ -575,6 +606,7 @@ export function AppStateProvider({ children }) {
     // status
     authLoading,
     dataLoading,
+    listVersion,
     // data
     customers, orders, invoices, payslips, employees, designers, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,

@@ -9,6 +9,7 @@ const { createCustomerSchema, updateCustomerSchema } = require('../schemas/custo
 const { broadcastNotification } = require('../lib/sse');
 const { generateInvoicePrefix } = require('../lib/invoiceNumber');
 const { isForeignKeyViolation } = require('../lib/prismaErrors');
+const { listCustomers } = require('../lib/listQueries');
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ async function resolveSalesperson(name) {
 }
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
+  if (req.query.page) return res.json(await listCustomers(req.query, req.user));
   const where = req.user.role === 'SALESPERSON' ? { salespersonId: req.user.employeeId } : {};
   const customers = await prisma.customer.findMany({ where, include: customerInclude, orderBy: { id: 'asc' } });
   res.json(customers.map(serializeCustomer));

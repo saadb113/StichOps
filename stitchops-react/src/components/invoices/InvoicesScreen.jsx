@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { paymentBadge, isInvoiceNotificationDay, matchesSearch, fmt, convertToDefault } from '../../lib/helpers';
+import { paymentBadge, fmt, convertToDefault } from '../../lib/helpers';
 import { CUSTOMER_CURRENCIES } from '../../lib/constants';
 import { downloadInvoicePdf } from '../../lib/invoicePdf';
 import EditInvoiceOrdersModal from './EditInvoiceOrdersModal';
@@ -12,7 +12,8 @@ import MobileFilterModal from '../layout/MobileFilterModal';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIcon, DocIcon, CheckIcon, WarningIcon, ClockIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
-import Pagination, { usePagination } from '../common/Pagination';
+import Pagination from '../common/Pagination';
+import { useServerList } from '../../lib/useServerList';
 
 function invoiceBadgeInfo(inv) {
   const pb = paymentBadge(inv);
@@ -26,7 +27,7 @@ function invoiceBadgeInfo(inv) {
 }
 
 export default function InvoicesScreen() {
-  const { dataLoading, invoices, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
+  const { listVersion, orders, customers, company, bankAccounts, currencyRates, getCustomer, togglePaymentStatus, sendInvoiceReminder, setInvoiceBankAccount } = useAppState();
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,30 +46,20 @@ export default function InvoicesScreen() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  // The overview cards summarize the same date/currency/search-filtered set
-  // the table shows, but never the status dropdown — picking a status to
-  // narrow the table shouldn't zero out the other cards' counts.
-  let statsBase = invoices.filter((i) => i.status === 'approved');
-  if (dueToday) {
-    const dueCustomerIds = new Set(customers.filter((c) => isInvoiceNotificationDay(c.invoiceDay)).map((c) => c.id));
-    statsBase = statsBase.filter((i) => dueCustomerIds.has(i.customerId));
-  }
-  if (from) statsBase = statsBase.filter((i) => i.generatedDate >= from);
-  if (to) statsBase = statsBase.filter((i) => i.generatedDate <= to);
-  if (currency) statsBase = statsBase.filter((i) => i.currency === currency);
-  if (search) {
-    statsBase = statsBase.filter((i) => { const c = getCustomer(i.customerId); return matchesSearch(search, i.invoiceNo, c?.company, c?.name, c?.salesperson); });
-  }
-  const paidCount = statsBase.filter((i) => paymentBadge(i).label === 'Paid').length;
-  const overdueCount = statsBase.filter((i) => paymentBadge(i).cls === 'b-unpaid').length;
-  const unpaidCount = statsBase.length - paidCount;
+  // Filtering, paging and the card counts happen on the server — only the
+  // visible page of invoices is downloaded.
+  const { stats, total, initialLoading, refreshing, pager, extra } = useServerList(
+    '/invoices',
+    { from, to, search, currency, status, dueToday: dueToday ? '1' : '' },
+    { storageKey: 'elg.pageSize.invoices', version: listVersion }
+  );
+  const paidCount = stats?.paid ?? 0;
+  const overdueCount = stats?.overdue ?? 0;
+  const unpaidCount = stats?.unpaid ?? 0;
 
   // Outstanding = everything not yet paid, kept per currency (each customer
   // is billed in their own currency) plus one converted total.
-  const outstandingByCcy = {};
-  statsBase.filter((i) => paymentBadge(i).label !== 'Paid').forEach((i) => {
-    outstandingByCcy[i.currency] = (outstandingByCcy[i.currency] || 0) + i.total;
-  });
+  const outstandingByCcy = stats?.outstandingByCurrency ?? {};
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   let outstandingConverted = 0;
   let outstandingHasUnknownRate = false;
@@ -80,7 +71,7 @@ export default function InvoicesScreen() {
 
   // Month quick-filter: choosing a month sets the date range to that whole
   // month, so the table and every card above follow it.
-  const monthKeys = [...new Set(invoices.filter((i) => i.status === 'approved').map((i) => i.generatedDate.slice(0, 7)))].sort().reverse();
+  const monthKeys = extra.months ?? [];
   const monthLabel = (key) => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   const lastDayOf = (key) => {
     const [y, m] = key.split('-').map(Number);
@@ -93,18 +84,6 @@ export default function InvoicesScreen() {
     setTo(lastDayOf(key));
   }
 
-  let list = statsBase;
-  if (status) {
-    list = list.filter((i) => {
-      const pb = paymentBadge(i);
-      if (status === 'Paid') return pb.label === 'Paid';
-      if (status === 'Pending') return pb.cls === 'b-pending';
-      if (status === 'Overdue1') return pb.label === 'Unpaid — 1 month';
-      if (status === 'Overdue2') return pb.cls === 'b-unpaid' && pb.label !== 'Unpaid — 1 month';
-      return true;
-    });
-  }
-  list = list.slice().sort((a, b) => b.id - a.id);
 
   async function handleToggle(inv) {
     // Marking an invoice Paid is a billing event — confirm it first. Reverting
@@ -166,7 +145,6 @@ export default function InvoicesScreen() {
     );
   }
 
-  const pager = usePagination(list, { storageKey: 'elg.pageSize.invoices', resetKey: JSON.stringify([from, to, search, currency, status, dueToday]) });
 
   return (
     <div className="elg-page">
@@ -179,7 +157,7 @@ export default function InvoicesScreen() {
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">Invoices</div>
-          <div className="elg-page-sub">{list.length} invoice{list.length === 1 ? '' : 's'}</div>
+          <div className="elg-page-sub">{total} invoice{total === 1 ? '' : 's'}</div>
         </div>
         {dueToday && (
           <button className="elg-btn elg-btn-ghost" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => setSearchParams({})}>
@@ -246,10 +224,10 @@ export default function InvoicesScreen() {
       </div>
 
       <div className="elg-metric-grid">
-        {dataLoading ? (<SkeletonMetricCards labels={['Total Invoices', 'Paid Invoices', 'Unpaid Invoices', 'Overdue Invoices']} />) : (<>
+        {initialLoading ? (<SkeletonMetricCards labels={['Total Invoices', 'Paid Invoices', 'Unpaid Invoices', 'Overdue Invoices']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Invoices</span><span className="elg-metric-icon"><img src="/images/todays-invoice.svg" alt="" /></span></div>
-          <div className="elg-metric-value">{statsBase.length}</div>
+          <div className="elg-metric-value">{stats?.total ?? 0}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
         <div className="elg-metric-card">
@@ -269,9 +247,9 @@ export default function InvoicesScreen() {
         </div>
         </>)}
       </div>
-      <div className="elg-mobile-cards">
-        {dataLoading ? (<SkeletonMobileCards subtitle />) : (<>
-        {list.length === 0 && <div className="elg-empty">No invoices match these filters.</div>}
+      <div className={`elg-mobile-cards ${refreshing ? 'elg-list-refreshing' : ''}`}>
+        {initialLoading ? (<SkeletonMobileCards subtitle />) : (<>
+        {total === 0 && <div className="elg-empty">No invoices match these filters.</div>}
         {pager.pageItems.map((i) => {
           const c = getCustomer(i.customerId);
           const bi = invoiceBadgeInfo(i);
@@ -313,12 +291,12 @@ export default function InvoicesScreen() {
         </>)}
       </div>
 
-      <div className="elg-panel elg-table-wrap">
+      <div className={`elg-panel elg-table-wrap ${refreshing ? 'elg-list-refreshing' : ''}`}>
         <table className="elg-table">
           <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Currency</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
-            {dataLoading ? (<SkeletonRows cols={7} />) : (<>
-            {list.length === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
+            {initialLoading ? (<SkeletonRows cols={7} />) : (<>
+            {total === 0 && <tr><td colSpan={7} className="elg-empty">No invoices match these filters.</td></tr>}
             {pager.pageItems.map((i) => {
               const c = getCustomer(i.customerId);
               const bi = invoiceBadgeInfo(i);

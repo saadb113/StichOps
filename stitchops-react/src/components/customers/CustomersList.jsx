@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { isActive, matchesSearch } from '../../lib/helpers';
 import CustomerFormModal from './CustomerFormModal';
 import OrderFormModal from '../orders/OrderFormModal';
 import EmployeeFormModal from '../employees/EmployeeFormModal';
@@ -11,7 +10,8 @@ import MobileFab from '../layout/MobileFab';
 import RangeDateField from '../common/RangeDateField';
 import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIcon, PeopleIcon } from '../icons/Icon';
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
-import Pagination, { usePagination } from '../common/Pagination';
+import Pagination from '../common/Pagination';
+import { useServerList } from '../../lib/useServerList';
 
 function initialsFor(name) {
   return name.split(' ').filter((w) => /[a-z0-9]/i.test(w[0])).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -23,7 +23,7 @@ function customerTypeClass(status) {
 }
 
 export default function CustomersList() {
-  const { dataLoading, customers, orders, invoices, isAdmin, currentEmployee, newCustomerCount, markNewCustomersSeen } = useAppState();
+  const { isAdmin, newCustomerCount, markNewCustomersSeen, listVersion } = useAppState();
 
   // Opening Customers = the admin has seen any customers salespeople added;
   // also clears new arrivals while the admin is already on this page.
@@ -50,36 +50,27 @@ export default function CustomersList() {
     if (next !== 'Inactive') setPaymentFilter('');
   }
 
-  function hasUnpaidInvoice(customerId) {
-    return invoices.some((i) => i.customerId === customerId && i.status === 'approved' && i.paymentStatus !== 'Completed');
-  }
 
-  const base = isAdmin ? customers : customers.filter((c) => c.salesperson === currentEmployee?.name);
-  const countries = [...new Set(base.map((c) => c.country))].sort();
-  let statsBase = search.trim() ? base.filter((c) => matchesSearch(search, c.name, c.company, c.customerCode, c.email, c.salesperson)) : base;
-  const salespeople = [...new Set(base.map((c) => c.salesperson).filter(Boolean))].sort();
-  const salespersonCount = salesperson ? base.filter((c) => c.salesperson === salesperson).length : 0;
-  if (salesperson) statsBase = statsBase.filter((c) => c.salesperson === salesperson);
-  if (customerType) statsBase = statsBase.filter((c) => c.status === customerType);
-  if (country) statsBase = statsBase.filter((c) => c.country === country);
-  if (from) statsBase = statsBase.filter((c) => c.createdAt && c.createdAt.slice(0, 10) >= from);
-  if (to) statsBase = statsBase.filter((c) => c.createdAt && c.createdAt.slice(0, 10) <= to);
-
-  // The overview cards summarize the same filtered set the table shows, but
-  // never the Active/Inactive status dropdown — picking one to narrow the
-  // table shouldn't zero out the other card's count.
-  const activeCount = statsBase.filter((c) => isActive(orders, c)).length;
-  const inactiveCount = statsBase.length - activeCount;
-  const freeTrialCount = statsBase.filter((c) => c.status === 'Free Trial').length;
-
-  let list = status ? statsBase.filter((c) => (isActive(orders, c) ? 'Active' : 'Inactive') === status) : statsBase;
-  if (status === 'Inactive' && paymentFilter) {
-    list = list.filter((c) => (paymentFilter === 'Unpaid' ? hasUnpaidInvoice(c.id) : !hasUnpaidInvoice(c.id)));
-  }
+  // Filtering (incl. Active/Inactive and Paid/Unpaid), paging, the card
+  // counts and the dropdown options all come from the server — only the
+  // visible page of customers is downloaded. Salespeople only ever get their
+  // own customers back.
+  const { stats, total, initialLoading, refreshing, pager, extra } = useServerList(
+    '/customers',
+    { search: search.trim(), customerType, status, country, from, to, salesperson, paymentFilter: status === 'Inactive' ? paymentFilter : '' },
+    { storageKey: 'elg.pageSize.customers', version: listVersion }
+  );
+  const countries = extra.facets?.countries ?? [];
+  const salespeople = extra.facets?.salespeople ?? [];
+  const salespersonCount = extra.facets?.salespersonCount ?? 0;
+  const allCount = extra.facets?.allCount ?? 0;
+  const activeCount = stats?.active ?? 0;
+  const inactiveCount = stats?.inactive ?? 0;
+  const freeTrialCount = stats?.freeTrial ?? 0;
+  const statsTotal = stats?.total ?? 0;
 
   const basePath = isAdmin ? '/customers' : '/my-customers';
 
-  const pager = usePagination(list, { storageKey: 'elg.pageSize.customers', resetKey: JSON.stringify([search, customerType, status, country, from, to, salesperson, paymentFilter]) });
 
   return (
     <div className="elg-page">
@@ -92,7 +83,7 @@ export default function CustomersList() {
       <div className="elg-page-head">
         <div>
           <div className="elg-page-title">{isAdmin ? 'Customers' : 'My Customers'}</div>
-          <div className="elg-page-sub">{isAdmin ? (salesperson ? `${salespersonCount} customer${salespersonCount === 1 ? '' : 's'} from ${salesperson}` : `${customers.length} profile${customers.length === 1 ? '' : 's'} listed`) : `${base.length} customer${base.length === 1 ? '' : 's'} assigned to you`}</div>
+          <div className="elg-page-sub">{isAdmin ? (salesperson ? `${salespersonCount} customer${salespersonCount === 1 ? '' : 's'} from ${salesperson}` : `${allCount} profile${allCount === 1 ? '' : 's'} listed`) : `${allCount} customer${allCount === 1 ? '' : 's'} assigned to you`}</div>
         </div>
         <div className="elg-page-head-range">
           <RangeDateField from={from} to={to} onChange={(r) => { setFrom(r.from); setTo(r.to); }} align="right" />
@@ -174,21 +165,21 @@ export default function CustomersList() {
       </div>
 
       <div className="elg-metric-grid">
-        {dataLoading ? (<SkeletonMetricCards labels={['Total Customers', 'Active Customers', 'Inactive Customers', 'Free Trial Customers']} />) : (<>
+        {initialLoading ? (<SkeletonMetricCards labels={['Total Customers', 'Active Customers', 'Inactive Customers', 'Free Trial Customers']} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Total Customers</span><span className="elg-metric-icon"><img src="/images/active-customer.svg"   alt="" /></span></div>
-          <div className="elg-metric-value">{statsBase.length}</div>
+          <div className="elg-metric-value">{statsTotal}</div>
           <div className="elg-metric-sub">Across all countries</div>
         </div>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Active Customers</span><span className="elg-metric-icon"><img src="/images/active-customers.svg"   alt="" /></span></div>
           <div className="elg-metric-value">{activeCount}</div>
-          <div className="elg-metric-sub">Out of {statsBase.length}</div>
+          <div className="elg-metric-sub">Out of {statsTotal}</div>
         </div>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Inactive Customers</span><span className="elg-metric-icon"><img src="/images/inactive-customers.svg"   alt="" /></span></div>
           <div className="elg-metric-value">{inactiveCount}</div>
-          <div className="elg-metric-sub">Out of {statsBase.length}</div>
+          <div className="elg-metric-sub">Out of {statsTotal}</div>
         </div>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Free Trial Customers</span><span className="elg-metric-icon"><img src="/images/free-trial-customers.svg"   alt="" /></span></div>
@@ -198,15 +189,15 @@ export default function CustomersList() {
         </>)}
       </div>
 
-      <div className="elg-mobile-cards">
-        {dataLoading ? (<SkeletonMobileCards avatar subtitle right="badge" rows={2} foot={null} />) : (<>
-        {list.length === 0 && (
+      <div className={`elg-mobile-cards ${refreshing ? 'elg-list-refreshing' : ''}`}>
+        {initialLoading ? (<SkeletonMobileCards avatar subtitle right="badge" rows={2} foot={null} />) : (<>
+        {total === 0 && (
           <div className="elg-empty">
             {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
           </div>
         )}
         {pager.pageItems.map((c) => {
-          const active = isActive(orders, c);
+          const active = c.active;
           return (
             <div key={c.id} className="elg-mobile-card clickable" onClick={() => navigate(`${basePath}/${c.id}`)}>
               <div className="elg-mobile-card-head">
@@ -233,7 +224,7 @@ export default function CustomersList() {
         onAddEmployee={() => openModal(<EmployeeFormModal />, { variant: 'elegant' })}
       />
 
-      <div className="elg-panel elg-table-wrap">
+      <div className={`elg-panel elg-table-wrap ${refreshing ? 'elg-list-refreshing' : ''}`}>
         <table className="elg-table">
           <thead>
             <tr>
@@ -243,14 +234,14 @@ export default function CustomersList() {
             </tr>
           </thead>
           <tbody>
-            {dataLoading ? (<SkeletonRows cols={8} />) : (<>
-            {list.length === 0 && (
+            {initialLoading ? (<SkeletonRows cols={8} />) : (<>
+            {total === 0 && (
               <tr><td colSpan={isAdmin ? 8 : 7} className="elg-empty">
                 {search || customerType || status || country || salesperson || from || to ? 'No customers match these filters.' : 'No customers yet — add your first customer to get started.'}
               </td></tr>
             )}
             {pager.pageItems.map((c) => {
-              const active = isActive(orders, c);
+              const active = c.active;
               return (
                 <tr className="clickable" key={c.id} onClick={() => navigate(`${basePath}/${c.id}`)}>
                   <td style={{ fontSize: 12.5 }}>{c.customerCode || '—'}</td>

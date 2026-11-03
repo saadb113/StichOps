@@ -136,4 +136,4 @@ async function dashboardSummary(query) {
   };
 }
 
-module.exports = { globalSearch, pendingOrderCount, dashboardSummary };
+module.exports = { globalSearch, pendingOrderCount, dashboardSummary, employeeSearchIds };

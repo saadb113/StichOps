@@ -11,7 +11,9 @@ const { parseDateOnly, today } = require('./date');
 const DAY_MS = 86400000;
 const MAX_PAGE_SIZE = 100;
 
-function paging(query) {
+// `all` (exports): every matching row, same filters and order, no paging.
+function paging(query, all = false) {
+  if (all) return { page: 1, pageSize: undefined, skip: undefined };
   const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(query.pageSize) || 10));
   const page = Math.max(1, Number(query.page) || 1);
   return { page, pageSize, skip: (page - 1) * pageSize };
@@ -84,8 +86,8 @@ async function customersFor(ids) {
 // ---------- orders ----------
 const NEEDS_ATTENTION = ['Pending', 'Rush'];
 
-async function listOrders(query, user) {
-  const { page, pageSize, skip } = paging(query);
+async function listOrders(query, user, { all = false } = {}) {
+  const { page, pageSize, skip } = paging(query, all);
   const scope = user.role === 'SALESPERSON' ? { customer: { salespersonId: user.employeeId } } : null;
   const ids = await searchIds('orders', query.search);
 
@@ -117,7 +119,7 @@ async function listOrders(query, user) {
     ? [and(base, { status })]
     : [and(base, { status: 'Rush' }), and(base, { status: 'Pending' }), and(base, { status: { notIn: NEEDS_ATTENTION } })];
   const counts = status ? [n(status)] : [stats.rush, stats.pending, stats.total - stats.rush - stats.pending];
-  const rows = await pageAcrossGroups(prisma.order, groups, counts, skip, pageSize, orderInclude);
+  const rows = await pageAcrossGroups(prisma.order, groups, counts, skip ?? 0, pageSize ?? counts.reduce((a, b) => a + b, 0), orderInclude);
   const total = counts.reduce((a, b) => a + b, 0);
   const related = { customers: await customersFor(rows.map((o) => o.customerId)) };
   return { items: rows.map(serializeOrder), total, page, pageSize, stats, related };
@@ -144,8 +146,8 @@ function dueTodayCustomerWhere() {
   return { customer: { OR: [{ invoiceDay: day }, ...(day === daysInMonth ? [{ invoiceDay: { gt: daysInMonth } }] : [])] } };
 }
 
-async function listInvoices(query) {
-  const { page, pageSize, skip } = paging(query);
+async function listInvoices(query, { all = false } = {}) {
+  const { page, pageSize, skip } = paging(query, all);
   const ids = await searchIds('invoices', query.search);
 
   const base = and(
@@ -198,8 +200,8 @@ async function listInvoices(query) {
 const ACTIVE_DAYS = 15;
 const activeWhere = () => ({ orders: { some: { date: { gte: daysAgo(ACTIVE_DAYS) } } } });
 
-async function listCustomers(query, user) {
-  const { page, pageSize, skip } = paging(query);
+async function listCustomers(query, user, { all = false } = {}) {
+  const { page, pageSize, skip } = paging(query, all);
   const scope = user.role === 'SALESPERSON' ? { salespersonId: user.employeeId } : null;
   const ids = await searchIds('customers', query.search);
   const salesperson = query.salesperson ? String(query.salesperson) : '';

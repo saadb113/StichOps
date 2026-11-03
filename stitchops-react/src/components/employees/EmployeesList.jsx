@@ -14,6 +14,7 @@ import MobileFab from '../layout/MobileFab';
 import { SearchIcon, UserPlusIcon, PlusIcon, KeyIcon, TrashIcon, ShieldIcon, CheckIcon, CloseIcon, WarningIcon, PersonIcon, CoinIcon } from '../icons/Icon';
 import { SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 import { useScope } from '../../store/ScopedData';
+import ExportButton from '../common/ExportButton';
 
 function ConfirmRejectPasswordResetModal({ requestId, name }) {
   const { rejectPasswordReset } = useAppState();
@@ -225,6 +226,7 @@ export default function EmployeesList() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <ExportButton kind="employees" filters={{ category, search: search.trim() }} />
         <button
           className="elg-btn elg-btn-primary"
           style={{ width: 'auto', whiteSpace: 'nowrap' }}

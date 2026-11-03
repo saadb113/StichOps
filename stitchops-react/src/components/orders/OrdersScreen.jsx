@@ -15,6 +15,7 @@ import { SearchIcon, CalendarIcon, PencilIcon, KebabIcon, PlusIcon, PersonIcon, 
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 import Pagination from '../common/Pagination';
 import { useServerList } from '../../lib/useServerList';
+import ExportButton from '../common/ExportButton';
 
 function elgStatusClass(status) {
   if (status === 'Completed') return 'elg-badge-completed';
@@ -111,6 +112,7 @@ export default function OrdersScreen() {
             <option value="">All Currencies</option>
             {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
           </select>
+          <ExportButton kind="orders" filters={{ from, to, search, currency, status }} />
           <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<OrderFormModal allowCompanyPicker />, { variant: 'elegant' })}>
             <PlusIcon /> Add Order
           </button>
@@ -121,6 +123,8 @@ export default function OrdersScreen() {
           onClick={() => openModal(
             <MobileFilterModal
               title="Filter Orders"
+              exportKind="orders"
+              exportFilters={{ from, to, search }}
               fields={[
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: ORDER_STATUSES.map((s) => ({ value: s, label: s })) },
                 { key: 'currency', label: 'Currency', allLabel: 'All Currencies', options: CUSTOMER_CURRENCIES.map((cc) => ({ value: cc, label: cc })) }

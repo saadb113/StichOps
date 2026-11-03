@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useUi } from '../../store/UiContext';
 import { CloseIcon } from '../icons/Icon';
 import RangeDateField from '../common/RangeDateField';
+import ExportButton from '../common/ExportButton';
 
 // Mobile-only "filter sheet" opened from the funnel-icon button next to
 // search on Orders/Invoices — desktop shows these as inline selects, mobile
 // collects them into one modal so the search bar stays uncluttered.
-export default function MobileFilterModal({ title = 'Filters', fields, values, onApply }) {
+// `exportKind` + `exportFilters` (optional) add an Export button that exports
+// what the sheet currently shows: the page's other filters (date range,
+// search…) combined with this sheet's not-yet-applied choices.
+export default function MobileFilterModal({ title = 'Filters', fields, values, onApply, exportKind, exportFilters }) {
   const { closeModal } = useUi();
   const [draft, setDraft] = useState(values);
 
@@ -52,6 +56,11 @@ export default function MobileFilterModal({ title = 'Filters', fields, values, o
             )}
           </div>
         ))}
+        {exportKind && (
+          <div className="elg-filter-sheet-export">
+            <ExportButton kind={exportKind} filters={{ ...exportFilters, ...draft }} />
+          </div>
+        )}
       </div>
 
       <div className="elg-modal-foot" style={{ padding: '16px 24px', borderTop: '1px solid var(--elg-line)', display: 'flex', justifyContent: 'space-between', gap: 10 }}>

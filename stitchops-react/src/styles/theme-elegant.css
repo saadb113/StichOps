@@ -5345,3 +5345,14 @@ html[data-saving] .elg-import-actions .elg-btn-primary {
   opacity: 0.55;
   transition: opacity 120ms ease;
 }
+
+/* Export inside the mobile filter sheet: full-width, set apart from the filters. */
+.elg-filter-sheet-export {
+  padding-top: 16px;
+  border-top: 1px solid var(--elg-line);
+}
+
+.elg-filter-sheet-export .elg-export-btn {
+  width: 100% !important;
+  justify-content: center;
+}

@@ -12,6 +12,7 @@ import { SearchIcon, UserPlusIcon, FilterIcon, PersonIcon, PlusIcon, LocationIco
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 import Pagination from '../common/Pagination';
 import { useServerList } from '../../lib/useServerList';
+import ExportButton from '../common/ExportButton';
 
 function initialsFor(name) {
   return name.split(' ').filter((w) => /[a-z0-9]/i.test(w[0])).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -124,6 +125,7 @@ export default function CustomersList() {
             <option value="">All Countries</option>
             {countries.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
+          {isAdmin && <ExportButton kind="customers" filters={{ search: search.trim(), customerType, status, country, from, to, salesperson, paymentFilter: status === 'Inactive' ? paymentFilter : '' }} />}
           <button className="elg-btn elg-btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap' }} onClick={() => openModal(<CustomerFormModal />, { variant: 'elegant' })}>
             <img src="/images/addCustomerBtn.svg" alt="" /> Add Customer
           </button>
@@ -134,6 +136,8 @@ export default function CustomersList() {
           onClick={() => openModal(
             <MobileFilterModal
               title="Filter Customers"
+              exportKind={isAdmin ? 'customers' : undefined}
+              exportFilters={{ search: search.trim(), country, from, to }}
               fields={[
                 { key: 'customerType', label: 'Customer Type', allLabel: 'All Customer Types', options: [{ value: 'Free Trial', label: 'Free Trial' }, { value: 'Paid', label: 'Paid' }] },
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }] },

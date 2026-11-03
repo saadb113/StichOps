@@ -14,6 +14,7 @@ import { SearchIcon, CalendarIcon, DownloadIcon, KebabIcon, PencilIcon, FilterIc
 import { SkeletonMetricCards, SkeletonRows, SkeletonMobileCards } from '../common/Skeleton';
 import Pagination from '../common/Pagination';
 import { useServerList } from '../../lib/useServerList';
+import ExportButton from '../common/ExportButton';
 
 function invoiceBadgeInfo(inv) {
   const pb = paymentBadge(inv);
@@ -196,6 +197,7 @@ export default function InvoicesScreen() {
             <option value="">All Currencies</option>
             {CUSTOMER_CURRENCIES.map((cc) => <option key={cc} value={cc}>{cc}</option>)}
           </select>
+          <ExportButton kind="invoices" filters={{ from, to, search, currency, status, dueToday: dueToday ? '1' : '' }} />
         </div>
         <button
           className="elg-mobile-filter-btn"
@@ -203,6 +205,8 @@ export default function InvoicesScreen() {
           onClick={() => openModal(
             <MobileFilterModal
               title="Filter Invoices"
+              exportKind="invoices"
+              exportFilters={{ from, to, search, dueToday: dueToday ? '1' : '' }}
               fields={[
                 { key: 'status', label: 'Status', allLabel: 'All Status', options: [
                   { value: 'Paid', label: 'Paid' },

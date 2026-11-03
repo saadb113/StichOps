@@ -291,4 +291,12 @@ async function importWorkbook(buffer) {
   return results;
 }
 
-module.exports = { importModel, importWorkbook, previewFile };
+// True when the workbook is one of our own "Export all" files (it has a
+// sheet named after at least one data page), as opposed to a client's own
+// order sheet, which goes through the "Import old data" wizard instead.
+function isOwnExport(buffer) {
+  const names = readWorkbook(buffer).SheetNames.map((n) => n.toLowerCase());
+  return IMPORT_ORDER.some((key) => names.includes(key.toLowerCase()) || names.includes(MODELS[key].label.toLowerCase()));
+}
+
+module.exports = { importModel, importWorkbook, previewFile, isOwnExport };

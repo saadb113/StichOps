@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
 import RangeDateField from '../common/RangeDateField';
 import { useNavigate } from 'react-router-dom';
-import { ImportResultsModal } from './ImportResults';
+
+
 import { Sk, SkField } from '../common/Skeleton';
 
 
@@ -291,10 +292,9 @@ function SmtpSettingsCard() {
 }
 
 export default function SystemDataTab() {
-  const { importAllSystemData, exportAllSystemData } = useAppState();
-  const { toast, openModal } = useUi();
-  const allFileRef = useRef(null);
-  const [uploadingAll, setUploadingAll] = useState(false);
+  const { exportAllSystemData } = useAppState();
+  const { toast } = useUi();
+  const navigate = useNavigate();
   const [exportingAll, setExportingAll] = useState(false);
   const [globalRange, setGlobalRange] = useState({ from: '', to: '' });
   const [ranges, setRanges] = useState(() =>
@@ -304,21 +304,6 @@ export default function SystemDataTab() {
   function applyGlobalRange(next) {
     setGlobalRange(next);
     setRanges(Object.fromEntries(EXPORT_PAGES.map((p) => [p.key, next])));
-  }
-
-  async function handleUploadAll(file) {
-    if (!file) return;
-    setUploadingAll(true);
-    try {
-      const results = await importAllSystemData(file);
-      const keys = Object.keys(results);
-      if (!keys.length) { toast('No matching sheets found — expected Employees, Customers, Invoices and/or Orders.'); return; }
-      openModal(<ImportResultsModal results={results} />, { variant: 'elegant' });
-    } catch (e) {
-      toast(e.message);
-    } finally {
-      setUploadingAll(false);
-    }
   }
 
   async function handleExportAll() {
@@ -347,14 +332,7 @@ export default function SystemDataTab() {
           </table>
         </div>
         <div style={{ textAlign: 'right', marginTop: 16 }}>
-          <input
-            ref={allFileRef}
-            type="file"
-            accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            style={{ display: 'none' }}
-            onChange={(e) => { handleUploadAll(e.target.files[0]); e.target.value = ''; }}
-          />
-          <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6 }} disabled={uploadingAll} onClick={() => allFileRef.current.click()}>
+          <button className="elg-btn" style={{ width: 'auto', display: 'inline-flex', gap: 6 }} onClick={() => navigate('/settings/import/all')}>
             <img alt="Add Order" src="/icons/upload-icon-black.svg" /> Upload all Data
           </button>
         </div>

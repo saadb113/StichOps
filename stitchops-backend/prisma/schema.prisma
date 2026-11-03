@@ -135,6 +135,9 @@ model Employee {
   passwordResetRequests PasswordResetRequest[]
   notifications         Notification[]
 
+  importBatchId Int?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -205,6 +208,9 @@ model Customer {
   orders   Order[]
   invoices Invoice[]
 
+  importBatchId Int?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -238,6 +244,11 @@ model Order {
   invoice   Invoice? @relation(fields: [invoiceId], references: [id])
 
   comments OrderComment[]
+
+  // Billed outside this app (e.g. imported history) — never auto-invoiced.
+  externallyBilled Boolean @default(false)
+  importBatchId    Int?
+  importBatch      ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -371,4 +382,16 @@ model Expense {
   createdAt DateTime @default(now())
 
   @@index([month])
+}
+
+// One upload through the "Import old data" wizard — lets the whole upload be
+// undone (its orders, plus customers/employees it created that are unused).
+model ImportBatch {
+  id        Int        @id @default(autoincrement())
+  fileName  String
+  summary   Json?
+  createdAt DateTime   @default(now())
+  orders    Order[]
+  customers Customer[]
+  employees Employee[]
 }

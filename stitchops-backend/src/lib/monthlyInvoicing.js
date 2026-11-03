@@ -32,7 +32,7 @@ async function runCheck() {
 
   for (const customer of customers) {
     const draft = await prisma.order.findMany({
-      where: { customerId: customer.id, invoiceId: null, status: 'Completed', date: { lte: periodEnd } }
+      where: { customerId: customer.id, invoiceId: null, externallyBilled: false, status: 'Completed', date: { lte: periodEnd } }
     });
     if (!draft.length) continue;
 

@@ -70,7 +70,8 @@ function serializeOrder(order) {
     productionCostCurrency: order.productionCostCurrency,
     commissionRate: order.commissionRate,
     status: order.status,
-    invoiced: order.invoiceId != null,
+    // Billed outside the app (imported history) counts as invoiced too.
+    invoiced: order.invoiceId != null || !!order.externallyBilled,
     commissionPaid: order.commissionPaid,
     productionPaid: order.productionPaid,
     comments: (order.comments || []).map(serializeComment)

@@ -639,7 +639,7 @@ export function AppStateProvider({ children }) {
     notifications,
     currentUser, isAdmin, isSalesperson, isEmployee, currentEmployee,
     // lookups
-    getCustomer, getEmployee, refreshCustomers, refreshOrders, refreshInvoices,
+    getCustomer, getEmployee, refreshCustomers, refreshOrders, refreshInvoices, refreshEmployees,
     // mutators
     addCustomer, updateCustomer, setCustomerStatus, deleteCustomer,
     addOrder, updateOrder, deleteOrder, softDeleteOrder, setOrderStatus, addComment,

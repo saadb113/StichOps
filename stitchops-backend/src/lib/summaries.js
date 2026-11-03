@@ -112,7 +112,7 @@ async function dashboardSummary(query) {
     prisma.order.groupBy({ by: ['currency'], where: rangeWhere, _sum: { price: true } }),
     prisma.customer.count(),
     prisma.customer.count({ where: { orders: { some: { date: { gte: activeCutoff } } } } }),
-    prisma.order.count({ where: { invoiceId: null, status: 'Completed' } }),
+    prisma.order.count({ where: { invoiceId: null, externallyBilled: false, status: 'Completed' } }),
     prisma.invoice.findMany({
       where: { paymentStatus: { not: 'Completed' }, approvedDate: { lte: overdueCutoff } },
       orderBy: { id: 'desc' },

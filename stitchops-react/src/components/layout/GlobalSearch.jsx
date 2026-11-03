@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
-import { matchesSearch } from '../../lib/helpers';
+import { api } from '../../lib/api';
 
-const MAX_PER_GROUP = 5;
 
 // Reuse the exact same icons already used for these sections in the sidebar,
 // so a search result looks like it belongs to the same nav item it links to.
@@ -19,7 +18,6 @@ const GROUP_ICONS = {
 const TAGS = ['customers', 'employees', 'invoices', 'orders'];
 const TAG_LABEL = { customers: 'Customers', employees: 'Employees', invoices: 'Invoices', orders: 'Orders' };
 
-const matches = matchesSearch;
 
 // Two-stage glide: slide sideways along the top bar to the centre, then
 // move down into place. SLIDE_SHARE = fraction of the time spent sliding.
@@ -52,7 +50,7 @@ function frame(el, rect, extra) {
 }
 
 export default function GlobalSearch() {
-  const { customers, orders, invoices, employees, isAdmin, getCustomer } = useAppState();
+  const { isAdmin } = useAppState();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -247,75 +245,38 @@ export default function GlobalSearch() {
     setActiveIndex(0);
   }
 
-  const groups = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query && !activeTag) return [];
+  // Results come from the server (same matching rules, 5 per group), so the
+  // browser never needs every customer/order/invoice to search them.
+  const [serverGroups, setServerGroups] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchSeq = useRef(0);
+  useEffect(() => {
+    const query = q.trim();
+    if (!open || (!query && !activeTag)) { setServerGroups([]); setSearching(false); return undefined; }
+    const seq = ++searchSeq.current;
+    setSearching(true);
+    const t = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (query) params.set('q', query);
+      if (activeTag) params.set('tag', activeTag);
+      api.get(`/search?${params.toString()}`)
+        .then((r) => { if (seq === searchSeq.current) setServerGroups(r.groups); })
+        .catch(() => { if (seq === searchSeq.current) setServerGroups([]); })
+        .finally(() => { if (seq === searchSeq.current) setSearching(false); });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [q, activeTag, open]);
 
-    const customerHits = customers
-      .filter((c) => matches(query, c.company, c.name, c.customerCode, c.email, c.salesperson))
-      .slice(0, MAX_PER_GROUP)
-      .map((c) => ({
-        key: `customer-${c.id}`,
-        title: c.company,
-        subtitle: [c.customerCode, c.name].filter(Boolean).join(' · '),
-        go: () => navigate(`${basePath}/${c.id}`)
-      }));
-
-    const orderHits = orders
-      .filter((o) => {
-        const c = getCustomer(o.customerId);
-        return matches(query, o.name, c?.company, c?.name, c?.salesperson);
-      })
-      .slice(0, MAX_PER_GROUP)
-      .map((o) => {
-        const cust = getCustomer(o.customerId);
-        return {
-          key: `order-${o.id}`,
-          title: o.name,
-          subtitle: [cust ? cust.company : null, o.date, o.status].filter(Boolean).join(' · '),
-          go: () => navigate(`${basePath}/${o.customerId}`)
-        };
-      });
-
-    const invoiceHits = isAdmin
-      ? invoices
-        .filter((i) => {
-          const c = getCustomer(i.customerId);
-          return matches(query, i.invoiceNo, c?.company, c?.name, c?.salesperson);
-        })
-        .slice(0, MAX_PER_GROUP)
-        .map((i) => {
-          const cust = getCustomer(i.customerId);
-          return {
-            key: `invoice-${i.id}`,
-            title: i.invoiceNo,
-            subtitle: [cust ? cust.company : null, i.paymentStatus].filter(Boolean).join(' · '),
-            go: () => navigate(`${basePath}/${i.customerId}`)
-          };
-        })
-      : [];
-
-    const employeeHits = isAdmin
-      ? employees
-        .filter((e) => matches(query, e.name, e.designation, e.email))
-        .slice(0, MAX_PER_GROUP)
-        .map((e) => ({
-          key: `employee-${e.id}`,
-          title: e.name,
-          subtitle: [e.role, e.designation].filter(Boolean).join(' · '),
-          go: () => navigate(`/employees/${e.id}`)
-        }))
-      : [];
-
-    const allGroups = [
-      { label: 'Customers', key: 'customers', items: customerHits },
-      { label: 'Employees', key: 'employees', items: employeeHits },
-      { label: 'Invoices', key: 'invoices', items: invoiceHits },
-      { label: 'Orders', key: 'orders', items: orderHits }
-    ];
-
-    return (activeTag ? allGroups.filter((g) => g.key === activeTag) : allGroups).filter((g) => g.items.length);
-  }, [q, activeTag, customers, orders, invoices, employees, isAdmin, basePath, navigate, getCustomer]);
+  const groups = useMemo(() => serverGroups.map((g) => ({
+    key: g.key,
+    label: TAG_LABEL[g.key],
+    items: g.items.map((x) => {
+      if (g.key === 'customers') return { key: `customer-${x.id}`, title: x.company, subtitle: [x.customerCode, x.name].filter(Boolean).join(' · '), go: () => navigate(`${basePath}/${x.id}`) };
+      if (g.key === 'employees') return { key: `employee-${x.id}`, title: x.name, subtitle: [x.role, x.designation].filter(Boolean).join(' · '), go: () => navigate(`/employees/${x.id}`) };
+      if (g.key === 'invoices') return { key: `invoice-${x.id}`, title: x.invoiceNo, subtitle: [x.customerCompany, x.paymentStatus].filter(Boolean).join(' · '), go: () => navigate(`${basePath}/${x.customerId}`) };
+      return { key: `order-${x.id}`, title: x.name, subtitle: [x.customerCompany, x.date, x.status].filter(Boolean).join(' · '), go: () => navigate(`${basePath}/${x.customerId}`) };
+    })
+  })), [serverGroups, basePath, navigate]);
 
   const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
 
@@ -393,7 +354,7 @@ export default function GlobalSearch() {
               <div className="elg-search-empty">Start typing to search across customers, orders, invoices and employees.</div>
             )}
             {(q.trim() !== '' || activeTag) && flatItems.length === 0 && (
-              <div className="elg-search-empty">No matches{q ? ` for "${q}"` : ''}.</div>
+              <div className="elg-search-empty">{searching ? 'Searching…' : `No matches${q ? ` for "${q}"` : ''}.`}</div>
             )}
             {groups.map((group) => (
               <div className="elg-search-group" key={group.label}>

@@ -55,20 +55,20 @@ async function searchIds(kind, rawQuery) {
 }
 
 // Reads a page out of several consecutively-ordered groups (e.g. Rush, then
-// Pending, then everything else), each sorted newest-first by id.
-async function pageAcrossGroups(model, groups, skip, take, include) {
-  const counts = await Promise.all(groups.map((where) => model.count({ where })));
-  const rows = [];
-  let toSkip = skip;
-  let toTake = take;
-  for (let i = 0; i < groups.length && toTake > 0; i++) {
-    if (toSkip >= counts[i]) { toSkip -= counts[i]; continue; }
-    const got = await model.findMany({ where: groups[i], orderBy: { id: 'desc' }, skip: toSkip, take: toTake, include });
-    rows.push(...got);
-    toTake -= got.length;
-    toSkip = 0;
-  }
-  return { rows, total: counts.reduce((a, b) => a + b, 0) };
+// Pending, then everything else), each sorted newest-first by id. Group
+// sizes are known up front, so every slice the page needs is fetched in
+// parallel — one database round trip however many groups it spans.
+async function pageAcrossGroups(model, groups, counts, skip, take, include) {
+  const slices = [];
+  let groupStart = 0;
+  groups.forEach((where, i) => {
+    const from = Math.max(skip, groupStart);
+    const to = Math.min(skip + take, groupStart + counts[i]);
+    if (to > from) slices.push({ where, skip: from - groupStart, take: to - from });
+    groupStart += counts[i];
+  });
+  const parts = await Promise.all(slices.map((sl) => model.findMany({ where: sl.where, orderBy: { id: 'desc' }, skip: sl.skip, take: sl.take, include })));
+  return parts.flat();
 }
 
 const and = (...parts) => ({ AND: parts.filter(Boolean) });
@@ -102,12 +102,15 @@ async function listOrders(query, user) {
     completed: n('Completed')
   };
 
-  // Rush, then Pending, pinned on top; everything else newest-first.
+  // Rush, then Pending, pinned on top; everything else newest-first. The
+  // status counts above already give each group's size.
   const status = query.status ? String(query.status) : '';
   const groups = status
     ? [and(base, { status })]
     : [and(base, { status: 'Rush' }), and(base, { status: 'Pending' }), and(base, { status: { notIn: NEEDS_ATTENTION } })];
-  const { rows, total } = await pageAcrossGroups(prisma.order, groups, skip, pageSize, orderInclude);
+  const counts = status ? [n(status)] : [stats.rush, stats.pending, stats.total - stats.rush - stats.pending];
+  const rows = await pageAcrossGroups(prisma.order, groups, counts, skip, pageSize, orderInclude);
+  const total = counts.reduce((a, b) => a + b, 0);
   return { items: rows.map(serializeOrder), total, page, pageSize, stats };
 }
 
@@ -145,13 +148,16 @@ async function listInvoices(query) {
   );
 
   const unpaidBase = and(base, { paymentStatus: { not: 'Completed' } });
-  const [total, paid, overdue, outstanding, monthRows] = await Promise.all([
+  const where = and(base, invoiceStatusWhere(query.status ? String(query.status) : ''));
+  const [total, paid, overdue, outstanding, monthRows, rows, listTotal] = await Promise.all([
     prisma.invoice.count({ where: base }),
     prisma.invoice.count({ where: and(base, { paymentStatus: 'Completed' }) }),
     prisma.invoice.count({ where: and(unpaidBase, { approvedDate: { lte: daysAgo(30) } }) }),
     prisma.invoice.groupBy({ by: ['currency'], where: unpaidBase, _sum: { total: true } }),
     // Month quick-filter options: every month that has invoices.
-    prisma.$queryRawUnsafe(`SELECT DISTINCT to_char("generatedDate", 'YYYY-MM') AS m FROM "Invoice" ORDER BY m DESC`)
+    prisma.$queryRawUnsafe(`SELECT DISTINCT to_char("generatedDate", 'YYYY-MM') AS m FROM "Invoice" ORDER BY m DESC`),
+    prisma.invoice.findMany({ where, orderBy: { id: 'desc' }, skip, take: pageSize, include: invoiceInclude }),
+    prisma.invoice.count({ where })
   ]);
   const stats = {
     total,
@@ -161,11 +167,6 @@ async function listInvoices(query) {
     outstandingByCurrency: Object.fromEntries(outstanding.map((r) => [r.currency, r._sum.total || 0]))
   };
 
-  const where = and(base, invoiceStatusWhere(query.status ? String(query.status) : ''));
-  const [rows, listTotal] = await Promise.all([
-    prisma.invoice.findMany({ where, orderBy: { id: 'desc' }, skip, take: pageSize, include: invoiceInclude }),
-    prisma.invoice.count({ where })
-  ]);
   return { items: rows.map(serializeInvoice), total: listTotal, page, pageSize, stats, months: monthRows.map((r) => r.m) };
 }
 
@@ -191,20 +192,6 @@ async function listCustomers(query, user) {
     createdTo ? { createdAt: { lt: createdTo } } : null
   );
 
-  // Dropdown options come from the whole (scoped) customer list, not the
-  // filtered one, so picking a filter never empties its own dropdown.
-  const [total, active, freeTrial, countryRows, salespersonRows, salespersonCount, allCount] = await Promise.all([
-    prisma.customer.count({ where: base }),
-    prisma.customer.count({ where: and(base, activeWhere()) }),
-    prisma.customer.count({ where: and(base, { status: 'Free Trial' }) }),
-    prisma.customer.findMany({ where: scope || {}, distinct: ['country'], select: { country: true }, orderBy: { country: 'asc' } }),
-    prisma.customer.findMany({ where: and(scope, { salespersonId: { not: null } }), distinct: ['salespersonId'], select: { salesperson: { select: { name: true } } } }),
-    salesperson ? prisma.customer.count({ where: and(scope, { salesperson: { name: salesperson } }) }) : 0,
-    // Unfiltered total for the page subtitle ("76 profiles listed").
-    prisma.customer.count({ where: scope || {} })
-  ]);
-  const stats = { total, active, inactive: total - active, freeTrial };
-
   let statusWhere = null;
   if (query.status === 'Active') statusWhere = activeWhere();
   if (query.status === 'Inactive') {
@@ -216,7 +203,19 @@ async function listCustomers(query, user) {
     );
   }
   const where = and(base, statusWhere);
-  const [rows, listTotal] = await Promise.all([
+
+  // Dropdown options come from the whole (scoped) customer list, not the
+  // filtered one, so picking a filter never empties its own dropdown.
+  // Everything runs in parallel — one database round trip.
+  const [total, active, freeTrial, countryRows, salespersonRows, salespersonCount, allCount, rows, listTotal] = await Promise.all([
+    prisma.customer.count({ where: base }),
+    prisma.customer.count({ where: and(base, activeWhere()) }),
+    prisma.customer.count({ where: and(base, { status: 'Free Trial' }) }),
+    prisma.customer.findMany({ where: scope || {}, distinct: ['country'], select: { country: true }, orderBy: { country: 'asc' } }),
+    prisma.customer.findMany({ where: and(scope, { salespersonId: { not: null } }), distinct: ['salespersonId'], select: { salesperson: { select: { name: true } } } }),
+    salesperson ? prisma.customer.count({ where: and(scope, { salesperson: { name: salesperson } }) }) : 0,
+    // Unfiltered total for the page subtitle ("76 profiles listed").
+    prisma.customer.count({ where: scope || {} }),
     prisma.customer.findMany({
       where,
       orderBy: { id: 'asc' },
@@ -226,6 +225,8 @@ async function listCustomers(query, user) {
     }),
     prisma.customer.count({ where })
   ]);
+  const stats = { total, active, inactive: total - active, freeTrial };
+
   return {
     items: rows.map((c) => ({ ...serializeCustomer(c), active: c.orders.length > 0 })),
     total: listTotal,
@@ -241,4 +242,4 @@ async function listCustomers(query, user) {
   };
 }
 
-module.exports = { listOrders, listInvoices, listCustomers };
+module.exports = { listOrders, listInvoices, listCustomers, searchIds };

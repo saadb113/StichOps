@@ -9,6 +9,7 @@ const { createOrderSchema, updateOrderSchema, commentSchema } = require('../sche
 const { parseDateOnly, today } = require('../lib/date');
 const { getDefaultCurrency } = require('../lib/currency');
 const { listOrders } = require('../lib/listQueries');
+const { pendingOrderCount } = require('../lib/summaries');
 
 const router = express.Router();
 
@@ -27,6 +28,11 @@ async function loadOrderOr404(id, res) {
   if (!order) { res.status(404).json({ error: 'Order not found.' }); return null; }
   return order;
 }
+
+// Sidebar badge: Pending + Rush orders (a salesperson's own only).
+router.get('/pending-count', requireAuth, asyncHandler(async (req, res) => {
+  res.json({ count: await pendingOrderCount(req.user) });
+}));
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   // ?page=… → one page + summary counts (Orders screen); otherwise the full list.

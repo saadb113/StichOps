@@ -21,6 +21,7 @@ const metaRoutes = require('./routes/meta');
 const notificationRoutes = require('./routes/notifications');
 const expenseRoutes = require('./routes/expenses');
 const systemDataRoutes = require('./routes/systemData');
+const searchRoutes = require('./routes/search');
 const { UPLOAD_DIR } = require('./lib/upload');
 
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/meta', metaRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/system-data', systemDataRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api', searchRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

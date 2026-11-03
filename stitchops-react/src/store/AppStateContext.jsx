@@ -75,6 +75,14 @@ export function AppStateProvider({ children }) {
   const setCustomers = tracked(setCustomersRaw);
   const setInvoices = tracked(setInvoicesRaw);
 
+  // Pending + Rush orders for the sidebar badge — counted on the server and
+  // refreshed whenever orders change, instead of scanning every order here.
+  const [pendingOrderCount, setPendingOrderCount] = useState(0);
+  useEffect(() => {
+    if (!currentUser) { setPendingOrderCount(0); return; }
+    api.get('/orders/pending-count').then((r) => setPendingOrderCount(r.count)).catch(() => {});
+  }, [currentUser, listVersion]);
+
   // Counter, not a boolean: overlapping loads must not mark loading as done
   // while another is still filling in data.
   const activeLoads = useRef(0);
@@ -607,6 +615,7 @@ export function AppStateProvider({ children }) {
     authLoading,
     dataLoading,
     listVersion,
+    pendingOrderCount,
     // data
     customers, orders, invoices, payslips, employees, designers, employeeCategories,
     company, companyEmails, bankAccounts, currencyRates, nextInvoiceNo, nextCustomerCode, passwordResetRequests,

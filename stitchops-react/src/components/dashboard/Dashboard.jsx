@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/AppStateContext';
 import { useUi } from '../../store/UiContext';
-import { fmt, isActive, paymentBadge, convertToDefault } from '../../lib/helpers';
+import { fmt, paymentBadge, convertToDefault } from '../../lib/helpers';
+import { api } from '../../lib/api';
 import { TODAY, SYM } from '../../lib/constants';
 import OrderFormModal from '../orders/OrderFormModal';
 import ConfirmDeleteOrderModal from '../orders/ConfirmDeleteOrderModal';
@@ -47,7 +48,7 @@ function elgStatusClass(status) {
 }
 
 export default function Dashboard() {
-  const { dataLoading, customers, orders, employees, invoices, passwordResetRequests, company, currencyRates, getCustomer } = useAppState();
+  const { employees, passwordResetRequests, company, currencyRates, listVersion } = useAppState();
   const { openModal } = useUi();
   const navigate = useNavigate();
   const [from, setFrom] = useState(TODAY);
@@ -64,16 +65,30 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const todaysOrders = orders.filter((o) => o.date >= from && o.date <= (to || refDate));
-  const activeCount = customers.filter((c) => isActive(orders, c, refDate)).length;
-  const pendingReview = orders.filter((o) => !o.invoiced && o.status === 'Completed').length;
+  // Counts, income per currency, overdue invoices and the latest orders come
+  // from one small server summary — no need for every order in the browser.
+  const [summary, setSummary] = useState(null);
+  const summarySeq = useRef(0);
+  useEffect(() => {
+    const seq = ++summarySeq.current;
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    api.get(`/dashboard/summary?${params.toString()}`)
+      .then((r) => { if (seq === summarySeq.current) setSummary(r); })
+      .catch(() => {});
+  }, [from, to, listVersion]);
+  const loading = !summary;
+  const activeCount = summary?.activeCustomers ?? 0;
+  const totalCustomers = summary?.totalCustomers ?? 0;
+  const rangeOrderCount = summary?.rangeOrders ?? 0;
+  const pendingReview = summary?.readyToInvoice ?? 0;
 
   const monthPrefix = refDate.slice(0, 7); // 'YYYY-MM' of the range's end date
   const monthName = new Date(monthPrefix + '-01').toLocaleDateString('en-US', { month: 'long' });
 
   const defaultCcy = company?.defaultCurrency || 'PKR';
-  const rangeTotals = {};
-  todaysOrders.forEach((o) => { rangeTotals[o.currency] = (rangeTotals[o.currency] || 0) + o.price; });
+  const rangeTotals = summary?.rangeTotals ?? {};
   let totalIncomeConverted = 0;
   let totalIncomeUnknown = false;
   Object.entries(rangeTotals).forEach(([cc, v]) => {
@@ -89,9 +104,9 @@ export default function Dashboard() {
     const diff = (d - today) / 86400000;
     return diff >= 0 && diff <= 3;
   });
-  const overdueInvoices = invoices.filter((i) => i.status === 'approved' && i.paymentStatus !== 'Completed' && paymentBadge(i).cls === 'b-unpaid');
+  const overdueInvoices = summary?.overdueInvoices ?? [];
 
-  const recent = orders.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+  const recent = summary?.recentOrders ?? [];
 
   return (
     <div className="elg-page">
@@ -109,7 +124,7 @@ export default function Dashboard() {
       {overdueInvoices.length > 0 && (
         <div className="elg-flag danger">
           <WarningIcon />
-          <div>{overdueInvoices.map((i) => (<span key={i.id}><strong>{getCustomer(i.customerId).company}</strong>'s invoice {i.invoiceNo} is unpaid ({paymentBadge(i).label.replace('Unpaid — ', '')} overdue). </span>))}</div>
+          <div>{overdueInvoices.map((i) => (<span key={i.id}><strong>{i.customerCompany}</strong>'s invoice {i.invoiceNo} is unpaid ({paymentBadge(i).label.replace('Unpaid — ', '')} overdue). </span>))}</div>
         </div>
       )}
       {passwordResetRequests.length > 0 && (
@@ -121,15 +136,15 @@ export default function Dashboard() {
       )}
 
       <div className="elg-metric-grid">
-        {dataLoading ? (<SkeletonMetricCards labels={['Active Customers', "Today's Orders", 'Ready to Invoice', 'Total Income']} subs={[null, 'Across all currencies', 'Completed to send customers', null]} />) : (<>
+        {loading ? (<SkeletonMetricCards labels={['Active Customers', "Today's Orders", 'Ready to Invoice', 'Total Income']} subs={[null, 'Across all currencies', 'Completed to send customers', null]} />) : (<>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Active Customers</span><span className="elg-metric-icon"><img src="/images/active-customer.svg"   alt="" /></span></div>
           <div className="elg-metric-value">{activeCount}</div>
-          <div className="elg-metric-sub">Of {customers.length} total</div>
+          <div className="elg-metric-sub">Of {totalCustomers} total</div>
         </div>
         <div className="elg-metric-card">
           <div className="elg-metric-head"><span className="elg-metric-label">Today's Orders</span><span className="elg-metric-icon"><img src="/images/todays-order.svg" alt="" /></span></div>
-          <div className="elg-metric-value">{todaysOrders.length}</div>
+          <div className="elg-metric-value">{rangeOrderCount}</div>
           <div className="elg-metric-sub">Across all currencies</div>
         </div>
         <div className="elg-metric-card">
@@ -155,10 +170,9 @@ export default function Dashboard() {
           <button className="elg-btn elg-view-all-btn" style={{ width: 'auto' }} onClick={() => navigate('/orders')}>View All</button>
         </div>
         <div className="elg-mobile-cards">
-          {dataLoading ? (<SkeletonMobileCards count={3} />) : (<>
+          {loading ? (<SkeletonMobileCards count={3} />) : (<>
           {recent.length === 0 && <div className="elg-empty">No orders yet.</div>}
           {recent.map((o) => {
-            const c = getCustomer(o.customerId);
             return (
               <div key={o.id} className="elg-mobile-card">
                 <div className="elg-mobile-card-head" onClick={() => navigate(`/customers/${o.customerId}`)}>
@@ -177,7 +191,7 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
-                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? `${c.company} · ${c.name}` : '—'}</div>
+                <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{o.customerCompany ? `${o.customerCompany} · ${o.customerName}` : '—'}</div>
                 <div className="elg-mobile-card-foot">
                   <span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span>
                   <span className="elg-mobile-card-price">{SYM[o.currency]}{o.price.toFixed(2)}</span>
@@ -191,14 +205,13 @@ export default function Dashboard() {
           <table className="elg-table">
             <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Currency</th><th>Price</th><th>Action</th></tr></thead>
             <tbody>
-              {dataLoading ? (<SkeletonRows cols={6} rows={7} />) : (<>
+              {loading ? (<SkeletonRows cols={6} rows={7} />) : (<>
               {recent.length === 0 && <tr><td colSpan={6} className="elg-empty">No orders yet.</td></tr>}
               {recent.map((o) => {
-                const c = getCustomer(o.customerId);
-                return (
+                    return (
                   <tr key={o.id} className="clickable">
                     <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
-                    <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? `${c.company} · ${c.name}` : '—'}</td>
+                    <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.customerCompany ? `${o.customerCompany} · ${o.customerName}` : '—'}</td>
                     <td><span className={`elg-badge ${elgStatusClass(o.status)}`}>{o.status}</span></td>
                     <td>{o.currency}</td>
                     <td>{o.price.toFixed(2)}</td>

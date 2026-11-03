@@ -48,11 +48,10 @@ function MoreIcon({ active }) {
 // the self-service nav (Salesperson/Designer/other team) fits entirely in
 // 2-3 tabs already, so there's nothing left to put behind "More".
 export default function MobileBottomNav({ menuOpen, onToggleMenu }) {
-  const { isAdmin, isSalesperson, orders, passwordResetRequests, employees, newCustomerCount } = useAppState();
+  const { isAdmin, isSalesperson, pendingOrderCount, passwordResetRequests, employees, newCustomerCount } = useAppState();
 
   const tabs = isAdmin ? ADMIN_TABS : (isSalesperson ? SALES_TABS : EMPLOYEE_TABS);
 
-  const pendingOrderCount = orders.filter((o) => o.status === 'Pending' || o.status === 'Rush').length;
   const badges = { '/orders': pendingOrderCount };
 
   const todayDate = new Date().getDate();

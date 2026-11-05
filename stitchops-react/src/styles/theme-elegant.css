@@ -329,6 +329,12 @@ select::-ms-expand {
   background: var(--elg-page-bg);
 }
 
+.elg-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .elg-btn-primary {
   background: var(--elg-primary);
   border-color: var(--elg-primary);

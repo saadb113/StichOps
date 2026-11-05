@@ -149,9 +149,19 @@ const IMPORT_FIELDS = {
     { key: 'date', label: 'Order Date', required: true, aliases: ['order date', 'created'] },
     { key: 'price', label: 'Price', required: true, aliases: ['amount', 'order price', 'value'] },
     { key: 'currency', label: 'Currency', required: true, aliases: ['ccy'] },
+    // A hand-kept log sometimes has one column per currency instead of a
+    // single Price + Currency pair (e.g. separate USD/GBP/AUD columns, with
+    // "-" in the ones that don't apply to that row) — map whichever of these
+    // actually has the row's amount, and Price/Currency are filled in from
+    // it automatically.
+    { key: 'priceUSD', label: 'Price (USD column)', aliases: ['usd'] },
+    { key: 'priceGBP', label: 'Price (GBP column)', aliases: ['gbp'] },
+    { key: 'priceAUD', label: 'Price (AUD column)', aliases: ['aud'] },
+    { key: 'priceEUR', label: 'Price (EUR column)', aliases: ['eur'] },
+    { key: 'pricePKR', label: 'Price (PKR column)', aliases: ['pkr'] },
     { key: 'designerId', label: 'Designer ID', required: 'designer' },
     { key: 'designerName', label: 'Designer (name)', lookup: 'employee', target: 'designerId', aliases: ['designer', 'designer name'] },
-    { key: 'productionCost', label: 'Production Cost', aliases: ['cost', 'production'] },
+    { key: 'productionCost', label: 'Production Cost', aliases: ['cost', 'production', 'payment'] },
     { key: 'productionCostCurrency', label: 'Production Cost Currency' },
     { key: 'commissionRate', label: 'Commission Rate (%)', aliases: ['commission'] },
     { key: 'status', label: 'Status', aliases: ['order status'] },

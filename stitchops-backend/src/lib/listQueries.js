@@ -91,13 +91,17 @@ async function listOrders(query, user, { all = false } = {}) {
   const scope = user.role === 'SALESPERSON' ? { customer: { salespersonId: user.employeeId } } : null;
   const ids = await searchIds('orders', query.search);
 
-  // Rush/Pending orders stay visible whatever the date range (the sidebar
-  // badge counts them, so the list must never hide them).
+  // The sidebar's Orders badge counts Rush/Pending orders on its own, via
+  // /orders/pending-count (unfiltered), so this list can filter strictly by
+  // date without needing to keep them visible outside the selected range.
   const base = and(
     scope,
+    // A designer's profile page reuses this same list, scoped to just the
+    // orders assigned to them (mirrors a salesperson's Customers tab).
+    query.designerId ? { designerId: Number(query.designerId) } : null,
     query.currency ? { currency: String(query.currency) } : null,
-    validDate(query.from) ? { OR: [{ date: { gte: parseDateOnly(query.from) } }, { status: { in: NEEDS_ATTENTION } }] } : null,
-    validDate(query.to) ? { OR: [{ date: { lte: parseDateOnly(query.to) } }, { status: { in: NEEDS_ATTENTION } }] } : null,
+    validDate(query.from) ? { date: { gte: parseDateOnly(query.from) } } : null,
+    validDate(query.to) ? { date: { lte: parseDateOnly(query.to) } } : null,
     ids ? { id: { in: ids } } : null
   );
 

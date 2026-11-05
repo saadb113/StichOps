@@ -30,13 +30,30 @@ function readWorkbook(buffer) {
   return XLSX.read(buffer, { cellDates: false, raw: false });
 }
 
-function sheetRows(sheet) {
-  return XLSX.utils.sheet_to_json(sheet, { defval: null, raw: true });
+// A hand-kept monthly log (see Sample.xlsx) often has a title row above the
+// real header row ("Month Of September", then a blank row, then Date/Name/
+// Email/...), instead of headers on row 1. The real header row is the first
+// one with more than one non-empty cell — a title is a single merged cell,
+// same for any other blank/spacer rows above it.
+function findHeaderRowIndex(rawRows) {
+  const idx = rawRows.findIndex((r) => r.filter((c) => c != null && String(c).trim() !== '').length > 1);
+  return idx >= 0 ? idx : 0;
 }
 
-function sheetHeaders(sheet) {
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, blankrows: false });
-  return (rows[0] || []).map((h) => (h == null ? '' : String(h).trim())).filter(Boolean);
+// Parses a sheet's header row and data rows together so both always agree on
+// which row the headers actually are, however far down the sheet they start.
+function parseSheet(sheet) {
+  const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, blankrows: false, raw: true });
+  const headerIdx = findHeaderRowIndex(raw);
+  const headerRow = (raw[headerIdx] || []).map((h) => (h == null ? '' : String(h).trim()));
+  const rows = raw.slice(headerIdx + 1)
+    .filter((r) => r.some((c) => c != null && String(c).trim() !== ''))
+    .map((r) => {
+      const obj = {};
+      headerRow.forEach((h, i) => { if (h) obj[h] = r[i] === undefined ? null : r[i]; });
+      return obj;
+    });
+  return { headers: headerRow.filter(Boolean), rows };
 }
 
 function findSheetForModel(workbook, modelKey) {
@@ -64,8 +81,7 @@ function previewFile(modelKey, buffer) {
   assertImportable(modelKey);
   const workbook = readWorkbook(buffer);
   const sheet = workbook.Sheets[findSheetForModel(workbook, modelKey)];
-  const headers = sheetHeaders(sheet);
-  const rows = sheetRows(sheet);
+  const { headers, rows } = parseSheet(sheet);
   return {
     headers,
     rowCount: rows.length,
@@ -150,6 +166,10 @@ async function autoCreateCustomer(rawName, currency, lookups) {
   return created.id;
 }
 
+// Per-currency columns (see IMPORT_FIELDS.orders) — a cell that's blank or a
+// dash means that currency doesn't apply to this row.
+const CURRENCY_PRICE_FIELDS = { priceUSD: 'USD', priceGBP: 'GBP', priceAUD: 'AUD', priceEUR: 'EUR', pricePKR: 'PKR' };
+
 async function upsertRow(modelKey, rawRow, lookups) {
   const model = MODELS[modelKey];
   const prismaModel = prisma[model.prismaModel];
@@ -157,11 +177,22 @@ async function upsertRow(modelKey, rawRow, lookups) {
   const data = {};
 
   for (const f of fields) {
-    if (f.key === 'id' || f.lookup) continue;
+    if (f.key === 'id' || f.lookup || CURRENCY_PRICE_FIELDS[f.key]) continue;
     const raw = rawRow[f.key];
     if (raw === undefined || raw === null || raw === '') continue;
     const v = coerce(f.key, raw);
     if (v !== null) data[f.key] = v;
+  }
+
+  if (modelKey === 'orders' && data.price == null) {
+    for (const [key, ccy] of Object.entries(CURRENCY_PRICE_FIELDS)) {
+      const raw = rawRow[key];
+      if (raw === undefined || raw === null) continue;
+      const s = String(raw).trim();
+      if (!s || s === '-') continue;
+      const n = Number(s.replace(/,/g, ''));
+      if (!Number.isNaN(n)) { data.price = n; data.currency = ccy; break; }
+    }
   }
 
   for (const f of fields.filter((x) => x.lookup)) {
@@ -275,7 +306,7 @@ async function importModel(modelKey, buffer, mapping) {
   assertImportable(modelKey);
   const workbook = readWorkbook(buffer);
   const sheet = workbook.Sheets[findSheetForModel(workbook, modelKey)];
-  return importRows(modelKey, sheetRows(sheet), mapping);
+  return importRows(modelKey, parseSheet(sheet).rows, mapping);
 }
 
 async function importWorkbook(buffer) {
@@ -286,7 +317,7 @@ async function importWorkbook(buffer) {
     const wanted = [modelKey.toLowerCase(), model.label.toLowerCase()];
     const sheetName = workbook.SheetNames.find((n) => wanted.includes(n.toLowerCase()));
     if (!sheetName) continue;
-    results[modelKey] = await importRows(modelKey, sheetRows(workbook.Sheets[sheetName]), null);
+    results[modelKey] = await importRows(modelKey, parseSheet(workbook.Sheets[sheetName]).rows, null);
   }
   return results;
 }

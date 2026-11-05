@@ -14,9 +14,15 @@ export const IMPORT_PAGES = {
 const ACCEPT = '.xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const STEPS = ['Upload File', 'Map Columns', 'Results'];
 
-// A required ID field is satisfied by mapping either the ID column or its
-// name-lookup alternative (e.g. Customer ID *or* Customer company name).
-const ALTERNATIVES = { customerId: 'customerName', designerId: 'designerName' };
+// A required field is satisfied by mapping either the field itself or one of
+// its alternatives (e.g. Customer ID *or* Customer company name; Price/
+// Currency *or* any one of the per-currency columns on a hand-kept sheet).
+const ALTERNATIVES = {
+  customerId: ['customerName'],
+  designerId: ['designerName'],
+  price: ['priceUSD', 'priceGBP', 'priceAUD', 'priceEUR', 'pricePKR'],
+  currency: ['priceUSD', 'priceGBP', 'priceAUD', 'priceEUR', 'pricePKR']
+};
 
 function showSample(v) {
   if (v === null || v === undefined || v === '') return '—';
@@ -77,7 +83,7 @@ export default function ImportDataPage() {
   const used = new Set(Object.values(mapping).filter(Boolean));
   const missing = preview
     ? preview.fields
-      .filter((f) => f.required && !used.has(f.key) && !(ALTERNATIVES[f.key] && used.has(ALTERNATIVES[f.key])))
+      .filter((f) => f.required && !used.has(f.key) && !(ALTERNATIVES[f.key] || []).some((alt) => used.has(alt)))
       .map((f) => f.label.replace(' ID', ''))
     : [];
 

@@ -11,8 +11,9 @@ import EarningsTab from './EarningsTab';
 import SlipDraftTab from './SlipDraftTab';
 import SlipHistoryTab from './SlipHistoryTab';
 import EmployeeCustomersTab from './EmployeeCustomersTab';
+import EmployeeOrdersTab from './EmployeeOrdersTab';
 import Avatar from '../common/Avatar';
-import { ArrowLeftIcon, KeyIcon, TrashIcon, DocIcon, KebabIcon, PlusIcon } from '../icons/Icon';
+import { ArrowLeftIcon, KeyIcon, TrashIcon, DocIcon, KebabIcon, PlusIcon, BagIcon } from '../icons/Icon';
 import { ProfileSkeleton } from '../common/Skeleton';
 import ScopedData from '../../store/ScopedData';
 
@@ -23,10 +24,11 @@ function EmployeeProfile() {
   const defaultCurrency = company?.defaultCurrency || 'PKR';
   const { openModal, toast } = useUi();
   const navigate = useNavigate();
-  // A salesperson's profile opens straight to their customer book — that's
-  // the thing admin is usually here to check — everyone else still opens to
-  // Earnings/Slip as before.
-  const [tab, setTab] = useState(getEmployee(id)?.role === 'Salesperson' ? 'customers' : 'earnings');
+  // A salesperson's profile opens straight to their customer book, and a
+  // designer's straight to their order queue — that's the thing admin is
+  // usually here to check — everyone else still opens to Earnings/Slip.
+  const initialRole = getEmployee(id)?.role;
+  const [tab, setTab] = useState(initialRole === 'Salesperson' ? 'customers' : initialRole === 'Designer' ? 'orders' : 'earnings');
   const [showAllEmails, setShowAllEmails] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileView, setMobileView] = useState('content');
@@ -96,10 +98,12 @@ function EmployeeProfile() {
   // Earnings only makes sense for the two default teams — a custom team
   // (e.g. Accountants) only ever gets a flat Salary Slip / Slip History.
   const hasEarningsTab = e.role === 'Salesperson' || e.role === 'Designer';
-  // Only a salesperson owns customers.
+  // Only a salesperson owns customers; only a designer has orders of their own.
   const hasCustomersTab = e.role === 'Salesperson';
+  const hasOrdersTab = e.role === 'Designer';
   let effectiveTab = hasEarningsTab ? tab : (tab === 'earnings' ? 'slip' : tab);
   if (effectiveTab === 'customers' && !hasCustomersTab) effectiveTab = hasEarningsTab ? 'earnings' : 'slip';
+  if (effectiveTab === 'orders' && !hasOrdersTab) effectiveTab = hasEarningsTab ? 'earnings' : 'slip';
 
   return (
     <div className="elg-page">
@@ -226,6 +230,12 @@ function EmployeeProfile() {
                 Customers
               </div>
             )}
+            {hasOrdersTab && (
+              <div className={`elg-tab ${effectiveTab === 'orders' ? 'active' : ''}`} onClick={() => setTab('orders')}>
+                <BagIcon width={16} height={16} style={{ color: effectiveTab === 'orders' ? 'white' : '#737373' }} />
+                Orders
+              </div>
+            )}
             {hasEarningsTab && (
               <div className={`elg-tab ${effectiveTab === 'earnings' ? 'active' : ''}`} onClick={() => setTab('earnings')}>
                 {effectiveTab === 'earnings' ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -256,6 +266,7 @@ function EmployeeProfile() {
           </div>
 
           {effectiveTab === 'customers' && <EmployeeCustomersTab employee={e} />}
+          {effectiveTab === 'orders' && <EmployeeOrdersTab employee={e} />}
           {effectiveTab === 'earnings' && <EarningsTab employee={e} orders={os} />}
           {effectiveTab === 'slip' && <SlipDraftTab employee={e} unpaidReady={unpaidReady} onApproved={() => setTab('history')} />}
           {effectiveTab === 'history' && <SlipHistoryTab employee={e} />}

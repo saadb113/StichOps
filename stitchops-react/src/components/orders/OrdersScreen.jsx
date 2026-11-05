@@ -190,6 +190,7 @@ export default function OrdersScreen() {
                 </div>
               </div>
               <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{c ? `${c.company} · ${c.name}` : '—'}</div>
+              <div className="elg-mobile-card-row"><PersonIcon width={14} height={14} />{o.designer || '—'}</div>
               <div className="elg-mobile-card-foot">
                 <span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span>
                 <span className="elg-mobile-card-price">{SYM[o.currency]}{o.price.toFixed(2)}</span>
@@ -208,10 +209,10 @@ export default function OrdersScreen() {
 
       <div className={`elg-panel elg-table-wrap ${refreshing ? 'elg-list-refreshing' : ''}`}>
         <table className="elg-table">
-          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Status</th><th>Currency</th><th>Price</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Order</th><th>Designer</th><th>Status</th><th>Currency</th><th>Price</th><th>Actions</th></tr></thead>
           <tbody>
-            {initialLoading ? (<SkeletonRows cols={7} />) : (<>
-            {total === 0 && <tr><td colSpan={7} className="elg-empty">No orders match these filters.</td></tr>}
+            {initialLoading ? (<SkeletonRows cols={8} />) : (<>
+            {total === 0 && <tr><td colSpan={8} className="elg-empty">No orders match these filters.</td></tr>}
             {pager.pageItems.map((o) => {
               const c = getCustomer(o.customerId);
               return (
@@ -219,6 +220,7 @@ export default function OrdersScreen() {
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{formatDate(o.date)}</td>
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{c ? `${c.company} · ${c.name}` : '—'}</td>
                   <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.name}</td>
+                  <td onClick={() => navigate(`/customers/${o.customerId}`)}>{o.designer || '—'}</td>
                   <td><span className={`elg-badge clickable ${elgStatusClass(o.status)}`} onClick={() => cycleStatus(o)} title="Click to advance status">{o.status}</span></td>
                   <td>{o.currency} {SYM[o.currency]}</td>
                   <td>{o.price.toFixed(2)}</td>

@@ -267,9 +267,9 @@ export default function OrderFormModal({ customerId = null, order = null, allowC
                 <div className="elg-info-row"><span className="k">Country</span><span className="v">{cust.country}</span></div>
                 <div className="elg-info-row"><span className="k">Currency</span><span className="v">{cust.currency}</span></div>
                 <div className="elg-info-row"><span className="k">Salesperson</span><span className="v">{cust.salesperson || '—'}</span></div>
-                <div className="elg-info-row" style={{ alignItems: 'flex-start', gap: 16 }}>
+                <div className="elg-info-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}>
                   <span className="k">Notes</span>
-                  <span className="v" style={{ whiteSpace: 'pre-wrap', textAlign: 'right' }}>{cust.notes || '—'}</span>
+                  <span className="v" style={{ whiteSpace: 'pre-wrap', textAlign: 'left', wordBreak: 'break-word' }}>{cust.notes || '—'}</span>
                 </div>
               </div>
             )}

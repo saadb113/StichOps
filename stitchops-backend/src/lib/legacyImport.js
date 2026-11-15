@@ -17,6 +17,7 @@ const prisma = require('./prisma');
 const { generateInvoicePrefix } = require('./invoiceNumber');
 const { generateSlipPrefix } = require('./slipNumber');
 const { getDefaultCurrency } = require('./currency');
+const { promoteCustomersWithOrders } = require('./dataImport');
 
 const CURRENCIES = ['USD', 'GBP', 'AUD', 'EUR'];
 const CURRENCY_COUNTRY = { GBP: 'United Kingdom', USD: 'United States', AUD: 'Australia', EUR: 'Europe' };
@@ -293,7 +294,8 @@ function describeGroup(rows, index) {
     otherEmails: emails.slice(1),
     country,
     currency: currency || Object.entries(CURRENCY_COUNTRY).find(([, c]) => c === country)?.[0] || 'USD',
-    customerType: rows.some((r) => !r.freeTrial && r.price > 0) ? 'Paid' : 'Free Trial',
+    // Old, already-billed history — every imported customer is a paying one.
+    customerType: 'Paid',
     variants: [...new Set(rows.map((r) => [r.customer.rawName, r.customer.email || r.customer.company].filter(Boolean).join(' · ')))],
     rows: rows.map((r) => `${r.sheet}!${r.row}`),
     orderCount: rows.length
@@ -492,6 +494,8 @@ async function runImport(buffer, fileName, options = {}, decisions = {}) {
       });
     }
     if (toCreate.length) await tx.order.createMany({ data: toCreate });
+    // Linked existing customers with orders become Paid too.
+    await promoteCustomersWithOrders(tx);
 
     const summary = { orders: toCreate.length, duplicates, skipped: skipped.length, ...created, historical };
     await tx.importBatch.update({ where: { id: batch.id }, data: { summary } });

@@ -282,6 +282,16 @@ async function bumpCustomerCodeCounter() {
   }
 }
 
+// Imports are old, already-billed history, so any customer with an order
+// is a paying customer, not a free trial. `db` may be a transaction client.
+async function promoteCustomersWithOrders(db = prisma) {
+  const { count } = await db.customer.updateMany({
+    where: { status: 'Free Trial', orders: { some: {} } },
+    data: { status: 'Paid' }
+  });
+  return count;
+}
+
 async function importRows(modelKey, jsonRows, mapping) {
   const result = { created: 0, updated: 0, merged: 0, skipped: 0, errors: [] };
   const lookups = await buildLookups();
@@ -299,6 +309,7 @@ async function importRows(modelKey, jsonRows, mapping) {
   }
   await resetSequence(modelKey);
   if (modelKey === 'customers') await bumpCustomerCodeCounter();
+  if (modelKey === 'orders' || modelKey === 'customers') await promoteCustomersWithOrders();
   return result;
 }
 
@@ -330,4 +341,4 @@ function isOwnExport(buffer) {
   return IMPORT_ORDER.some((key) => names.includes(key.toLowerCase()) || names.includes(MODELS[key].label.toLowerCase()));
 }
 
-module.exports = { importModel, importWorkbook, previewFile, isOwnExport };
+module.exports = { importModel, importWorkbook, previewFile, isOwnExport, promoteCustomersWithOrders };

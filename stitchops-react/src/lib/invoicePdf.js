@@ -1,4 +1,4 @@
-import { fmt, coveredMonthLabel, bankAccountLines } from './helpers';
+import { fmt, invoicePeriodLabel, bankAccountLines } from './helpers';
 import { renderTemplateToPdf } from './htmlToPdf';
 
 function escapeHtml(s) {
@@ -27,7 +27,7 @@ export async function downloadInvoicePdf({ invoice, customer, company, orders, b
     templatePath: '/pdf-templates/invoice.html',
     rootSelector: '.invoice-doc',
     singlePage: true,
-    filename: `${invoice.invoiceNo}-${coveredMonthLabel(invoice.generatedDate).replace('Month of ', '')}.pdf`,
+    filename: `${invoice.invoiceNo}-${invoicePeriodLabel(orders, invoice.generatedDate).replace('Month of ', '')}.pdf`,
     populate: (root) => {
       const set = (field, value) => {
         const el = root.querySelector(`[data-field="${field}"]`);
@@ -36,7 +36,7 @@ export async function downloadInvoicePdf({ invoice, customer, company, orders, b
 
       const invoiceLabel = invoice.invoiceNo + (invoice.version > 1 ? ` (v${invoice.version})` : '');
       set('doc-no', `# ${invoiceLabel}`);
-      set('period', coveredMonthLabel(invoice.generatedDate));
+      set('period', invoicePeriodLabel(orders, invoice.generatedDate));
 
       const addrEl = root.querySelector('[data-field="company-address"]');
       if (addrEl) {

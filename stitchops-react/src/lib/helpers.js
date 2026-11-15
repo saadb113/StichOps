@@ -214,6 +214,19 @@ export function coveredMonthLabel(dateStr) {
   return `Month of ${prev.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })}`;
 }
 
+// An invoice's period comes from its orders' own dates — November orders
+// are "Month of November" whether the invoice was made on 1 December by the
+// monthly run or by hand mid-November. Orders spanning months show a range
+// ("Month of October – November"). Falls back to the generated date.
+export function invoicePeriodLabel(orders, generatedDate) {
+  const months = [...new Set((orders || []).map((o) => String(o.date || '').slice(0, 7)).filter((m) => /^\d{4}-\d{2}$/.test(m)))].sort();
+  if (!months.length) return coveredMonthLabel(generatedDate);
+  const name = (ym) => new Date(`${ym}-01T00:00:00.000Z`).toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  const first = name(months[0]);
+  const last = name(months[months.length - 1]);
+  return `Month of ${first === last ? first : `${first} – ${last}`}`;
+}
+
 // Which fields matter for a bank account depends on its country (see
 // BANK_COUNTRIES) — this builds the {label, value} lines to display for
 // wherever an account's details are shown (invoice payment box, etc.),
